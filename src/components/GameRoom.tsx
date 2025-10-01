@@ -101,7 +101,7 @@ export default function GameRoom({ roomCode, playerName, isHost, onLeave }: Game
   const isDiscussionPhase = room.gameState === "discussion";
   const hasSharedWord = currentPlayer?.hasSharedWord || false;
 
-  // Calculate voting progress
+  // Calculate voting progress (only alive players)
   const playersWhoVoted = alivePlayers.filter((p: any) => p.votes.length > 0);
   const votingProgress = alivePlayers.length > 0 ? (playersWhoVoted.length / alivePlayers.length) * 100 : 0;
 
@@ -190,7 +190,7 @@ export default function GameRoom({ roomCode, playerName, isHost, onLeave }: Game
               <div className="mt-4 p-4 bg-gray-50 rounded-lg">
                 <div className="flex justify-between items-center mb-2">
                   <span className="text-sm font-medium text-gray-700">Progression du Vote</span>
-                  <span className="text-sm text-gray-600">{playersWhoVoted.length}/{alivePlayers.length} joueurs ont voté</span>
+                  <span className="text-sm text-gray-600">{playersWhoVoted.length}/{alivePlayers.length} joueurs vivants ont voté</span>
                 </div>
                 <div className="w-full bg-gray-200 rounded-full h-2">
                   <div
@@ -200,7 +200,12 @@ export default function GameRoom({ roomCode, playerName, isHost, onLeave }: Game
                 </div>
                 {votingProgress === 100 && (
                   <p className="text-sm text-green-600 mt-2 font-medium">
-                    ✅ Tous les joueurs ont voté - Traitement des résultats...
+                    ✅ Tous les joueurs vivants ont voté - Traitement des résultats...
+                  </p>
+                )}
+                {currentPlayer && currentPlayer.votes.length > 0 && (
+                  <p className="text-sm text-blue-600 mt-2">
+                    🗳️ Vous avez voté pour: {room.players.find((p: any) => p._id === currentPlayer.votes[0])?.name}
                   </p>
                 )}
               </div>
@@ -218,6 +223,22 @@ export default function GameRoom({ roomCode, playerName, isHost, onLeave }: Game
               <p className="text-blue-800 font-medium">
                 {isMyTurn ? "🎯 C'est votre tour de partager un mot" : `⏳ C'est au tour de ${currentTurnPlayer?.name || "quelqu'un"}`}
               </p>
+              {/* Show word sharing progress */}
+              <div className="mt-2">
+                <div className="flex justify-between items-center mb-1">
+                  <span className="text-sm text-blue-600">
+                    Progression: {room.players.filter((p: any) => p.isAlive && p.hasSharedWord).length}/{alivePlayers.length} joueurs vivants ont partagé leur mot
+                  </span>
+                </div>
+                <div className="w-full bg-gray-200 rounded-full h-2">
+                  <div
+                    className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                    style={{
+                      width: `${alivePlayers.length > 0 ? (room.players.filter((p: any) => p.isAlive && p.hasSharedWord).length / alivePlayers.length) * 100 : 0}%`
+                    }}
+                  ></div>
+                </div>
+              </div>
             </div>
 
             {!hasSharedWord ? (
@@ -307,7 +328,14 @@ export default function GameRoom({ roomCode, playerName, isHost, onLeave }: Game
                 </div>
                 {room.gameState !== "waiting" && (
                   <div className="text-sm text-gray-600 mt-1">
-                    {player.isAlive ? "Vivant" : "Éliminé"}
+                    {player.isAlive ? "Vivant" : "💀 Éliminé"}
+                  </div>
+                )}
+
+                {/* Show if player is skipped in current turn */}
+                {isDiscussionPhase && !player.isAlive && (
+                  <div className="text-xs text-gray-500 mt-1">
+                    ⏭️ Ignoré (mort)
                   </div>
                 )}
 
@@ -325,13 +353,25 @@ export default function GameRoom({ roomCode, playerName, isHost, onLeave }: Game
                   </div>
                 )}
 
+                {/* Show if current player has voted for this player */}
                 {isVotingPhase && player.isAlive && player.name !== playerName && (
-                  <button
-                    onClick={() => handleVote(player._id)}
-                    className="mt-2 w-full bg-red-600 text-white text-sm py-1 px-2 rounded hover:bg-red-700"
-                  >
-                    Voter Contre
-                  </button>
+                  <div className="mt-2">
+                    {currentPlayer?.votes.includes(player._id) ? (
+                      <button
+                        onClick={() => handleVote(player._id)}
+                        className="w-full bg-green-600 text-white text-sm py-1 px-2 rounded hover:bg-green-700"
+                      >
+                        ✅ Voté - Cliquer pour changer
+                      </button>
+                    ) : (
+                      <button
+                        onClick={() => handleVote(player._id)}
+                        className="w-full bg-red-600 text-white text-sm py-1 px-2 rounded hover:bg-red-700"
+                      >
+                        Voter Contre
+                      </button>
+                    )}
+                  </div>
                 )}
               </div>
               );

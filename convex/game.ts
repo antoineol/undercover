@@ -1,6 +1,5 @@
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
-import { Id } from "./_generated/dataModel";
 
 const WORD_PAIRS = [
   { civilian: "Médecin", undercover: "Infirmière" },
@@ -144,18 +143,37 @@ export const shareWord = mutation({
       hasSharedWord: true,
     });
 
-    // Move to next player
+    // Move to next alive player
     const alivePlayers = await ctx.db
       .query("players")
       .withIndex("by_room_alive", (q) => q.eq("roomId", player.roomId).eq("isAlive", true))
       .collect();
 
     const alivePlayerIds = alivePlayers.map(p => p._id);
-    const nextAlivePlayerIndex = room.playerOrder!.findIndex((id, index) =>
-      index > room.currentPlayerIndex! && alivePlayerIds.includes(id)
-    );
 
+    // Find next alive player in the order
+    let nextAlivePlayerIndex = -1;
+    for (let i = room.currentPlayerIndex! + 1; i < room.playerOrder!.length; i++) {
+      if (alivePlayerIds.includes(room.playerOrder![i])) {
+        nextAlivePlayerIndex = i;
+        break;
+      }
+    }
+
+    // If no next alive player found, check from the beginning
     if (nextAlivePlayerIndex === -1) {
+      for (let i = 0; i < room.currentPlayerIndex!; i++) {
+        if (alivePlayerIds.includes(room.playerOrder![i])) {
+          nextAlivePlayerIndex = i;
+          break;
+        }
+      }
+    }
+
+    // Check if all alive players have shared their words
+    const allAlivePlayersShared = alivePlayers.every(p => p.hasSharedWord === true);
+
+    if (allAlivePlayersShared || nextAlivePlayerIndex === -1) {
       // All players have shared their words, start voting
       await ctx.db.patch(player.roomId, {
         gameState: "voting",
@@ -189,7 +207,7 @@ export const resetWordSharing = mutation({
       await ctx.db.patch(player._id, {
         hasSharedWord: false,
         sharedWord: undefined,
-        votes: [],
+        votes: [], // Reset votes for new round
       });
     }
 
@@ -233,17 +251,20 @@ export const votePlayer = mutation({
       throw new Error("Players not in same room");
     }
 
-    // Update voter's votes (remove previous votes for this round)
-    const currentVotes = await Promise.all(
-      voter.votes.map(async (voteId) => {
-        const votedPlayer = await ctx.db.get(voteId);
-        return votedPlayer && votedPlayer.roomId === args.roomId ? voteId : null;
-      })
-    ).then(results => results.filter((voteId): voteId is Id<"players"> => voteId !== null));
+    // Check if voter has already voted in this round
+    const hasVoted = voter.votes.length > 0;
 
-    await ctx.db.patch(args.voterId, {
-      votes: [...currentVotes, args.targetId],
-    });
+    if (hasVoted) {
+      // Remove previous vote and add new vote (single vote per round)
+      await ctx.db.patch(args.voterId, {
+        votes: [args.targetId],
+      });
+    } else {
+      // Add first vote
+      await ctx.db.patch(args.voterId, {
+        votes: [args.targetId],
+      });
+    }
 
     // Check if all alive players have voted
     const allAlivePlayers = await ctx.db

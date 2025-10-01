@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useMutation, useQuery } from "convex/react";
-import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { api } from "../../../../convex/_generated/api";
 import GameRoom from "@/components/GameRoom";
@@ -16,68 +15,83 @@ export function RoomPageClient({ roomCode }: RoomPageClientProps) {
   const [isHost, setIsHost] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [joinError, setJoinError] = useState("");
-  const searchParams = useSearchParams();
 
   const room = useQuery(api.rooms.getRoom, { roomCode });
   const joinRoom = useMutation(api.rooms.joinRoom);
 
-  const handleJoinRoom = useCallback(async (name: string, isHostPlayer: boolean = false) => {
+  const handleJoinRoom = useCallback(async (name: string, isHostPlayer: boolean = false, sessionId?: string) => {
     try {
       setJoinError("");
-      await joinRoom({
+      const result = await joinRoom({
         roomCode,
         playerName: name,
+        sessionId: sessionId, // Pass sessionId for rejoining
         isHost: isHostPlayer
       });
 
-      // Save player data to localStorage
-      const playerData = { playerName: name, isHost: isHostPlayer };
-      localStorage.setItem(`player_${roomCode}`, JSON.stringify(playerData));
+      // Save player data to sessionStorage
+      const playerData = {
+        playerName: name,
+        isHost: isHostPlayer,
+        sessionId: result.sessionId
+      };
+      sessionStorage.setItem(`player_${roomCode}`, JSON.stringify(playerData));
 
       setPlayerName(name);
       setIsHost(isHostPlayer);
+
+      // Log if this is a rejoin (for debugging)
+      if (result.isExisting) {
+        console.log("Player rejoined existing room");
+      }
     } catch (error) {
       console.error("Failed to join room:", error);
-      setJoinError("Impossible de rejoindre la salle. Vérifiez le code de la salle ou essayez un nom différent.");
+      const errorMessage = error instanceof Error ? error.message : "Unknown error";
+
+      // Show specific error messages for different cases
+      if (errorMessage.includes("name already exists")) {
+        setJoinError("Un joueur avec ce nom existe déjà dans la salle. Veuillez choisir un autre nom.");
+      } else if (errorMessage.includes("Invalid session")) {
+        setJoinError("Session invalide. Veuillez rejoindre avec un nouveau nom.");
+      } else if (errorMessage.includes("Room not found")) {
+        setJoinError("Salle introuvable. Vérifiez le code de la salle.");
+      } else if (errorMessage.includes("Game has already started")) {
+        setJoinError("La partie a déjà commencé. Vous ne pouvez plus rejoindre cette salle.");
+      } else if (errorMessage.includes("Room is full")) {
+        setJoinError("La salle est pleine. Maximum 10 joueurs autorisés.");
+      } else {
+        setJoinError("Impossible de rejoindre la salle. Vérifiez le code de la salle ou essayez un nom différent.");
+      }
     }
   }, [roomCode, joinRoom]);
 
   // Check for existing player data on mount
   useEffect(() => {
-    const savedPlayerData = localStorage.getItem(`player_${roomCode}`);
+    const savedPlayerData = sessionStorage.getItem(`player_${roomCode}`);
     if (savedPlayerData) {
       try {
-        const { playerName: savedName, isHost: savedIsHost } = JSON.parse(savedPlayerData);
+        const { playerName: savedName, isHost: savedIsHost, sessionId: savedSessionId } = JSON.parse(savedPlayerData);
         setPlayerName(savedName);
         setIsHost(savedIsHost);
+        // Auto-join if we have saved data, including sessionId for rejoining
+        handleJoinRoom(savedName, savedIsHost, savedSessionId);
       } catch (error) {
         console.error("Error parsing saved player data:", error);
-        localStorage.removeItem(`player_${roomCode}`);
-      }
-    } else {
-      // Check URL parameters for pre-filled data
-      const urlName = searchParams.get('name');
-      const urlIsHost = searchParams.get('isHost') === 'true';
-
-      if (urlName) {
-        setPlayerName(urlName);
-        setIsHost(urlIsHost);
-        // Auto-join if we have name from URL
-        handleJoinRoom(urlName, urlIsHost);
+        sessionStorage.removeItem(`player_${roomCode}`);
       }
     }
     setIsLoading(false);
-  }, [roomCode, searchParams, handleJoinRoom]);
+  }, [roomCode, handleJoinRoom]);
 
   const handleLeave = () => {
     // Clear saved player data
-    localStorage.removeItem(`player_${roomCode}`);
+    sessionStorage.removeItem(`player_${roomCode}`);
     setPlayerName("");
     setIsHost(false);
     setJoinError("");
   };
 
-  if (isLoading) {
+  if (isLoading || room === undefined) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
@@ -88,7 +102,7 @@ export function RoomPageClient({ roomCode }: RoomPageClientProps) {
     );
   }
 
-  if (!room) {
+  if (room === null) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-500 to-purple-600">
         <div className="bg-white rounded-lg shadow-xl p-8 w-full max-w-md">
@@ -130,8 +144,6 @@ export function RoomPageClient({ roomCode }: RoomPageClientProps) {
           onJoin={handleJoinRoom}
           error={joinError}
           room={room}
-          preFilledName={searchParams.get('name')}
-          preFilledIsHost={searchParams.get('isHost') === 'true'}
         />
       </div>
     </div>
@@ -142,13 +154,11 @@ interface JoinRoomFormProps {
   onJoin: (name: string, isHost?: boolean) => void;
   error: string;
   room: any;
-  preFilledName?: string | null;
-  preFilledIsHost?: boolean;
 }
 
-function JoinRoomForm({ onJoin, error, room, preFilledName, preFilledIsHost }: JoinRoomFormProps) {
-  const [name, setName] = useState(preFilledName || "");
-  const [isHost, setIsHost] = useState(preFilledIsHost || false);
+function JoinRoomForm({ onJoin, error, room }: JoinRoomFormProps) {
+  const [name, setName] = useState("");
+  const [isHost, setIsHost] = useState(false);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -159,12 +169,6 @@ function JoinRoomForm({ onJoin, error, room, preFilledName, preFilledIsHost }: J
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      {preFilledName && (
-        <div className="bg-blue-50 border border-blue-200 text-blue-700 px-4 py-3 rounded mb-4">
-          Bienvenue ! Votre nom est pré-rempli depuis la création de la salle.
-        </div>
-      )}
-
       {error && (
         <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
           {error}

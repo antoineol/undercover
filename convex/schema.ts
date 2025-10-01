@@ -23,6 +23,7 @@ export default defineSchema({
   players: defineTable({
     roomId: v.id("rooms"),
     name: v.string(),
+    sessionId: v.string(), // Unique session identifier for this player
     isHost: v.boolean(),
     isAlive: v.boolean(),
     role: v.union(
@@ -36,7 +37,8 @@ export default defineSchema({
     createdAt: v.number(),
   })
     .index("by_room", ["roomId"])
-    .index("by_room_alive", ["roomId", "isAlive"]),
+    .index("by_room_alive", ["roomId", "isAlive"])
+    .index("by_session", ["sessionId"]),
 
   gameWords: defineTable({
     roomId: v.id("rooms"),

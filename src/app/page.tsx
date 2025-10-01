@@ -12,8 +12,17 @@ export default function Home() {
       const result = await createRoom({ hostName: name });
       // Add a small delay to ensure room is fully created
       await new Promise(resolve => setTimeout(resolve, 500));
-      // Redirect to room URL with name as parameter
-      window.location.href = `/room/${result.roomCode}?name=${encodeURIComponent(name)}&isHost=true`;
+
+      // Store host data in sessionStorage before redirecting
+      const hostData = {
+        playerName: name,
+        isHost: true,
+        sessionId: result.sessionId
+      };
+      sessionStorage.setItem(`player_${result.roomCode}`, JSON.stringify(hostData));
+
+      // Redirect to room URL
+      window.location.href = `/room/${result.roomCode}`;
     } catch (error) {
       console.error("Failed to create room:", error);
     }

@@ -21,9 +21,11 @@ export const createRoom = mutation({
     });
 
     // Add host as first player
+    const hostSessionId = generateSessionId();
     await ctx.db.insert("players", {
       roomId,
       name: args.hostName,
+      sessionId: hostSessionId,
       isHost: true,
       isAlive: true,
       role: "civilian", // Will be reassigned when game starts
@@ -32,7 +34,7 @@ export const createRoom = mutation({
       createdAt: now,
     });
 
-    return { roomId, roomCode };
+    return { roomId, roomCode, sessionId: hostSessionId };
   },
 });
 
@@ -40,6 +42,7 @@ export const joinRoom = mutation({
   args: {
     roomCode: v.string(),
     playerName: v.string(),
+    sessionId: v.optional(v.string()), // Optional sessionId for rejoining
     isHost: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
@@ -65,19 +68,39 @@ export const joinRoom = mutation({
       throw new Error("Room is full");
     }
 
-    // Check if player with same name already exists
-    const existingPlayer = players.find(p => p.name === args.playerName);
-    if (existingPlayer) {
-      // Return existing player data
-      return { roomId: room._id, playerId: existingPlayer._id, isExisting: true };
+    // If sessionId is provided, try to rejoin existing player
+    if (args.sessionId) {
+      const existingPlayer = players.find(p => p.sessionId === args.sessionId);
+      if (existingPlayer) {
+        // Valid sessionId - allow rejoin
+        return {
+          roomId: room._id,
+          playerId: existingPlayer._id,
+          sessionId: existingPlayer.sessionId,
+          isExisting: true
+        };
+      } else {
+        // Invalid sessionId - might be from different room or expired
+        throw new Error("Invalid session. Please rejoin with a new name.");
+      }
     }
 
+    // New player joining - check for name conflicts
+    const existingPlayerWithName = players.find(p => p.name === args.playerName);
+    if (existingPlayerWithName) {
+      // Name already taken by another player
+      throw new Error("A player with this name already exists in the room");
+    }
+
+    // Create new player
     const now = Date.now();
     const isHostPlayer = args.isHost || players.length === 0;
+    const newSessionId = generateSessionId();
 
     const playerId = await ctx.db.insert("players", {
       roomId: room._id,
       name: args.playerName,
+      sessionId: newSessionId,
       isHost: isHostPlayer,
       isAlive: true,
       role: "civilian", // Will be reassigned when game starts
@@ -86,7 +109,12 @@ export const joinRoom = mutation({
       createdAt: now,
     });
 
-    return { roomId: room._id, playerId, isExisting: false };
+    return {
+      roomId: room._id,
+      playerId,
+      sessionId: newSessionId,
+      isExisting: false
+    };
   },
 });
 
@@ -128,6 +156,15 @@ function generateRoomCode(): string {
   const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
   let result = "";
   for (let i = 0; i < 6; i++) {
+    result += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return result;
+}
+
+function generateSessionId(): string {
+  const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyz";
+  let result = "";
+  for (let i = 0; i < 32; i++) {
     result += chars.charAt(Math.floor(Math.random() * chars.length));
   }
   return result;
