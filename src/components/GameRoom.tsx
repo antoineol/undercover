@@ -2,14 +2,16 @@
 
 import { useQuery, useMutation } from "convex/react";
 import { api } from "../../convex/_generated/api";
-import { useState, useEffect } from "react";
-
-interface GameRoomProps {
-  roomCode: string;
-  playerName: string;
-  isHost: boolean;
-  onLeave: () => void;
-}
+import { useState } from "react";
+import { GameRoomProps } from "@/lib/types";
+import { retryWithBackoff, copyToClipboard } from "@/lib/utils";
+import GameHeader from "./game/GameHeader";
+import GameStats from "./game/GameStats";
+import WordSharing from "./game/WordSharing";
+import PlayerList from "./game/PlayerList";
+import GameResults from "./game/GameResults";
+import Card from "./ui/Card";
+import Button from "./ui/Button";
 
 export default function GameRoom({ roomCode, playerName, isHost, onLeave }: GameRoomProps) {
   const [showWords, setShowWords] = useState(false);
@@ -21,14 +23,11 @@ export default function GameRoom({ roomCode, playerName, isHost, onLeave }: Game
   const room = useQuery(api.rooms.getRoom, { roomCode });
   const gameWords = useQuery(api.game.getGameWords, room ? { roomId: room._id } : "skip");
 
-
   const startGame = useMutation(api.game.startGame);
   const shareWord = useMutation(api.game.shareWord);
   const votePlayer = useMutation(api.game.votePlayer);
   const validateGameState = useMutation(api.game.validateGameState);
   const restartGame = useMutation(api.game.restartGame);
-
-  // No automatic validation - only manual validation when needed
 
   const handleStartGame = async () => {
     if (room && isHost) {
@@ -38,9 +37,7 @@ export default function GameRoom({ roomCode, playerName, isHost, onLeave }: Game
             roomId: room._id,
             numUndercovers,
             hasMrWhite
-          }),
-          2,
-          500
+          })
         );
       } catch (error: any) {
         console.error("Failed to start game:", error);
@@ -67,7 +64,6 @@ export default function GameRoom({ roomCode, playerName, isHost, onLeave }: Game
     }
   };
 
-
   const handleVote = async (targetId: string) => {
     if (room) {
       const currentPlayer = room.players.find((p: { name: string }) => p.name === playerName);
@@ -78,9 +74,7 @@ export default function GameRoom({ roomCode, playerName, isHost, onLeave }: Game
               roomId: room._id,
               voterId: currentPlayer._id,
               targetId: targetId as any
-            }),
-            2,
-            500
+            })
           );
         } catch (error) {
           console.error("Échec du vote:", error);
@@ -90,47 +84,14 @@ export default function GameRoom({ roomCode, playerName, isHost, onLeave }: Game
     }
   };
 
-  const handleShareLink = () => {
+  const handleShareLink = async () => {
     const roomUrl = `${window.location.origin}/room/${roomCode}`;
-    navigator.clipboard.writeText(roomUrl).then(() => {
+    const success = await copyToClipboard(roomUrl);
+    if (success) {
       alert("Lien de la salle copié dans le presse-papiers !");
-    }).catch(() => {
-      // Fallback for older browsers
-      const textArea = document.createElement("textarea");
-      textArea.value = roomUrl;
-      document.body.appendChild(textArea);
-      textArea.select();
-      document.execCommand("copy");
-      document.body.removeChild(textArea);
-      alert("Lien de la salle copié dans le presse-papiers !");
-    });
-  };
-
-  // Retry function with exponential backoff
-  const retryWithBackoff = async <T,>(
-    fn: () => Promise<T>,
-    maxRetries: number = 3,
-    baseDelay: number = 1000
-  ): Promise<T> => {
-    for (let attempt = 0; attempt <= maxRetries; attempt++) {
-      try {
-        return await fn();
-      } catch (error: any) {
-        if (attempt === maxRetries) {
-          throw error;
-        }
-
-        // Only retry on concurrent access errors
-        if (error.message && error.message.includes("Documents read from or written to")) {
-          const delay = baseDelay * Math.pow(2, attempt) + Math.random() * 1000;
-          console.log(`Retry attempt ${attempt + 1} after ${delay}ms delay`);
-          await new Promise(resolve => setTimeout(resolve, delay));
-        } else {
-          throw error;
-        }
-      }
+    } else {
+      alert("Impossible de copier le lien. Veuillez le copier manuellement.");
     }
-    throw new Error("Max retries exceeded");
   };
 
   const handleValidateGameState = async () => {
@@ -138,9 +99,7 @@ export default function GameRoom({ roomCode, playerName, isHost, onLeave }: Game
       setIsValidating(true);
       try {
         const result = await retryWithBackoff(
-          () => validateGameState({ roomId: room._id }),
-          3,
-          1000
+          () => validateGameState({ roomId: room._id })
         );
         console.log("Game state validation result:", result);
         if (result.action !== "no_action_needed") {
@@ -172,7 +131,6 @@ export default function GameRoom({ roomCode, playerName, isHost, onLeave }: Game
     }
   };
 
-
   if (!room) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -187,18 +145,7 @@ export default function GameRoom({ roomCode, playerName, isHost, onLeave }: Game
   const currentPlayer = room.players.find((p: { name: string }) => p.name === playerName);
   const alivePlayers = room.players.filter((p: any) => p.isAlive);
   const isVotingPhase = room.gameState === "voting";
-
-  // Debug logging for vote button visibility
-  if (isVotingPhase && currentPlayer) {
-    console.log("Vote button debug:", {
-      playerName,
-      currentPlayerName: currentPlayer.name,
-      currentPlayerAlive: currentPlayer.isAlive,
-      isVotingPhase
-    });
-  }
   const isDiscussionPhase = room.gameState === "discussion";
-  const hasSharedWord = currentPlayer?.hasSharedWord || false;
 
   // Calculate voting progress (only alive players)
   const playersWhoVoted = alivePlayers.filter((p: any) => p.votes.length > 0);
@@ -223,324 +170,63 @@ export default function GameRoom({ roomCode, playerName, isHost, onLeave }: Game
 
   return (
     <div className="min-h-screen bg-gray-100">
-      {/* Header */}
-      <div className="bg-white shadow-sm border-b">
-        <div className="max-w-4xl mx-auto px-4 py-4">
-          <div className="flex justify-between items-center">
-            <div>
-              {/* <h1 className="text-2xl font-bold text-gray-800">Salle: {roomCode}</h1> */}
-              <p className="text-gray-600">
-                {room.gameState === "waiting" && "En attente des joueurs..."}
-                {room.gameState === "discussion" && "Phase de Discussion"}
-                {room.gameState === "voting" && "Phase de Vote"}
-                {room.gameState === "results" && "Résultats du Jeu"}
-              </p>
-            </div>
-            <div className="flex space-x-2">
-              <button
-                onClick={handleShareLink}
-                className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700"
-                title="Copier le lien de la salle pour partager"
-              >
-                📋 Partager le Lien
-              </button>
-              {room.gameState !== "waiting" && (
-                <button
-                  onClick={handleValidateGameState}
-                  disabled={isValidating}
-                  className={`px-4 py-2 rounded-md ${
-                    isValidating
-                      ? "bg-gray-400 cursor-not-allowed"
-                      : "bg-yellow-600 hover:bg-yellow-700"
-                  } text-white`}
-                  title="Valider et corriger l'état du jeu"
-                >
-                  {isValidating ? "⏳ Validation..." : "🔧 Valider le Jeu"}
-                </button>
-              )}
-              {isHost && room.gameState === "waiting" && (
-                <button
-                  onClick={handleStartGame}
-                  disabled={room.players.length < 3}
-                  className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 disabled:opacity-50"
-                >
-                  Démarrer le Jeu ({room.players.length}/3+)
-                </button>
-              )}
-              <button
-                onClick={onLeave}
-                className="bg-gray-600 text-white px-4 py-2 rounded-md hover:bg-gray-700"
-              >
-                Quitter la Salle
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
+      <GameHeader
+        room={room}
+        isHost={isHost}
+        onShareLink={handleShareLink}
+        onValidateGame={handleValidateGameState}
+        onStartGame={handleStartGame}
+        onLeave={onLeave}
+        isValidating={isValidating}
+      />
 
       <div className="max-w-4xl mx-auto px-4 py-6">
-        {/* Game State */}
-        {room.gameState !== "waiting" && (
-          <div className="bg-white rounded-lg shadow p-6 mb-6">
-            <h2 className="text-xl font-semibold mb-4">État du Jeu</h2>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="text-center">
-                <div className="text-2xl font-bold text-blue-600">{alivePlayers.length}</div>
-                <div className="text-sm text-gray-600">Joueurs Vivants</div>
-              </div>
-              <div className="text-center">
-                <div className="text-2xl font-bold text-green-600">{room.currentRound}</div>
-                <div className="text-sm text-gray-600">Tour Actuel</div>
-              </div>
-              <div className="text-center">
-                <div className="text-2xl font-bold text-purple-600">{room.maxRounds}</div>
-                <div className="text-sm text-gray-600">Tours Maximum</div>
-              </div>
-            </div>
+        <GameStats
+          room={room}
+          alivePlayers={alivePlayers}
+          votingProgress={votingProgress}
+          playersWhoVoted={playersWhoVoted}
+          currentPlayer={currentPlayer}
+        />
 
-            {/* Voting Progress */}
-            {isVotingPhase && (
-              <div className="mt-4 p-4 bg-gray-50 rounded-lg">
-                <div className="flex justify-between items-center mb-2">
-                  <span className="text-sm font-medium text-gray-700">Progression du Vote</span>
-                  <span className="text-sm text-gray-600">{playersWhoVoted.length}/{alivePlayers.length} joueurs vivants ont voté</span>
-                </div>
-                <div className="w-full bg-gray-200 rounded-full h-2">
-                  <div
-                    className="bg-blue-600 h-2 rounded-full transition-all duration-300"
-                    style={{ width: `${votingProgress}%` }}
-                  ></div>
-                </div>
-                {votingProgress === 100 && (
-                  <p className="text-sm text-green-600 mt-2 font-medium">
-                    ✅ Tous les joueurs vivants ont voté - Traitement des résultats...
-                  </p>
-                )}
-                {currentPlayer && currentPlayer.votes.length > 0 && (
-                  <p className="text-sm text-blue-600 mt-2">
-                    🗳️ Vous avez voté pour: {room.players.find((p: any) => p._id === currentPlayer.votes[0])?.name}
-                  </p>
-                )}
-              </div>
-            )}
-          </div>
+        {currentPlayer && (
+          <WordSharing
+            room={room}
+            currentPlayer={currentPlayer}
+            wordToShare={wordToShare}
+            setWordToShare={setWordToShare}
+            onShareWord={handleShareWord}
+            isMyTurn={isMyTurn}
+            currentTurnPlayer={currentTurnPlayer}
+            alivePlayers={alivePlayers}
+          />
         )}
 
-        {/* Word Sharing Phase */}
-        {isDiscussionPhase && currentPlayer && (
-          <div className="bg-white rounded-lg shadow p-6 mb-6">
-            <h2 className="text-xl font-semibold mb-4">Partage de Mot</h2>
-
-            {/* Show whose turn it is */}
-            <div className="mb-4 p-3 bg-blue-50 rounded-lg">
-              <p className="text-blue-800 font-medium">
-                {isMyTurn ? "🎯 C'est votre tour de partager un mot" : `⏳ C'est au tour de ${currentTurnPlayer?.name || "quelqu'un"}`}
-              </p>
-              {/* Show word sharing progress */}
-              <div className="mt-2">
-                <div className="flex justify-between items-center mb-1">
-                  <span className="text-sm text-blue-600">
-                    Progression: {room.players.filter((p: any) => p.isAlive && p.hasSharedWord).length}/{alivePlayers.length} joueurs vivants ont partagé leur mot
-                  </span>
-                </div>
-                <div className="w-full bg-gray-200 rounded-full h-2">
-                  <div
-                    className="bg-blue-600 h-2 rounded-full transition-all duration-300"
-                    style={{
-                      width: `${alivePlayers.length > 0 ? (room.players.filter((p: any) => p.isAlive && p.hasSharedWord).length / alivePlayers.length) * 100 : 0}%`
-                    }}
-                  ></div>
-                </div>
-              </div>
-            </div>
-
-            {!hasSharedWord ? (
-              <div className="space-y-4">
-                {isMyTurn ? (
-                  <>
-                    <p className="text-gray-700">
-                      Décrivez votre mot en un seul mot sans le révéler directement.
-                    </p>
-                    <form onSubmit={(e) => { e.preventDefault(); handleShareWord(); }}>
-                      <div className="flex space-x-2">
-                        <input
-                          type="text"
-                          value={wordToShare}
-                          onChange={(e) => setWordToShare(e.target.value)}
-                          onKeyPress={(e) => {
-                            if (e.key === 'Enter') {
-                              e.preventDefault();
-                              handleShareWord();
-                            }
-                          }}
-                          placeholder="Votre mot descriptif..."
-                          className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                          maxLength={20}
-                          autoFocus
-                        />
-                        <button
-                          type="submit"
-                          disabled={!wordToShare.trim()}
-                          className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 disabled:opacity-50"
-                        >
-                          Partager
-                        </button>
-                      </div>
-                    </form>
-                  </>
-                ) : (
-                  <div className="bg-yellow-50 p-4 rounded-lg">
-                    <p className="text-yellow-800">
-                      ⏳ En attente que {currentTurnPlayer?.name} partage son mot...
-                    </p>
-                  </div>
-                )}
-              </div>
-            ) : (
-              <div className="bg-green-50 p-4 rounded-lg">
-                <p className="text-green-800 font-medium">✅ Vous avez partagé votre mot</p>
-                <p className="text-sm text-green-600 mt-1">
-                  {isMyTurn ? "En attente que tous les joueurs partagent leur mot..." : `En attente que ${currentTurnPlayer?.name} partage son mot...`}
-                </p>
-              </div>
-            )}
-          </div>
+        {currentPlayer && (
+          <PlayerList
+            room={room}
+            currentPlayer={currentPlayer}
+            playerName={playerName}
+            isVotingPhase={isVotingPhase}
+            isDiscussionPhase={isDiscussionPhase}
+            currentTurnPlayerId={currentTurnPlayerId}
+            voteCounts={voteCounts}
+            voterNames={voterNames}
+            onVote={handleVote}
+          />
         )}
-
-        {/* Player List */}
-        <div className="bg-white rounded-lg shadow p-6 mb-6">
-          <h2 className="text-xl font-semibold mb-4">Joueurs ({room.players.length})</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-            {room.players.map((player: any) => {
-              const isCurrentTurn = player._id === currentTurnPlayerId;
-              const isMe = player.name === playerName;
-
-              // Check if current turn player has already completed their action
-              const hasCompletedAction = isDiscussionPhase
-                ? player.hasSharedWord
-                : isVotingPhase
-                ? player.votes && player.votes.length > 0
-                : false;
-
-              // Only show as current turn if they haven't completed their action yet
-              const shouldShowAsCurrentTurn = isCurrentTurn && !hasCompletedAction;
-
-              return (
-              <div
-                key={player._id}
-                className={`p-3 rounded-lg border ${
-                  player.isAlive
-                    ? "bg-green-50 border-green-200"
-                    : "bg-red-50 border-red-200"
-                } ${isMe ? "ring-2 ring-blue-500" : ""} ${
-                  shouldShowAsCurrentTurn && (isDiscussionPhase || isVotingPhase)
-                    ? "ring-2 ring-yellow-500 bg-yellow-50"
-                    : ""
-                }`}
-              >
-                <div className="flex justify-between items-center">
-                  <span className="font-medium">{player.name}</span>
-                  <div className="flex space-x-1">
-                    {shouldShowAsCurrentTurn && (isDiscussionPhase || isVotingPhase) && (
-                      <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded">
-                        Tour
-                      </span>
-                    )}
-                    {player.isHost && (
-                      <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded">
-                        Hôte
-                      </span>
-                    )}
-                  </div>
-                </div>
-                {room.gameState !== "waiting" && (
-                  <div className="text-sm text-gray-600 mt-1">
-                    {player.isAlive ? "Vivant" : "💀 Éliminé"}
-                  </div>
-                )}
-
-                {/* Show role for dead players */}
-                {!player.isAlive && room.gameState !== "waiting" && (
-                  <div className="text-sm mt-1">
-                    <span className="font-medium">Rôle révélé: </span>
-                    <span className={`px-2 py-1 rounded text-xs ${
-                      player.role === "undercover"
-                        ? "bg-red-100 text-red-800"
-                        : player.role === "mr_white"
-                        ? "bg-gray-100 text-gray-800"
-                        : "bg-blue-100 text-blue-800"
-                    }`}>
-                      {player.role === "undercover" ? "Undercover" :
-                       player.role === "mr_white" ? "Mr. White" : "Civil"}
-                    </span>
-                  </div>
-                )}
-
-                {/* Show if player is skipped in current turn */}
-                {isDiscussionPhase && !player.isAlive && (
-                  <div className="text-xs text-gray-500 mt-1">
-                    ⏭️ Ignoré (mort)
-                  </div>
-                )}
-
-                {/* Show if player is current turn (only in active game phases) */}
-                {shouldShowAsCurrentTurn && (isDiscussionPhase || isVotingPhase) && (
-                  <div className="text-xs text-yellow-600 mt-1">
-                    🎯 Tour actuel
-                  </div>
-                )}
-
-                {/* Show shared word if player has shared */}
-                {isDiscussionPhase && player.hasSharedWord && player.sharedWord && (
-                  <div className="text-sm text-blue-600 mt-1">
-                    Mot: &quot;{player.sharedWord}&quot;
-                  </div>
-                )}
-
-                {/* Show vote counts during voting */}
-                {isVotingPhase && voteCounts[player._id] > 0 && (
-                  <div className="text-sm text-red-600 mt-1">
-                    Votes: {voteCounts[player._id]} ({voterNames[player._id]?.join(", ")})
-                  </div>
-                )}
-
-                {/* Show if current player has voted for this player - only for alive players */}
-                {isVotingPhase && player.isAlive && player.name !== playerName && currentPlayer && currentPlayer.isAlive && (
-                  <div className="mt-2">
-                    {currentPlayer?.votes.includes(player._id) ? (
-                      <button
-                        onClick={() => handleVote(player._id)}
-                        className="w-full bg-green-600 text-white text-sm py-1 px-2 rounded hover:bg-green-700"
-                      >
-                        ✅ Voté - Cliquer pour changer
-                      </button>
-                    ) : (
-                      <button
-                        onClick={() => handleVote(player._id)}
-                        className="w-full bg-red-600 text-white text-sm py-1 px-2 rounded hover:bg-red-700"
-                      >
-                        Voter Contre
-                      </button>
-                    )}
-                  </div>
-                )}
-              </div>
-              );
-            })}
-          </div>
-        </div>
 
         {/* Game Words (for current player) */}
         {room.gameState !== "waiting" && currentPlayer && gameWords && (
-          <div className="bg-white rounded-lg shadow p-6">
+          <Card className="mb-6">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-xl font-semibold">Votre Rôle et Mot</h2>
-              <button
+              <Button
                 onClick={() => setShowWords(!showWords)}
-                className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700"
+                variant="primary"
               >
                 {showWords ? "Masquer" : "Afficher"} le Mot
-              </button>
+              </Button>
             </div>
 
             <div className="bg-gray-50 p-4 rounded-lg">
@@ -568,103 +254,18 @@ export default function GameRoom({ roomCode, playerName, isHost, onLeave }: Game
                 </div>
               )}
             </div>
-          </div>
+          </Card>
         )}
 
-        {/* Game Results */}
-        {room.gameState === "results" && (
-          <div className="bg-white rounded-lg shadow p-6 mb-6">
-            <h2 className="text-2xl font-bold text-center mb-6">🎉 Jeu Terminé !</h2>
-
-            {/* Determine winner based on remaining players */}
-            {(() => {
-              const alivePlayers = room.players.filter((p: any) => p.isAlive);
-              const aliveUndercovers = alivePlayers.filter((p: any) => p.role === "undercover");
-              const aliveCivilians = alivePlayers.filter((p: any) => p.role === "civilian");
-              const aliveMrWhite = alivePlayers.filter((p: any) => p.role === "mr_white");
-
-              let winner = "";
-              let winnerColor = "";
-              let winnerMessage = "";
-
-              if (aliveUndercovers.length === 0 && aliveMrWhite.length === 0) {
-                winner = "Les civils";
-                winnerColor = "text-blue-600";
-                winnerMessage = "Les civils ont éliminé tous les Undercovers et Mr. White !";
-              } else if (aliveUndercovers.length >= aliveCivilians.length && aliveMrWhite.length === 0) {
-                winner = "Les undercovers";
-                winnerColor = "text-red-600";
-                winnerMessage = "Les Undercovers ont survécu et surpassé les civils !";
-              } else if (aliveMrWhite.length > 0 && aliveCivilians.length > 0 && aliveUndercovers.length === 0 && alivePlayers.length === 2) {
-                winner = "Mr. White";
-                winnerColor = "text-gray-600";
-                winnerMessage = "Mr. White a survécu jusqu'à la fin !";
-              } else if (aliveCivilians.length === 0 && aliveUndercovers.length > 0 && aliveMrWhite.length > 0) {
-                winner = "Les undercovers & Mr. White";
-                winnerColor = "text-purple-600";
-                winnerMessage = "Les Undercovers et Mr. White ont éliminé tous les civils !";
-              } else {
-                // Fallback: Game ended but no clear winner (shouldn't happen)
-                winner = "Personne";
-                winnerColor = "text-gray-600";
-                winnerMessage = "Le jeu s'est terminé sans vainqueur clair. Veuillez recommencer.";
-              }
-
-              return (
-                <div className="text-center">
-                  <div className={`text-4xl font-bold mb-4 ${winnerColor}`}>
-                    {winner} {winner === "Mr. White" || winner === "Personne" ? "gagne" : "gagnent"} !
-                  </div>
-                  <p className="text-lg text-gray-700 mb-4">{winnerMessage}</p>
-
-                  <div className="bg-gray-50 rounded-lg p-4 mb-4">
-                    <h3 className="font-semibold mb-2">Joueurs Survivants</h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
-                      {alivePlayers.map((player: any) => (
-                        <div key={player._id} className="text-sm">
-                          <span className="font-medium">{player.name}</span>
-                          <span className={`ml-2 px-2 py-1 rounded text-xs ${
-                            player.role === "undercover"
-                              ? "bg-red-100 text-red-800"
-                              : player.role === "mr_white"
-                              ? "bg-gray-100 text-gray-800"
-                              : "bg-blue-100 text-blue-800"
-                          }`}>
-                            {player.role === "undercover" ? "Undercover" :
-                             player.role === "mr_white" ? "Mr. White" : "Civil"}
-                          </span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div className="text-sm text-gray-600">
-                    Tour final: {room.currentRound}
-                  </div>
-                </div>
-              );
-            })()}
-
-            {/* Restart Game Button - Only for Host */}
-            {isHost ? (
-              <div className="mt-6 text-center">
-                <button
-                  onClick={handleRestartGame}
-                  className="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-lg transition-colors"
-                >
-                  🔄 Recommencer un nouveau jeu
-                </button>
-
-              </div>
-            ) : <p className="text-sm text-gray-600 mt-2">
-            Seul l&apos;hôte peut redémarrer le jeu
-          </p>}
-          </div>
-        )}
+        <GameResults
+          room={room}
+          isHost={isHost}
+          onRestartGame={handleRestartGame}
+        />
 
         {/* Game Configuration - Host Only */}
         {room.gameState === "waiting" && isHost && (
-          <div className="bg-yellow-50 rounded-lg p-6 mb-6">
+          <Card className="mb-6 bg-yellow-50">
             <h3 className="text-lg font-semibold mb-4">⚙️ Configuration du Jeu</h3>
 
             <div className="space-y-4">
@@ -709,25 +310,24 @@ export default function GameRoom({ roomCode, playerName, isHost, onLeave }: Game
                 <div>• {hasMrWhite ? '1 Mr. White' : 'Pas de Mr. White'}</div>
                 <div>• {room.players.length - numUndercovers - (hasMrWhite ? 1 : 0)} Civil{room.players.length - numUndercovers - (hasMrWhite ? 1 : 0) > 1 ? 's' : ''}</div>
               </div>
-
             </div>
-          </div>
+          </Card>
         )}
 
         {/* Game Instructions */}
         {room.gameState === "waiting" && (
-          <div className="bg-blue-50 rounded-lg p-6">
+          <Card className="bg-blue-50">
             <h3 className="text-lg font-semibold mb-2">Comment Jouer</h3>
             <ul className="text-sm text-gray-700 space-y-1">
               <li>• 3-10 joueurs peuvent rejoindre cette salle</li>
               <li>• La plupart des joueurs sont des Civils avec un mot</li>
               <li>• 1-3 joueurs sont Undercovers avec un mot différent</li>
-              <li>• Mr. White (7+ joueurs) ne connaît aucun mot</li>
+              <li>• Mr. White (4+ joueurs) ne connaît aucun mot</li>
               <li>• Discutez et votez contre les joueurs suspects</li>
               <li>• Les Civils gagnent en éliminant tous les Undercovers</li>
               <li>• Les Undercovers gagnent en survivant ou en surpassant les Civils</li>
             </ul>
-          </div>
+          </Card>
         )}
       </div>
     </div>

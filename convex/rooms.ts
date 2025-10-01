@@ -1,5 +1,14 @@
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
+import { generateRoomCode, generateSessionId } from "../src/lib/utils";
+import { GAME_CONFIG } from "../src/lib/constants";
+import {
+  RoomNotFoundError,
+  GameAlreadyStartedError,
+  RoomFullError,
+  PlayerNameExistsError,
+  InvalidSessionError
+} from "../src/lib/errors";
 
 export const createRoom = mutation({
   args: {
@@ -14,7 +23,7 @@ export const createRoom = mutation({
       hostId: `host_${now}`,
       gameState: "waiting",
       currentRound: 0,
-      maxRounds: 100,
+      maxRounds: GAME_CONFIG.MAX_ROUNDS,
       currentPlayerIndex: 0,
       playerOrder: [],
       hasMrWhite: false,
@@ -54,11 +63,11 @@ export const joinRoom = mutation({
       .first();
 
     if (!room) {
-      throw new Error("Room not found");
+      throw new RoomNotFoundError(args.roomCode);
     }
 
     if (room.gameState !== "waiting") {
-      throw new Error("Game has already started");
+      throw new GameAlreadyStartedError();
     }
 
     const players = await ctx.db
@@ -66,8 +75,8 @@ export const joinRoom = mutation({
       .withIndex("by_room", (q) => q.eq("roomId", room._id))
       .collect();
 
-    if (players.length >= 10) {
-      throw new Error("Room is full");
+    if (players.length >= GAME_CONFIG.MAX_PLAYERS) {
+      throw new RoomFullError();
     }
 
     // If sessionId is provided, try to rejoin existing player
@@ -83,7 +92,7 @@ export const joinRoom = mutation({
         };
       } else {
         // Invalid sessionId - might be from different room or expired
-        throw new Error("Invalid session. Please rejoin with a new name.");
+        throw new InvalidSessionError();
       }
     }
 
@@ -91,7 +100,7 @@ export const joinRoom = mutation({
     const existingPlayerWithName = players.find(p => p.name === args.playerName);
     if (existingPlayerWithName) {
       // Name already taken by another player
-      throw new Error("A player with this name already exists in the room");
+      throw new PlayerNameExistsError(args.playerName);
     }
 
     // Create new player
@@ -154,20 +163,3 @@ export const getPlayers = query({
   },
 });
 
-function generateRoomCode(): string {
-  const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-  let result = "";
-  for (let i = 0; i < 6; i++) {
-    result += chars.charAt(Math.floor(Math.random() * chars.length));
-  }
-  return result;
-}
-
-function generateSessionId(): string {
-  const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyz";
-  let result = "";
-  for (let i = 0; i < 32; i++) {
-    result += chars.charAt(Math.floor(Math.random() * chars.length));
-  }
-  return result;
-}

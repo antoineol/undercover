@@ -69,7 +69,7 @@ Un jeu de déduction sociale en temps réel construit avec Next.js, TypeScript e
 3. **Rôles**:
    - **Civils**: Connaissent le mot civil, tentent d'identifier les undercovers
    - **Undercovers**: Connaissent un mot différent, tentent de se fondre
-   - **Mr. White**: Ne connaît aucun mot (7+ joueurs seulement)
+   - **Mr. White**: Ne connaît aucun mot (4+ joueurs seulement)
 
 4. **Conditions de Victoire**:
    - **Civils gagnent**: Tous les undercovers éliminés
@@ -84,7 +84,7 @@ Un jeu de déduction sociale en temps réel construit avec Next.js, TypeScript e
 
 - 3-10 players per room
 - 1-3 undercover players (based on total players)
-- Mr. White role available with 7+ players
+- Mr. White role available with 4+ players
 - Host controls game phases
 - Real-time updates for all players
 
