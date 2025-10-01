@@ -2,7 +2,7 @@
 
 import { useQuery, useMutation } from "convex/react";
 import { api } from "../../convex/_generated/api";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 interface GameRoomProps {
   roomCode: string;
@@ -21,6 +21,24 @@ export default function GameRoom({ roomCode, playerName, isHost, onLeave }: Game
   const startGame = useMutation(api.game.startGame);
   const shareWord = useMutation(api.game.shareWord);
   const votePlayer = useMutation(api.game.votePlayer);
+  const validateGameState = useMutation(api.game.validateGameState);
+
+  // Validate game state on component mount
+  useEffect(() => {
+    if (room && room.gameState !== "waiting") {
+      const validateState = async () => {
+        try {
+          const result = await validateGameState({ roomId: room._id });
+          if (result.action !== "no_action_needed") {
+            console.log("Game state validated and fixed:", result);
+          }
+        } catch (error) {
+          console.error("Failed to validate game state:", error);
+        }
+      };
+      validateState();
+    }
+  }, [room, validateGameState]);
 
   const handleStartGame = async () => {
     if (room) {
@@ -84,6 +102,23 @@ export default function GameRoom({ roomCode, playerName, isHost, onLeave }: Game
     });
   };
 
+  const handleValidateGameState = async () => {
+    if (room) {
+      try {
+        const result = await validateGameState({ roomId: room._id });
+        console.log("Game state validation result:", result);
+        if (result.action !== "no_action_needed") {
+          alert(`Game state fixed: ${result.action}`);
+        } else {
+          alert("Game state is valid - no action needed");
+        }
+      } catch (error) {
+        console.error("Failed to validate game state:", error);
+        alert("Failed to validate game state");
+      }
+    }
+  };
+
   if (!room) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -145,6 +180,15 @@ export default function GameRoom({ roomCode, playerName, isHost, onLeave }: Game
               >
                 📋 Partager le Lien
               </button>
+              {room.gameState !== "waiting" && (
+                <button
+                  onClick={handleValidateGameState}
+                  className="bg-yellow-600 text-white px-4 py-2 rounded-md hover:bg-yellow-700"
+                  title="Valider et corriger l'état du jeu"
+                >
+                  🔧 Valider le Jeu
+                </button>
+              )}
               {isHost && room.gameState === "waiting" && (
                 <button
                   onClick={handleStartGame}
@@ -309,12 +353,16 @@ export default function GameRoom({ roomCode, playerName, isHost, onLeave }: Game
                   player.isAlive
                     ? "bg-green-50 border-green-200"
                     : "bg-red-50 border-red-200"
-                } ${isMe ? "ring-2 ring-blue-500" : ""} ${isCurrentTurn ? "ring-2 ring-yellow-500 bg-yellow-50" : ""}`}
+                } ${isMe ? "ring-2 ring-blue-500" : ""} ${
+                  isCurrentTurn && (isDiscussionPhase || isVotingPhase)
+                    ? "ring-2 ring-yellow-500 bg-yellow-50"
+                    : ""
+                }`}
               >
                 <div className="flex justify-between items-center">
                   <span className="font-medium">{player.name}</span>
                   <div className="flex space-x-1">
-                    {isCurrentTurn && isDiscussionPhase && (
+                    {isCurrentTurn && (isDiscussionPhase || isVotingPhase) && (
                       <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded">
                         Tour
                       </span>
@@ -336,6 +384,13 @@ export default function GameRoom({ roomCode, playerName, isHost, onLeave }: Game
                 {isDiscussionPhase && !player.isAlive && (
                   <div className="text-xs text-gray-500 mt-1">
                     ⏭️ Ignoré (mort)
+                  </div>
+                )}
+
+                {/* Show if player is current turn (only in active game phases) */}
+                {isCurrentTurn && (isDiscussionPhase || isVotingPhase) && (
+                  <div className="text-xs text-yellow-600 mt-1">
+                    🎯 Tour actuel
                   </div>
                 )}
 
@@ -417,6 +472,77 @@ export default function GameRoom({ roomCode, playerName, isHost, onLeave }: Game
                 </div>
               )}
             </div>
+          </div>
+        )}
+
+        {/* Game Results */}
+        {room.gameState === "results" && (
+          <div className="bg-white rounded-lg shadow p-6 mb-6">
+            <h2 className="text-2xl font-bold text-center mb-6">🎉 Jeu Terminé !</h2>
+
+            {/* Determine winner based on remaining players */}
+            {(() => {
+              const alivePlayers = room.players.filter((p: any) => p.isAlive);
+              const aliveUndercovers = alivePlayers.filter((p: any) => p.role === "undercover");
+              const aliveCivilians = alivePlayers.filter((p: any) => p.role === "civilian");
+              const aliveMrWhite = alivePlayers.filter((p: any) => p.role === "mr_white");
+
+              let winner = "";
+              let winnerColor = "";
+              let winnerMessage = "";
+
+              if (aliveUndercovers.length === 0 && aliveMrWhite.length === 0) {
+                winner = "Les civils";
+                winnerColor = "text-blue-600";
+                winnerMessage = "Les civils ont éliminé tous les Undercovers et Mr. White !";
+              } else if (aliveUndercovers.length >= aliveCivilians.length && aliveMrWhite.length === 0) {
+                winner = "Les undercovers";
+                winnerColor = "text-red-600";
+                winnerMessage = "Les Undercovers ont survécu et surpassé les civils !";
+              } else if (aliveMrWhite.length > 0 && aliveCivilians.length > 0 && aliveUndercovers.length === 0) {
+                winner = "Mr. White";
+                winnerColor = "text-gray-600";
+                winnerMessage = "Mr. White a survécu jusqu'à la fin !";
+              } else if (aliveCivilians.length === 0 && aliveUndercovers.length > 0 && aliveMrWhite.length > 0) {
+                winner = "Les undercovers & Mr. White";
+                winnerColor = "text-purple-600";
+                winnerMessage = "Les Undercovers et Mr. White ont éliminé tous les civils !";
+              }
+
+              return (
+                <div className="text-center">
+                  <div className={`text-4xl font-bold mb-4 ${winnerColor}`}>
+                    {winner} {winner === "Mr. White" ? "gagne" : "gagnent"} !
+                  </div>
+                  <p className="text-lg text-gray-700 mb-4">{winnerMessage}</p>
+
+                  <div className="bg-gray-50 rounded-lg p-4 mb-4">
+                    <h3 className="font-semibold mb-2">Joueurs Survivants</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
+                      {alivePlayers.map((player: any) => (
+                        <div key={player._id} className="text-sm">
+                          <span className="font-medium">{player.name}</span>
+                          <span className={`ml-2 px-2 py-1 rounded text-xs ${
+                            player.role === "undercover"
+                              ? "bg-red-100 text-red-800"
+                              : player.role === "mr_white"
+                              ? "bg-gray-100 text-gray-800"
+                              : "bg-blue-100 text-blue-800"
+                          }`}>
+                            {player.role === "undercover" ? "Undercover" :
+                             player.role === "mr_white" ? "Mr. White" : "Civil"}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="text-sm text-gray-600">
+                    Tour final: {room.currentRound}
+                  </div>
+                </div>
+              );
+            })()}
           </div>
         )}
 

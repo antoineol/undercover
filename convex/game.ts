@@ -322,17 +322,21 @@ export const votePlayer = mutation({
       if (room.currentRound >= room.maxRounds) {
         gameResult = "max_rounds_reached";
       }
-      // Civilians win if all undercovers are eliminated
-      else if (aliveUndercovers.length === 0) {
+      // Civilians win if all undercovers AND all Mr. White are eliminated
+      else if (aliveUndercovers.length === 0 && aliveMrWhite.length === 0) {
         gameResult = "civilians_win";
       }
-      // Undercovers win if they equal or outnumber civilians
-      else if (aliveUndercovers.length >= aliveCivilians.length) {
+      // Undercovers win if they equal or outnumber civilians (and no Mr. White)
+      else if (aliveUndercovers.length >= aliveCivilians.length && aliveMrWhite.length === 0) {
         gameResult = "undercovers_win";
       }
-      // Mr. White wins if they survive to the end and there are still undercovers
-      else if (aliveMrWhite.length > 0 && aliveUndercovers.length > 0 && aliveCivilians.length === 0) {
+      // Mr. White solo victory: survives to end (last 2 players) with at least one civilian
+      else if (aliveMrWhite.length > 0 && aliveCivilians.length > 0 && aliveUndercovers.length === 0 && alivePlayers.length === 2) {
         gameResult = "mr_white_win";
+      }
+      // Joint victory: Undercovers + Mr. White win if all civilians eliminated
+      else if (aliveCivilians.length === 0 && aliveUndercovers.length > 0 && aliveMrWhite.length > 0) {
+        gameResult = "undercovers_mrwhite_win";
       }
 
       // Update room state
@@ -434,17 +438,21 @@ export const endVoting = mutation({
     if (room.currentRound >= room.maxRounds) {
       gameResult = "max_rounds_reached";
     }
-    // Civilians win if all undercovers are eliminated
-    else if (aliveUndercovers.length === 0) {
+    // Civilians win if all undercovers AND all Mr. White are eliminated
+    else if (aliveUndercovers.length === 0 && aliveMrWhite.length === 0) {
       gameResult = "civilians_win";
     }
-    // Undercovers win if they equal or outnumber civilians
-    else if (aliveUndercovers.length >= aliveCivilians.length) {
+    // Undercovers win if they equal or outnumber civilians (and no Mr. White)
+    else if (aliveUndercovers.length >= aliveCivilians.length && aliveMrWhite.length === 0) {
       gameResult = "undercovers_win";
     }
-    // Mr. White wins if they survive to the end and there are still undercovers
-    else if (aliveMrWhite.length > 0 && aliveUndercovers.length > 0 && aliveCivilians.length === 0) {
+    // Mr. White solo victory: survives to end (last 2 players) with at least one civilian
+    else if (aliveMrWhite.length > 0 && aliveCivilians.length > 0 && aliveUndercovers.length === 0 && alivePlayers.length === 2) {
       gameResult = "mr_white_win";
+    }
+    // Joint victory: Undercovers + Mr. White win if all civilians eliminated
+    else if (aliveCivilians.length === 0 && aliveUndercovers.length > 0 && aliveMrWhite.length > 0) {
+      gameResult = "undercovers_mrwhite_win";
     }
 
     // Update room state
@@ -517,6 +525,170 @@ export const getGameWords = query({
   },
 });
 
+export const validateGameState = mutation({
+  args: { roomId: v.id("rooms") },
+  handler: async (ctx, args) => {
+    const room = await ctx.db.get(args.roomId);
+    if (!room) {
+      throw new Error("Room not found");
+    }
+
+    // Only validate if game is not in waiting or results state
+    if (room.gameState === "waiting" || room.gameState === "results") {
+      return { gameState: room.gameState, action: "no_action_needed" };
+    }
+
+    const players = await ctx.db
+      .query("players")
+      .withIndex("by_room_alive", (q) => q.eq("roomId", args.roomId).eq("isAlive", true))
+      .collect();
+
+    const aliveUndercovers = players.filter(p => p.role === "undercover");
+    const aliveCivilians = players.filter(p => p.role === "civilian");
+    const aliveMrWhite = players.filter(p => p.role === "mr_white");
+
+    // Check win conditions
+    let gameResult: string | null = null;
+    let action = "no_action_needed";
+
+    // Civilians win if all undercovers AND all Mr. White are eliminated
+    if (aliveUndercovers.length === 0 && aliveMrWhite.length === 0) {
+      gameResult = "civilians_win";
+      action = "game_ended";
+    }
+    // Undercovers win if they equal or outnumber civilians (and no Mr. White)
+    else if (aliveUndercovers.length >= aliveCivilians.length && aliveMrWhite.length === 0) {
+      gameResult = "undercovers_win";
+      action = "game_ended";
+    }
+    // Mr. White solo victory: survives to end with at least one civilian, no undercovers
+    else if (aliveMrWhite.length > 0 && aliveCivilians.length > 0 && aliveUndercovers.length === 0) {
+      gameResult = "mr_white_win";
+      action = "game_ended";
+    }
+    // Joint victory: Undercovers + Mr. White win if all civilians eliminated
+    else if (aliveCivilians.length === 0 && aliveUndercovers.length > 0 && aliveMrWhite.length > 0) {
+      gameResult = "undercovers_mrwhite_win";
+      action = "game_ended";
+    }
+    // Check if game should move to voting (all alive players have shared words)
+    else if (room.gameState === "discussion") {
+      const allAlivePlayersShared = players.every(p => p.hasSharedWord === true);
+      if (allAlivePlayersShared) {
+        action = "move_to_voting";
+      }
+    }
+    // Check if game should move to next round (all alive players have voted)
+    else if (room.gameState === "voting") {
+      const allAlivePlayersVoted = players.every(p => p.votes.length > 0);
+      if (allAlivePlayersVoted) {
+        action = "process_voting";
+      }
+    }
+
+    // Execute the required action
+    if (action === "game_ended") {
+      await ctx.db.patch(args.roomId, {
+        gameState: "results",
+      });
+    } else if (action === "move_to_voting") {
+      await ctx.db.patch(args.roomId, {
+        gameState: "voting",
+      });
+    } else if (action === "process_voting") {
+      // Process voting results
+      const voteCounts: Record<string, number> = {};
+      for (const player of players) {
+        for (const voteId of player.votes) {
+          voteCounts[voteId] = (voteCounts[voteId] || 0) + 1;
+        }
+      }
+
+      // Find player with most votes
+      let eliminatedPlayerId: string | null = null;
+      let maxVotes = 0;
+      let tie = false;
+
+      for (const [playerId, votes] of Object.entries(voteCounts)) {
+        if (votes > maxVotes) {
+          maxVotes = votes;
+          eliminatedPlayerId = playerId;
+          tie = false;
+        } else if (votes === maxVotes && votes > 0) {
+          tie = true;
+        }
+      }
+
+      // Eliminate player if there's a clear winner
+      if (eliminatedPlayerId && !tie) {
+        await ctx.db.patch(eliminatedPlayerId as any, { isAlive: false });
+      }
+
+      // Check win conditions after elimination
+      const remainingPlayers = players.filter(p => p.isAlive);
+      const remainingUndercovers = remainingPlayers.filter(p => p.role === "undercover");
+      const remainingCivilians = remainingPlayers.filter(p => p.role === "civilian");
+      const remainingMrWhite = remainingPlayers.filter(p => p.role === "mr_white");
+
+      let finalGameResult: string | null = null;
+      if (remainingUndercovers.length === 0 && remainingMrWhite.length === 0) {
+        finalGameResult = "civilians_win";
+      } else if (remainingUndercovers.length >= remainingCivilians.length && remainingMrWhite.length === 0) {
+        finalGameResult = "undercovers_win";
+      } else if (remainingMrWhite.length > 0 && remainingCivilians.length > 0 && remainingUndercovers.length === 0) {
+        finalGameResult = "mr_white_win";
+      } else if (remainingCivilians.length === 0 && remainingUndercovers.length > 0 && remainingMrWhite.length > 0) {
+        finalGameResult = "undercovers_mrwhite_win";
+      }
+
+      if (finalGameResult) {
+        await ctx.db.patch(args.roomId, {
+          gameState: "results",
+        });
+        gameResult = finalGameResult;
+        action = "game_ended";
+      } else {
+        // Reset for next round
+        const allPlayers = await ctx.db
+          .query("players")
+          .withIndex("by_room", (q) => q.eq("roomId", args.roomId))
+          .collect();
+
+        for (const player of allPlayers) {
+          await ctx.db.patch(player._id, {
+            hasSharedWord: false,
+            sharedWord: undefined,
+            votes: [],
+          });
+        }
+
+        // Reset turn order for next round
+        if (room.playerOrder) {
+          const shuffledOrder = [...room.playerOrder].sort(() => Math.random() - 0.5);
+
+          await ctx.db.patch(args.roomId, {
+            gameState: "discussion",
+            currentRound: room.currentRound + 1,
+            currentPlayerIndex: 0,
+            playerOrder: shuffledOrder,
+          });
+        }
+        action = "next_round";
+      }
+    }
+
+    return {
+      gameState: room.gameState,
+      action,
+      gameResult,
+      alivePlayers: players.length,
+      aliveUndercovers: aliveUndercovers.length,
+      aliveCivilians: aliveCivilians.length,
+      aliveMrWhite: aliveMrWhite.length
+    };
+  },
+});
+
 export const checkMaxRoundsReached = mutation({
   args: { roomId: v.id("rooms") },
   handler: async (ctx, args) => {
@@ -537,13 +709,23 @@ export const checkMaxRoundsReached = mutation({
       const aliveMrWhite = players.filter(p => p.role === "mr_white");
 
       let gameResult: string;
-      if (aliveUndercovers.length === 0) {
+      // Civilians win if all undercovers AND all Mr. White are eliminated
+      if (aliveUndercovers.length === 0 && aliveMrWhite.length === 0) {
         gameResult = "civilians_win";
-      } else if (aliveUndercovers.length >= aliveCivilians.length) {
+      }
+      // Undercovers win if they equal or outnumber civilians (and no Mr. White)
+      else if (aliveUndercovers.length >= aliveCivilians.length && aliveMrWhite.length === 0) {
         gameResult = "undercovers_win";
-      } else if (aliveMrWhite.length > 0 && aliveUndercovers.length > 0) {
+      }
+      // Mr. White solo victory: survives to end with at least one civilian
+      else if (aliveMrWhite.length > 0 && aliveCivilians.length > 0 && aliveUndercovers.length === 0) {
         gameResult = "mr_white_win";
-      } else {
+      }
+      // Joint victory: Undercovers + Mr. White win if all civilians eliminated
+      else if (aliveCivilians.length === 0 && aliveUndercovers.length > 0 && aliveMrWhite.length > 0) {
+        gameResult = "undercovers_mrwhite_win";
+      }
+      else {
         gameResult = "civilians_win"; // Default to civilians if unclear
       }
 
