@@ -14,9 +14,12 @@ interface GameRoomProps {
 export default function GameRoom({ roomCode, playerName, isHost, onLeave }: GameRoomProps) {
   const [showWords, setShowWords] = useState(false);
   const [wordToShare, setWordToShare] = useState("");
+  const [numUndercovers, setNumUndercovers] = useState(1);
+  const [hasMrWhite, setHasMrWhite] = useState(false);
 
   const room = useQuery(api.rooms.getRoom, { roomCode });
   const gameWords = useQuery(api.game.getGameWords, room ? { roomId: room._id } : "skip");
+
 
   const startGame = useMutation(api.game.startGame);
   const shareWord = useMutation(api.game.shareWord);
@@ -42,11 +45,16 @@ export default function GameRoom({ roomCode, playerName, isHost, onLeave }: Game
   }, [room, validateGameState]);
 
   const handleStartGame = async () => {
-    if (room) {
+    if (room && isHost) {
       try {
-        await startGame({ roomId: room._id });
-      } catch (error) {
-        console.error("Échec du démarrage du jeu:", error);
+        await startGame({
+          roomId: room._id,
+          numUndercovers,
+          hasMrWhite
+        });
+      } catch (error: any) {
+        console.error("Failed to start game:", error);
+        alert(`Erreur: ${error.message}`);
       }
     }
   };
@@ -109,7 +117,11 @@ export default function GameRoom({ roomCode, playerName, isHost, onLeave }: Game
         const result = await validateGameState({ roomId: room._id });
         console.log("Game state validation result:", result);
         if (result.action !== "no_action_needed") {
-          alert(`Game state fixed: ${result.action}`);
+          if (result.action === "skipped_dead_player") {
+            alert("Joueur mort ignoré - passage au joueur suivant");
+          } else {
+            alert(`Game state fixed: ${result.action}`);
+          }
         } else {
           alert("Game state is valid - no action needed");
         }
@@ -130,6 +142,7 @@ export default function GameRoom({ roomCode, playerName, isHost, onLeave }: Game
       }
     }
   };
+
 
   if (!room) {
     return (
@@ -402,6 +415,23 @@ export default function GameRoom({ roomCode, playerName, isHost, onLeave }: Game
                   </div>
                 )}
 
+                {/* Show role for dead players */}
+                {!player.isAlive && room.gameState !== "waiting" && (
+                  <div className="text-sm mt-1">
+                    <span className="font-medium">Rôle révélé: </span>
+                    <span className={`px-2 py-1 rounded text-xs ${
+                      player.role === "undercover"
+                        ? "bg-red-100 text-red-800"
+                        : player.role === "mr_white"
+                        ? "bg-gray-100 text-gray-800"
+                        : "bg-blue-100 text-blue-800"
+                    }`}>
+                      {player.role === "undercover" ? "Undercover" :
+                       player.role === "mr_white" ? "Mr. White" : "Civil"}
+                    </span>
+                  </div>
+                )}
+
                 {/* Show if player is skipped in current turn */}
                 {isDiscussionPhase && !player.isAlive && (
                   <div className="text-xs text-gray-500 mt-1">
@@ -431,7 +461,7 @@ export default function GameRoom({ roomCode, playerName, isHost, onLeave }: Game
                 )}
 
                 {/* Show if current player has voted for this player */}
-                {isVotingPhase && player.isAlive && player.name !== playerName && (
+                {isVotingPhase && player.isAlive && player.name !== playerName && currentPlayer?.isAlive && (
                   <div className="mt-2">
                     {currentPlayer?.votes.includes(player._id) ? (
                       <button
@@ -521,7 +551,7 @@ export default function GameRoom({ roomCode, playerName, isHost, onLeave }: Game
                 winner = "Les undercovers";
                 winnerColor = "text-red-600";
                 winnerMessage = "Les Undercovers ont survécu et surpassé les civils !";
-              } else if (aliveMrWhite.length > 0 && aliveCivilians.length > 0 && aliveUndercovers.length === 0) {
+              } else if (aliveMrWhite.length > 0 && aliveCivilians.length > 0 && aliveUndercovers.length === 0 && alivePlayers.length === 2) {
                 winner = "Mr. White";
                 winnerColor = "text-gray-600";
                 winnerMessage = "Mr. White a survécu jusqu'à la fin !";
@@ -529,12 +559,17 @@ export default function GameRoom({ roomCode, playerName, isHost, onLeave }: Game
                 winner = "Les undercovers & Mr. White";
                 winnerColor = "text-purple-600";
                 winnerMessage = "Les Undercovers et Mr. White ont éliminé tous les civils !";
+              } else {
+                // Fallback: Game ended but no clear winner (shouldn't happen)
+                winner = "Personne";
+                winnerColor = "text-gray-600";
+                winnerMessage = "Le jeu s'est terminé sans vainqueur clair. Veuillez recommencer.";
               }
 
               return (
                 <div className="text-center">
                   <div className={`text-4xl font-bold mb-4 ${winnerColor}`}>
-                    {winner} {winner === "Mr. White" ? "gagne" : "gagnent"} !
+                    {winner} {winner === "Mr. White" || winner === "Personne" ? "gagne" : "gagnent"} !
                   </div>
                   <p className="text-lg text-gray-700 mb-4">{winnerMessage}</p>
 
@@ -580,6 +615,58 @@ export default function GameRoom({ roomCode, playerName, isHost, onLeave }: Game
             ) : <p className="text-sm text-gray-600 mt-2">
             Seul l&apos;hôte peut redémarrer le jeu
           </p>}
+          </div>
+        )}
+
+        {/* Game Configuration - Host Only */}
+        {room.gameState === "waiting" && isHost && (
+          <div className="bg-yellow-50 rounded-lg p-6 mb-6">
+            <h3 className="text-lg font-semibold mb-4">⚙️ Configuration du Jeu</h3>
+
+            <div className="space-y-4">
+              {/* Number of Undercovers */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Nombre d&apos;Undercovers: {numUndercovers}
+                </label>
+                <input
+                  type="range"
+                  min="1"
+                  max={Math.min(Math.floor(room.players.length / 2), room.players.length - 1)}
+                  value={numUndercovers}
+                  onChange={(e) => setNumUndercovers(parseInt(e.target.value))}
+                  className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                />
+                <div className="flex justify-between text-xs text-gray-500 mt-1">
+                  <span>1</span>
+                  <span>Max: {Math.min(Math.floor(room.players.length / 2), room.players.length - 1)}</span>
+                </div>
+              </div>
+
+              {/* Mr. White Toggle */}
+              <div>
+                <label className="flex items-center space-x-3">
+                  <input
+                    type="checkbox"
+                    checked={hasMrWhite}
+                    onChange={(e) => setHasMrWhite(e.target.checked)}
+                    className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500"
+                  />
+                  <span className="text-sm font-medium text-gray-700">
+                    Inclure Mr. White (ne connaît aucun mot)
+                  </span>
+                </label>
+              </div>
+
+              {/* Validation Info */}
+              <div className="bg-gray-100 rounded p-3 text-sm">
+                <div className="font-medium mb-1">Configuration actuelle:</div>
+                <div>• {numUndercovers} Undercover{numUndercovers > 1 ? 's' : ''}</div>
+                <div>• {hasMrWhite ? '1 Mr. White' : 'Pas de Mr. White'}</div>
+                <div>• {room.players.length - numUndercovers - (hasMrWhite ? 1 : 0)} Civil{room.players.length - numUndercovers - (hasMrWhite ? 1 : 0) > 1 ? 's' : ''}</div>
+              </div>
+
+            </div>
           </div>
         )}
 

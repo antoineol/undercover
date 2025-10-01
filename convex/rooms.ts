@@ -14,9 +14,11 @@ export const createRoom = mutation({
       hostId: `host_${now}`,
       gameState: "waiting",
       currentRound: 0,
-      maxRounds: 3,
+      maxRounds: 100,
       currentPlayerIndex: 0,
       playerOrder: [],
+      hasMrWhite: false,
+      numUndercovers: 1,
       createdAt: now,
     });
 

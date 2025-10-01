@@ -20,7 +20,11 @@ const WORD_PAIRS = [
 ];
 
 export const startGame = mutation({
-  args: { roomId: v.id("rooms") },
+  args: {
+    roomId: v.id("rooms"),
+    numUndercovers: v.number(),
+    hasMrWhite: v.boolean()
+  },
   handler: async (ctx, args) => {
     const room = await ctx.db.get(args.roomId);
     if (!room) {
@@ -43,13 +47,26 @@ export const startGame = mutation({
     // Select random word pair
     const wordPair = WORD_PAIRS[Math.floor(Math.random() * WORD_PAIRS.length)];
 
+    // Validate configuration
+    const totalSpecialRoles = args.numUndercovers + (args.hasMrWhite ? 1 : 0);
+    if (totalSpecialRoles >= players.length) {
+      throw new Error("Need at least 1 civilian player. Reduce undercovers or disable Mr. White.");
+    }
+
+    if (args.numUndercovers < 1) {
+      throw new Error("Need at least 1 undercover");
+    }
+
+    if (args.numUndercovers > Math.floor(players.length / 2)) {
+      throw new Error("Too many undercovers. Maximum is half the total players.");
+    }
+
     // Assign roles
     const shuffledPlayers = [...players].sort(() => Math.random() - 0.5);
 
-    // Determine number of undercovers based on player count
-    let undercoverCount = 1;
-    if (players.length >= 6) undercoverCount = 2;
-    if (players.length >= 9) undercoverCount = 3;
+    // Use passed values
+    const undercoverCount = args.numUndercovers;
+    const hasMrWhite = args.hasMrWhite;
 
     // Assign roles
     for (let i = 0; i < shuffledPlayers.length; i++) {
@@ -57,7 +74,7 @@ export const startGame = mutation({
 
       if (i < undercoverCount) {
         role = "undercover";
-      } else if (i === undercoverCount && players.length >= 7) {
+      } else if (i === undercoverCount && hasMrWhite) {
         role = "mr_white";
       }
 
@@ -69,7 +86,7 @@ export const startGame = mutation({
       roomId: args.roomId,
       civilianWord: wordPair.civilian,
       undercoverWord: wordPair.undercover,
-      mrWhiteWord: players.length >= 7 ? "Unknown" : undefined,
+      mrWhiteWord: hasMrWhite ? "Unknown" : undefined,
       createdAt: Date.now(),
     });
 
@@ -86,7 +103,7 @@ export const startGame = mutation({
     const playerOrder = [...shuffledPlayers];
 
     // If it's round 1 and we have Mr. White, make sure he's not first
-    if (players.length >= 7) {
+    if (hasMrWhite) {
       const mrWhiteIndex = playerOrder.findIndex(p => p.role === "mr_white");
       if (mrWhiteIndex === 0) {
         // Move Mr. White to a random position (not first)
@@ -102,6 +119,8 @@ export const startGame = mutation({
       currentRound: 1,
       currentPlayerIndex: 0,
       playerOrder: playerOrder.map(p => p._id),
+      hasMrWhite: args.hasMrWhite,
+      numUndercovers: args.numUndercovers,
     });
 
     return { success: true };
@@ -361,12 +380,27 @@ export const votePlayer = mutation({
 
         // Reset turn order for next round
         if (room.playerOrder) {
+          const alivePlayers = await ctx.db
+            .query("players")
+            .withIndex("by_room_alive", (q) => q.eq("roomId", args.roomId).eq("isAlive", true))
+            .collect();
+
+          const alivePlayerIds = alivePlayers.map(p => p._id);
           const shuffledOrder = [...room.playerOrder].sort(() => Math.random() - 0.5);
+
+          // Find first alive player in the shuffled order
+          let firstAliveIndex = 0;
+          for (let i = 0; i < shuffledOrder.length; i++) {
+            if (alivePlayerIds.includes(shuffledOrder[i])) {
+              firstAliveIndex = i;
+              break;
+            }
+          }
 
           await ctx.db.patch(args.roomId, {
             gameState: "discussion",
             currentRound: room.currentRound + 1,
-            currentPlayerIndex: 0,
+            currentPlayerIndex: firstAliveIndex,
             playerOrder: shuffledOrder,
           });
         }
@@ -561,8 +595,8 @@ export const validateGameState = mutation({
       gameResult = "undercovers_win";
       action = "game_ended";
     }
-    // Mr. White solo victory: survives to end with at least one civilian, no undercovers
-    else if (aliveMrWhite.length > 0 && aliveCivilians.length > 0 && aliveUndercovers.length === 0) {
+    // Mr. White solo victory: survives to end (last 2 players) with at least one civilian, no undercovers
+    else if (aliveMrWhite.length > 0 && aliveCivilians.length > 0 && aliveUndercovers.length === 0 && players.length === 2) {
       gameResult = "mr_white_win";
       action = "game_ended";
     }
@@ -570,6 +604,42 @@ export const validateGameState = mutation({
     else if (aliveCivilians.length === 0 && aliveUndercovers.length > 0 && aliveMrWhite.length > 0) {
       gameResult = "undercovers_mrwhite_win";
       action = "game_ended";
+    }
+    // Check if current player is dead and skip to next alive player
+    else if (room.gameState === "discussion" && room.playerOrder && room.currentPlayerIndex !== undefined) {
+      const currentPlayerId = room.playerOrder[room.currentPlayerIndex];
+      const currentPlayer = await ctx.db.get(currentPlayerId);
+
+      if (currentPlayer && !currentPlayer.isAlive) {
+        // Current player is dead, find next alive player
+        const alivePlayerIds = players.map(p => p._id);
+        let nextAlivePlayerIndex = -1;
+
+        // Look for next alive player in the order
+        for (let i = room.currentPlayerIndex + 1; i < room.playerOrder.length; i++) {
+          if (alivePlayerIds.includes(room.playerOrder[i])) {
+            nextAlivePlayerIndex = i;
+            break;
+          }
+        }
+
+        // If no next alive player found, check from the beginning
+        if (nextAlivePlayerIndex === -1) {
+          for (let i = 0; i < room.currentPlayerIndex; i++) {
+            if (alivePlayerIds.includes(room.playerOrder[i])) {
+              nextAlivePlayerIndex = i;
+              break;
+            }
+          }
+        }
+
+        if (nextAlivePlayerIndex !== -1) {
+          await ctx.db.patch(args.roomId, {
+            currentPlayerIndex: nextAlivePlayerIndex,
+          });
+          action = "skipped_dead_player";
+        }
+      }
     }
     // Check if game should move to voting (all alive players have shared words)
     else if (room.gameState === "discussion") {
@@ -635,7 +705,7 @@ export const validateGameState = mutation({
         finalGameResult = "civilians_win";
       } else if (remainingUndercovers.length >= remainingCivilians.length && remainingMrWhite.length === 0) {
         finalGameResult = "undercovers_win";
-      } else if (remainingMrWhite.length > 0 && remainingCivilians.length > 0 && remainingUndercovers.length === 0) {
+      } else if (remainingMrWhite.length > 0 && remainingCivilians.length > 0 && remainingUndercovers.length === 0 && remainingPlayers.length === 2) {
         finalGameResult = "mr_white_win";
       } else if (remainingCivilians.length === 0 && remainingUndercovers.length > 0 && remainingMrWhite.length > 0) {
         finalGameResult = "undercovers_mrwhite_win";
@@ -664,12 +734,27 @@ export const validateGameState = mutation({
 
         // Reset turn order for next round
         if (room.playerOrder) {
+          const alivePlayers = await ctx.db
+            .query("players")
+            .withIndex("by_room_alive", (q) => q.eq("roomId", args.roomId).eq("isAlive", true))
+            .collect();
+
+          const alivePlayerIds = alivePlayers.map(p => p._id);
           const shuffledOrder = [...room.playerOrder].sort(() => Math.random() - 0.5);
+
+          // Find first alive player in the shuffled order
+          let firstAliveIndex = 0;
+          for (let i = 0; i < shuffledOrder.length; i++) {
+            if (alivePlayerIds.includes(shuffledOrder[i])) {
+              firstAliveIndex = i;
+              break;
+            }
+          }
 
           await ctx.db.patch(args.roomId, {
             gameState: "discussion",
             currentRound: room.currentRound + 1,
-            currentPlayerIndex: 0,
+            currentPlayerIndex: firstAliveIndex,
             playerOrder: shuffledOrder,
           });
         }
@@ -767,8 +852,8 @@ export const checkMaxRoundsReached = mutation({
       else if (aliveUndercovers.length >= aliveCivilians.length && aliveMrWhite.length === 0) {
         gameResult = "undercovers_win";
       }
-      // Mr. White solo victory: survives to end with at least one civilian
-      else if (aliveMrWhite.length > 0 && aliveCivilians.length > 0 && aliveUndercovers.length === 0) {
+      // Mr. White solo victory: survives to end (last 2 players) with at least one civilian
+      else if (aliveMrWhite.length > 0 && aliveCivilians.length > 0 && aliveUndercovers.length === 0 && players.length === 2) {
         gameResult = "mr_white_win";
       }
       // Joint victory: Undercovers + Mr. White win if all civilians eliminated

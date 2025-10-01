@@ -15,6 +15,8 @@ export default defineSchema({
     maxRounds: v.number(),
     currentPlayerIndex: v.optional(v.number()), // Index of current player to share word
     playerOrder: v.optional(v.array(v.id("players"))), // Order of players for word sharing
+    hasMrWhite: v.optional(v.boolean()), // Whether Mr. White is enabled for this room
+    numUndercovers: v.optional(v.number()), // Number of undercover players
     createdAt: v.number(),
   })
     .index("by_code", ["code"])
@@ -23,7 +25,7 @@ export default defineSchema({
   players: defineTable({
     roomId: v.id("rooms"),
     name: v.string(),
-    sessionId: v.string(), // Unique session identifier for this player
+    sessionId: v.optional(v.string()), // Unique session identifier for this player
     isHost: v.boolean(),
     isAlive: v.boolean(),
     role: v.union(
