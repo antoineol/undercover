@@ -188,6 +188,7 @@ function JoinRoomForm({ onJoin, error, room }: JoinRoomFormProps) {
           placeholder="Entrez votre nom"
           required
           maxLength={20}
+          autoFocus
         />
       </div>
 

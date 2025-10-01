@@ -329,8 +329,11 @@ export const votePlayer = mutation({
         await ctx.db.patch(eliminatedPlayerId as any, { isAlive: false });
       }
 
-      // Check win conditions
-      const alivePlayers = allAlivePlayers.filter(p => p.isAlive);
+      // Check win conditions - refetch alive players after elimination
+      const alivePlayers = await ctx.db
+        .query("players")
+        .withIndex("by_room_alive", (q) => q.eq("roomId", args.roomId).eq("isAlive", true))
+        .collect();
       const aliveUndercovers = alivePlayers.filter(p => p.role === "undercover");
       const aliveCivilians = alivePlayers.filter(p => p.role === "civilian");
       const aliveMrWhite = alivePlayers.filter(p => p.role === "mr_white");
@@ -460,8 +463,11 @@ export const endVoting = mutation({
       await ctx.db.patch(eliminatedPlayerId as any, { isAlive: false });
     }
 
-    // Check win conditions
-    const alivePlayers = players.filter(p => p.isAlive);
+    // Check win conditions - refetch alive players after elimination
+    const alivePlayers = await ctx.db
+      .query("players")
+      .withIndex("by_room_alive", (q) => q.eq("roomId", args.roomId).eq("isAlive", true))
+      .collect();
     const aliveUndercovers = alivePlayers.filter(p => p.role === "undercover");
     const aliveCivilians = alivePlayers.filter(p => p.role === "civilian");
     const aliveMrWhite = alivePlayers.filter(p => p.role === "mr_white");
@@ -694,8 +700,11 @@ export const validateGameState = mutation({
         await ctx.db.patch(eliminatedPlayerId as any, { isAlive: false });
       }
 
-      // Check win conditions after elimination
-      const remainingPlayers = players.filter(p => p.isAlive);
+      // Check win conditions after elimination - refetch alive players
+      const remainingPlayers = await ctx.db
+        .query("players")
+        .withIndex("by_room_alive", (q) => q.eq("roomId", args.roomId).eq("isAlive", true))
+        .collect();
       const remainingUndercovers = remainingPlayers.filter(p => p.role === "undercover");
       const remainingCivilians = remainingPlayers.filter(p => p.role === "civilian");
       const remainingMrWhite = remainingPlayers.filter(p => p.role === "mr_white");
