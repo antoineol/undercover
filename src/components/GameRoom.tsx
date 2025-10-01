@@ -16,6 +16,7 @@ export default function GameRoom({ roomCode, playerName, isHost, onLeave }: Game
   const [wordToShare, setWordToShare] = useState("");
   const [numUndercovers, setNumUndercovers] = useState(1);
   const [hasMrWhite, setHasMrWhite] = useState(false);
+  const [isValidating, setIsValidating] = useState(false);
 
   const room = useQuery(api.rooms.getRoom, { roomCode });
   const gameWords = useQuery(api.game.getGameWords, room ? { roomId: room._id } : "skip");
@@ -27,31 +28,20 @@ export default function GameRoom({ roomCode, playerName, isHost, onLeave }: Game
   const validateGameState = useMutation(api.game.validateGameState);
   const restartGame = useMutation(api.game.restartGame);
 
-  // Validate game state on component mount
-  useEffect(() => {
-    if (room && room.gameState !== "waiting") {
-      const validateState = async () => {
-        try {
-          const result = await validateGameState({ roomId: room._id });
-          if (result.action !== "no_action_needed") {
-            console.log("Game state validated and fixed:", result);
-          }
-        } catch (error) {
-          console.error("Failed to validate game state:", error);
-        }
-      };
-      validateState();
-    }
-  }, [room, validateGameState]);
+  // No automatic validation - only manual validation when needed
 
   const handleStartGame = async () => {
     if (room && isHost) {
       try {
-        await startGame({
-          roomId: room._id,
-          numUndercovers,
-          hasMrWhite
-        });
+        await retryWithBackoff(
+          () => startGame({
+            roomId: room._id,
+            numUndercovers,
+            hasMrWhite
+          }),
+          2,
+          500
+        );
       } catch (error: any) {
         console.error("Failed to start game:", error);
         alert(`Erreur: ${error.message}`);
@@ -83,13 +73,18 @@ export default function GameRoom({ roomCode, playerName, isHost, onLeave }: Game
       const currentPlayer = room.players.find((p: { name: string }) => p.name === playerName);
       if (currentPlayer) {
         try {
-          await votePlayer({
-            roomId: room._id,
-            voterId: currentPlayer._id,
-            targetId: targetId as any
-          });
+          await retryWithBackoff(
+            () => votePlayer({
+              roomId: room._id,
+              voterId: currentPlayer._id,
+              targetId: targetId as any
+            }),
+            2,
+            500
+          );
         } catch (error) {
           console.error("Échec du vote:", error);
+          alert("Erreur lors du vote: " + ((error as Error).message || "Erreur inconnue"));
         }
       }
     }
@@ -111,10 +106,42 @@ export default function GameRoom({ roomCode, playerName, isHost, onLeave }: Game
     });
   };
 
-  const handleValidateGameState = async () => {
-    if (room) {
+  // Retry function with exponential backoff
+  const retryWithBackoff = async <T,>(
+    fn: () => Promise<T>,
+    maxRetries: number = 3,
+    baseDelay: number = 1000
+  ): Promise<T> => {
+    for (let attempt = 0; attempt <= maxRetries; attempt++) {
       try {
-        const result = await validateGameState({ roomId: room._id });
+        return await fn();
+      } catch (error: any) {
+        if (attempt === maxRetries) {
+          throw error;
+        }
+
+        // Only retry on concurrent access errors
+        if (error.message && error.message.includes("Documents read from or written to")) {
+          const delay = baseDelay * Math.pow(2, attempt) + Math.random() * 1000;
+          console.log(`Retry attempt ${attempt + 1} after ${delay}ms delay`);
+          await new Promise(resolve => setTimeout(resolve, delay));
+        } else {
+          throw error;
+        }
+      }
+    }
+    throw new Error("Max retries exceeded");
+  };
+
+  const handleValidateGameState = async () => {
+    if (room && !isValidating) {
+      setIsValidating(true);
+      try {
+        const result = await retryWithBackoff(
+          () => validateGameState({ roomId: room._id }),
+          3,
+          1000
+        );
         console.log("Game state validation result:", result);
         if (result.action !== "no_action_needed") {
           if (result.action === "skipped_dead_player") {
@@ -125,9 +152,11 @@ export default function GameRoom({ roomCode, playerName, isHost, onLeave }: Game
         } else {
           alert("Game state is valid - no action needed");
         }
-      } catch (error) {
-        console.error("Failed to validate game state:", error);
-        alert("Failed to validate game state");
+      } catch (error: any) {
+        console.error("Failed to validate game state after retries:", error);
+        alert("Failed to validate game state after multiple attempts");
+      } finally {
+        setIsValidating(false);
       }
     }
   };
@@ -158,6 +187,16 @@ export default function GameRoom({ roomCode, playerName, isHost, onLeave }: Game
   const currentPlayer = room.players.find((p: { name: string }) => p.name === playerName);
   const alivePlayers = room.players.filter((p: any) => p.isAlive);
   const isVotingPhase = room.gameState === "voting";
+
+  // Debug logging for vote button visibility
+  if (isVotingPhase && currentPlayer) {
+    console.log("Vote button debug:", {
+      playerName,
+      currentPlayerName: currentPlayer.name,
+      currentPlayerAlive: currentPlayer.isAlive,
+      isVotingPhase
+    });
+  }
   const isDiscussionPhase = room.gameState === "discussion";
   const hasSharedWord = currentPlayer?.hasSharedWord || false;
 
@@ -208,10 +247,15 @@ export default function GameRoom({ roomCode, playerName, isHost, onLeave }: Game
               {room.gameState !== "waiting" && (
                 <button
                   onClick={handleValidateGameState}
-                  className="bg-yellow-600 text-white px-4 py-2 rounded-md hover:bg-yellow-700"
+                  disabled={isValidating}
+                  className={`px-4 py-2 rounded-md ${
+                    isValidating
+                      ? "bg-gray-400 cursor-not-allowed"
+                      : "bg-yellow-600 hover:bg-yellow-700"
+                  } text-white`}
                   title="Valider et corriger l'état du jeu"
                 >
-                  🔧 Valider le Jeu
+                  {isValidating ? "⏳ Validation..." : "🔧 Valider le Jeu"}
                 </button>
               )}
               {isHost && room.gameState === "waiting" && (
@@ -460,8 +504,8 @@ export default function GameRoom({ roomCode, playerName, isHost, onLeave }: Game
                   </div>
                 )}
 
-                {/* Show if current player has voted for this player */}
-                {isVotingPhase && player.isAlive && player.name !== playerName && currentPlayer?.isAlive && (
+                {/* Show if current player has voted for this player - only for alive players */}
+                {isVotingPhase && player.isAlive && player.name !== playerName && currentPlayer && currentPlayer.isAlive && (
                   <div className="mt-2">
                     {currentPlayer?.votes.includes(player._id) ? (
                       <button
