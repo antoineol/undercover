@@ -689,6 +689,56 @@ export const validateGameState = mutation({
   },
 });
 
+export const restartGame = mutation({
+  args: { roomId: v.id("rooms") },
+  handler: async (ctx, args) => {
+    const room = await ctx.db.get(args.roomId);
+    if (!room) {
+      throw new Error("Room not found");
+    }
+
+    if (room.gameState !== "results") {
+      throw new Error("Game is not finished");
+    }
+
+    // Reset all players to alive state
+    const players = await ctx.db
+      .query("players")
+      .withIndex("by_room", (q) => q.eq("roomId", args.roomId))
+      .collect();
+
+    for (const player of players) {
+      await ctx.db.patch(player._id, {
+        isAlive: true,
+        hasSharedWord: false,
+        sharedWord: undefined,
+        votes: [],
+        role: "civilian", // Will be reassigned when game starts
+      });
+    }
+
+    // Reset room state
+    await ctx.db.patch(args.roomId, {
+      gameState: "waiting",
+      currentRound: 0,
+      currentPlayerIndex: 0,
+      playerOrder: [],
+    });
+
+    // Remove old game words
+    const oldGameWords = await ctx.db
+      .query("gameWords")
+      .withIndex("by_room", (q) => q.eq("roomId", args.roomId))
+      .first();
+
+    if (oldGameWords) {
+      await ctx.db.delete(oldGameWords._id);
+    }
+
+    return { success: true };
+  },
+});
+
 export const checkMaxRoundsReached = mutation({
   args: { roomId: v.id("rooms") },
   handler: async (ctx, args) => {

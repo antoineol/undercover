@@ -22,6 +22,7 @@ export default function GameRoom({ roomCode, playerName, isHost, onLeave }: Game
   const shareWord = useMutation(api.game.shareWord);
   const votePlayer = useMutation(api.game.votePlayer);
   const validateGameState = useMutation(api.game.validateGameState);
+  const restartGame = useMutation(api.game.restartGame);
 
   // Validate game state on component mount
   useEffect(() => {
@@ -115,6 +116,17 @@ export default function GameRoom({ roomCode, playerName, isHost, onLeave }: Game
       } catch (error) {
         console.error("Failed to validate game state:", error);
         alert("Failed to validate game state");
+      }
+    }
+  };
+
+  const handleRestartGame = async () => {
+    if (room && isHost) {
+      try {
+        await restartGame({ roomId: room._id });
+      } catch (error) {
+        console.error("Failed to restart game:", error);
+        alert("Échec du redémarrage du jeu");
       }
     }
   };
@@ -346,6 +358,16 @@ export default function GameRoom({ roomCode, playerName, isHost, onLeave }: Game
               const isCurrentTurn = player._id === currentTurnPlayerId;
               const isMe = player.name === playerName;
 
+              // Check if current turn player has already completed their action
+              const hasCompletedAction = isDiscussionPhase
+                ? player.hasSharedWord
+                : isVotingPhase
+                ? player.votes && player.votes.length > 0
+                : false;
+
+              // Only show as current turn if they haven't completed their action yet
+              const shouldShowAsCurrentTurn = isCurrentTurn && !hasCompletedAction;
+
               return (
               <div
                 key={player._id}
@@ -354,7 +376,7 @@ export default function GameRoom({ roomCode, playerName, isHost, onLeave }: Game
                     ? "bg-green-50 border-green-200"
                     : "bg-red-50 border-red-200"
                 } ${isMe ? "ring-2 ring-blue-500" : ""} ${
-                  isCurrentTurn && (isDiscussionPhase || isVotingPhase)
+                  shouldShowAsCurrentTurn && (isDiscussionPhase || isVotingPhase)
                     ? "ring-2 ring-yellow-500 bg-yellow-50"
                     : ""
                 }`}
@@ -362,7 +384,7 @@ export default function GameRoom({ roomCode, playerName, isHost, onLeave }: Game
                 <div className="flex justify-between items-center">
                   <span className="font-medium">{player.name}</span>
                   <div className="flex space-x-1">
-                    {isCurrentTurn && (isDiscussionPhase || isVotingPhase) && (
+                    {shouldShowAsCurrentTurn && (isDiscussionPhase || isVotingPhase) && (
                       <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded">
                         Tour
                       </span>
@@ -388,7 +410,7 @@ export default function GameRoom({ roomCode, playerName, isHost, onLeave }: Game
                 )}
 
                 {/* Show if player is current turn (only in active game phases) */}
-                {isCurrentTurn && (isDiscussionPhase || isVotingPhase) && (
+                {shouldShowAsCurrentTurn && (isDiscussionPhase || isVotingPhase) && (
                   <div className="text-xs text-yellow-600 mt-1">
                     🎯 Tour actuel
                   </div>
@@ -543,6 +565,21 @@ export default function GameRoom({ roomCode, playerName, isHost, onLeave }: Game
                 </div>
               );
             })()}
+
+            {/* Restart Game Button - Only for Host */}
+            {isHost ? (
+              <div className="mt-6 text-center">
+                <button
+                  onClick={handleRestartGame}
+                  className="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-lg transition-colors"
+                >
+                  🔄 Recommencer un nouveau jeu
+                </button>
+
+              </div>
+            ) : <p className="text-sm text-gray-600 mt-2">
+            Seul l&apos;hôte peut redémarrer le jeu
+          </p>}
           </div>
         )}
 
