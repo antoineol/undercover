@@ -8,7 +8,7 @@ interface GameStatsProps {
 }
 
 // Internal component that handles the game stats logic
-function GameStatsContent({ room, votingProgress }: GameStatsProps) {
+function GameStatsContent({ votingProgress }: Omit<GameStatsProps, 'room'>) {
   return (
     <Card>
       {/* Voting Progress */}
