@@ -261,7 +261,12 @@ export default function GameRoom({
 
       <div className='max-w-4xl mx-auto px-4 py-6 flex flex-col gap-6'>
         {/* Start Game Button - Host Only, at top of content */}
-        {isHost && room.gameState === 'waiting' && (
+        <AnimateHeight
+          height={isHost && room.gameState === 'waiting' ? 'auto' : 0}
+          duration={300}
+          easing='ease-in-out'
+          animateOpacity
+        >
           <div>
             <Button
               onClick={handleStartGame}
@@ -361,7 +366,7 @@ export default function GameRoom({
               </Card>
             </AnimateHeight>
           </div>
-        )}
+        </AnimateHeight>
         <GameResults
           room={room}
           isHost={isHost}
@@ -369,7 +374,16 @@ export default function GameRoom({
         />
 
         {/* Game Words (for current player) */}
-        {room.gameState !== 'waiting' && currentPlayer && gameWords && (
+        <AnimateHeight
+          height={
+            room.gameState !== 'waiting' && currentPlayer && gameWords
+              ? 'auto'
+              : 0
+          }
+          duration={300}
+          easing='ease-in-out'
+          animateOpacity
+        >
           <div>
             <div className='flex justify-between items-center'>
               <Button
@@ -389,17 +403,17 @@ export default function GameRoom({
               <div className='bg-gray-50 p-4 rounded-lg mt-4'>
                 <div>
                   <span className='text-lg font-bold text-blue-600'>
-                    {currentPlayer.role === 'undercover'
-                      ? gameWords.undercoverWord
-                      : currentPlayer.role === 'mr_white'
+                    {currentPlayer?.role === 'undercover'
+                      ? gameWords?.undercoverWord
+                      : currentPlayer?.role === 'mr_white'
                         ? 'Vous êtes Mr. White.'
-                        : gameWords.civilianWord}
+                        : gameWords?.civilianWord}
                   </span>
                 </div>
               </div>
             </AnimateHeight>
           </div>
-        )}
+        </AnimateHeight>
 
         {/* <GameStats
           room={room}
@@ -408,10 +422,15 @@ export default function GameRoom({
           playersWhoVoted={playersWhoVoted}
           currentPlayer={currentPlayer}
         /> */}
-        {currentPlayer && (
+        <AnimateHeight
+          height={currentPlayer ? 'auto' : 0}
+          duration={300}
+          easing='ease-in-out'
+          animateOpacity
+        >
           <WordSharing
             room={room}
-            currentPlayer={currentPlayer}
+            currentPlayer={currentPlayer!}
             wordToShare={wordToShare}
             setWordToShare={setWordToShare}
             onShareWord={handleShareWord}
@@ -419,11 +438,16 @@ export default function GameRoom({
             currentTurnPlayer={currentTurnPlayer}
             alivePlayers={alivePlayers}
           />
-        )}
-        {currentPlayer && (
+        </AnimateHeight>
+        <AnimateHeight
+          height={currentPlayer ? 'auto' : 0}
+          duration={300}
+          easing='ease-in-out'
+          animateOpacity
+        >
           <PlayerList
             room={room}
-            currentPlayer={currentPlayer}
+            currentPlayer={currentPlayer!}
             playerName={playerName}
             isVotingPhase={isVotingPhase}
             isDiscussionPhase={isDiscussionPhase}
@@ -433,10 +457,15 @@ export default function GameRoom({
             onVote={handleVote}
             votingProgress={votingProgress}
           />
-        )}
+        </AnimateHeight>
 
         {/* Game Instructions */}
-        {room.gameState === 'waiting' && (
+        <AnimateHeight
+          height={room.gameState === 'waiting' ? 'auto' : 0}
+          duration={300}
+          easing='ease-in-out'
+          animateOpacity
+        >
           <Card className='bg-blue-50'>
             <h3 className='text-lg font-semibold mb-2'>Comment Jouer</h3>
             <ul className='text-sm text-gray-700 space-y-1'>
@@ -452,9 +481,14 @@ export default function GameRoom({
               </li>
             </ul>
           </Card>
-        )}
+        </AnimateHeight>
         {/* QR Code Modal */}
-        {showQR && (
+        <AnimateHeight
+          height={showQR ? 'auto' : 0}
+          duration={300}
+          easing='ease-in-out'
+          animateOpacity
+        >
           <div
             className='fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4'
             onClick={handleCloseQR}
@@ -473,10 +507,15 @@ export default function GameRoom({
                   ×
                 </button>
               </div>
-              {qrCodeDataUrl && (
+              <AnimateHeight
+                height={qrCodeDataUrl ? 'auto' : 0}
+                duration={300}
+                easing='ease-in-out'
+                animateOpacity
+              >
                 <div className='text-center'>
                   <Image
-                    src={qrCodeDataUrl}
+                    src={qrCodeDataUrl!}
                     alt='QR Code'
                     width={200}
                     height={200}
@@ -486,13 +525,18 @@ export default function GameRoom({
                     Scannez ce code pour rejoindre la salle
                   </p>
                 </div>
-              )}
+              </AnimateHeight>
             </div>
           </div>
-        )}
+        </AnimateHeight>
 
         {/* Show validate button for non-waiting states */}
-        {room.gameState !== 'waiting' && (
+        <AnimateHeight
+          height={room.gameState !== 'waiting' ? 'auto' : 0}
+          duration={300}
+          easing='ease-in-out'
+          animateOpacity
+        >
           <Button
             onClick={handleValidateGameState}
             disabled={isValidating}
@@ -505,11 +549,16 @@ export default function GameRoom({
               ? UI_MESSAGES.BUTTONS.VALIDATING
               : UI_MESSAGES.BUTTONS.VALIDATE_GAME}
           </Button>
-        )}
+        </AnimateHeight>
       </div>
 
       {/* Fixed Share Buttons at Bottom - Mobile */}
-      {room.gameState === 'waiting' && (
+      <AnimateHeight
+        height={room.gameState === 'waiting' ? 'auto' : 0}
+        duration={300}
+        easing='ease-in-out'
+        animateOpacity
+      >
         <div className='fixed bottom-0 left-0 right-0 bg-white border-t shadow-lg p-4 md:hidden'>
           <div className='flex gap-3'>
             <Button
@@ -530,7 +579,7 @@ export default function GameRoom({
             </Button>
           </div>
         </div>
-      )}
+      </AnimateHeight>
 
       {/* Bottom padding for mobile to prevent content from being hidden behind fixed buttons */}
       <div className='h-24 md:hidden'></div>

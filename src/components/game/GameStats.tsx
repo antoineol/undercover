@@ -1,4 +1,5 @@
 import { Room } from '@/lib/types';
+import AnimateHeight from 'react-animate-height';
 import Card from '../ui/Card';
 
 interface GameStatsProps {
@@ -16,7 +17,12 @@ export default function GameStats({ room, votingProgress }: GameStatsProps) {
   return (
     <Card>
       {/* Voting Progress */}
-      {room.gameState === 'voting' && (
+      <AnimateHeight
+        height={room.gameState === 'voting' ? 'auto' : 0}
+        duration={300}
+        easing='ease-in-out'
+        animateOpacity
+      >
         <div className='p-4 bg-gray-50 rounded-lg'>
           <div className='flex justify-between items-center mb-2'>
             <span className='text-sm font-medium text-gray-700'>
@@ -29,13 +35,18 @@ export default function GameStats({ room, votingProgress }: GameStatsProps) {
               style={{ width: `${votingProgress}%` }}
             />
           </div>
-          {votingProgress === 100 && (
+          <AnimateHeight
+            height={votingProgress === 100 ? 'auto' : 0}
+            duration={300}
+            easing='ease-in-out'
+            animateOpacity
+          >
             <p className='text-sm text-green-600 mt-2 font-medium'>
               ✅ Tous les joueurs ont voté - Traitement des résultats...
             </p>
-          )}
+          </AnimateHeight>
         </div>
-      )}
+      </AnimateHeight>
     </Card>
   );
 }

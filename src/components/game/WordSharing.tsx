@@ -62,13 +62,7 @@ export default function WordSharing({
         />
       </div>
 
-      <AnimateHeight
-        height={'auto'}
-        duration={300}
-        easing='ease-in-out'
-        animateOpacity
-        contentClassName='flex flex-col gap-6'
-      >
+      <div>
         {isMyTurn ? (
           <div className='p-3 bg-blue-50 rounded-lg'>
             <p className='text-blue-800 font-medium'>
@@ -84,8 +78,13 @@ export default function WordSharing({
           </div>
         )}
 
-        {isMyTurn && !hasSharedWord && (
-          <Card className='flex flex-col gap-4'>
+        <AnimateHeight
+          height={isMyTurn && !hasSharedWord ? 'auto' : 0}
+          duration={300}
+          easing='ease-in-out'
+          animateOpacity
+        >
+          <Card className='flex flex-col gap-4 mt-6'>
             <p className='text-gray-700'>
               Décrivez votre mot en un seul mot sans le révéler directement.
             </p>
@@ -106,8 +105,8 @@ export default function WordSharing({
               </div>
             </form>
           </Card>
-        )}
-      </AnimateHeight>
+        </AnimateHeight>
+      </div>
     </div>
   );
 }
