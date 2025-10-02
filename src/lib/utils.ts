@@ -1,5 +1,5 @@
 import { GAME_CONFIG, ID_CHARS, RETRY_CONFIG } from './constants';
-import { RetryFunction, RetryConfig, GameError } from './types';
+import { GameError, RetryConfig, RetryFunction } from './types';
 
 /**
  * Generate a random room code
@@ -275,7 +275,7 @@ export async function copyToClipboard(text: string): Promise<boolean> {
   try {
     await navigator.clipboard.writeText(text);
     return true;
-  } catch (error) {
+  } catch {
     // Fallback for older browsers
     try {
       const textArea = document.createElement('textarea');

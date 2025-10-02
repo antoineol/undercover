@@ -3,19 +3,10 @@ import Card from '../ui/Card';
 
 interface GameStatsProps {
   room: Room;
-  alivePlayers: any[];
   votingProgress: number;
-  playersWhoVoted: any[];
-  currentPlayer?: any;
 }
 
-export default function GameStats({
-  room,
-  alivePlayers,
-  votingProgress,
-  playersWhoVoted,
-  currentPlayer,
-}: GameStatsProps) {
+export default function GameStats({ room, votingProgress }: GameStatsProps) {
   if (room.gameState === 'waiting') {
     return null;
   }

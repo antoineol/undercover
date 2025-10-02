@@ -1,9 +1,8 @@
 import {
-  shuffleArray,
   ensureMrWhiteNotFirst,
   findNextAlivePlayer,
+  shuffleArray,
 } from './utils';
-import { PlayerService } from './game-services';
 
 /**
  * Game flow helpers - pure functions for game logic
@@ -41,7 +40,7 @@ export class GameFlowHelpers {
   /**
    * Create player order for word sharing
    */
-  static createPlayerOrder(players: any[], hasMrWhite: boolean) {
+  static createPlayerOrder(players: any[]) {
     const playerOrder = ensureMrWhiteNotFirst([...players]);
     return playerOrder.map(p => p._id);
   }

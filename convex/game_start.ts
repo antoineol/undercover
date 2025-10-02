@@ -1,13 +1,12 @@
-import { mutation } from './_generated/server';
 import { v } from 'convex/values';
-import { getRandomWordPair } from '../src/lib/word-pairs';
-import { GameConfigService } from '../src/lib/game-services';
-import { GameFlowHelpers } from '../src/lib/game-helpers';
 import {
   InsufficientPlayersError,
   TooManyPlayersError,
-  InvalidGameConfigurationError,
 } from '../src/lib/errors';
+import { GameFlowHelpers } from '../src/lib/game-helpers';
+import { GameConfigService } from '../src/lib/game-services';
+import { getRandomWordPair } from '../src/lib/word-pairs';
+import { mutation } from './_generated/server';
 
 export const startGame = mutation({
   args: {
@@ -75,10 +74,7 @@ export const startGame = mutation({
     }
 
     // Create player order for word sharing
-    const playerOrder = GameFlowHelpers.createPlayerOrder(
-      players,
-      args.hasMrWhite
-    );
+    const playerOrder = GameFlowHelpers.createPlayerOrder(players);
 
     // Update room state to word sharing phase
     await ctx.db.patch(args.roomId, {

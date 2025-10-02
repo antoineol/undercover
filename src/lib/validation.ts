@@ -1,5 +1,4 @@
 import { GAME_CONFIG } from './constants';
-import { createGameError } from './utils';
 
 export interface ValidationResult {
   isValid: boolean;
