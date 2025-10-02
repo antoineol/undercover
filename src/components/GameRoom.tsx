@@ -367,6 +367,40 @@ export default function GameRoom({
           isHost={isHost}
           onRestartGame={handleRestartGame}
         />
+
+        {/* Game Words (for current player) */}
+        {room.gameState !== 'waiting' && currentPlayer && gameWords && (
+          <div>
+            <div className='flex justify-between items-center'>
+              <Button
+                onClick={() => setShowWords(!showWords)}
+                variant='primary'
+              >
+                {showWords ? 'Masquer' : 'Afficher'} le Mot
+              </Button>
+            </div>
+
+            <AnimateHeight
+              height={showWords ? 'auto' : 0}
+              duration={300}
+              easing='ease-in-out'
+              animateOpacity
+            >
+              <div className='bg-gray-50 p-4 rounded-lg mt-4'>
+                <div>
+                  <span className='text-lg font-bold text-blue-600'>
+                    {currentPlayer.role === 'undercover'
+                      ? gameWords.undercoverWord
+                      : currentPlayer.role === 'mr_white'
+                        ? 'Vous êtes Mr. White.'
+                        : gameWords.civilianWord}
+                  </span>
+                </div>
+              </div>
+            </AnimateHeight>
+          </div>
+        )}
+
         {/* <GameStats
           room={room}
           alivePlayers={alivePlayers}
@@ -400,38 +434,7 @@ export default function GameRoom({
             votingProgress={votingProgress}
           />
         )}
-        {/* Game Words (for current player) */}
-        {room.gameState !== 'waiting' && currentPlayer && gameWords && (
-          <Card className='flex flex-col gap-4'>
-            <div className='flex justify-between items-center'>
-              <Button
-                onClick={() => setShowWords(!showWords)}
-                variant='primary'
-              >
-                {showWords ? 'Masquer' : 'Afficher'} le Mot
-              </Button>
-            </div>
 
-            <AnimateHeight
-              height={showWords ? 'auto' : 0}
-              duration={300}
-              easing='ease-in-out'
-              animateOpacity
-            >
-              <div className='bg-gray-50 p-4 rounded-lg'>
-                <div>
-                  <span className='text-lg font-bold text-blue-600'>
-                    {currentPlayer.role === 'undercover'
-                      ? gameWords.undercoverWord
-                      : currentPlayer.role === 'mr_white'
-                        ? 'Vous êtes Mr. White.'
-                        : gameWords.civilianWord}
-                  </span>
-                </div>
-              </div>
-            </AnimateHeight>
-          </Card>
-        )}
         {/* Game Instructions */}
         {room.gameState === 'waiting' && (
           <Card className='bg-blue-50'>

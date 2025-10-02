@@ -97,13 +97,22 @@ export default function PlayerList({
                   {shouldShowAsCurrentTurn && ' →'} {!player.isAlive && '💀'}{' '}
                   {player.name}
                 </span>
-                {isDiscussionPhase &&
-                  player.hasSharedWord &&
-                  player.sharedWord && (
-                    <div className='text-sm text-blue-600 mt-1'>
-                      &quot;{player.sharedWord}&quot;
-                    </div>
-                  )}
+                <AnimateHeight
+                  height={
+                    isDiscussionPhase &&
+                    player.hasSharedWord &&
+                    player.sharedWord
+                      ? 'auto'
+                      : 0
+                  }
+                  duration={300}
+                  easing='ease-in-out'
+                  animateOpacity
+                >
+                  <div className='text-sm text-blue-600 mt-1'>
+                    &quot;{player.sharedWord}&quot;
+                  </div>
+                </AnimateHeight>
               </div>
 
               {/* Show role for dead players */}
@@ -145,32 +154,41 @@ export default function PlayerList({
                 </div>
 
                 {/* Show if current player has voted for this player - only for alive players */}
-                {player.isAlive &&
-                  player.name !== playerName &&
-                  currentPlayer &&
-                  currentPlayer.isAlive && (
-                    <div className='mt-2'>
-                      {currentPlayer?.votes.includes(player._id) ? (
-                        <Button
-                          onClick={() => onVote(player._id)}
-                          variant='success'
-                          size='sm'
-                          className='w-full'
-                        >
-                          {UI_MESSAGES.BUTTONS.VOTED}
-                        </Button>
-                      ) : (
-                        <Button
-                          onClick={() => onVote(player._id)}
-                          variant='danger'
-                          size='sm'
-                          className='w-full'
-                        >
-                          {UI_MESSAGES.BUTTONS.VOTE_AGAINST}
-                        </Button>
-                      )}
-                    </div>
-                  )}
+                <AnimateHeight
+                  height={
+                    player.isAlive &&
+                    player.name !== playerName &&
+                    currentPlayer &&
+                    currentPlayer.isAlive
+                      ? 'auto'
+                      : 0
+                  }
+                  duration={300}
+                  easing='ease-in-out'
+                  animateOpacity
+                >
+                  <div className='mt-2'>
+                    {currentPlayer?.votes.includes(player._id) ? (
+                      <Button
+                        onClick={() => onVote(player._id)}
+                        variant='success'
+                        size='sm'
+                        className='w-full'
+                      >
+                        {UI_MESSAGES.BUTTONS.VOTED}
+                      </Button>
+                    ) : (
+                      <Button
+                        onClick={() => onVote(player._id)}
+                        variant='danger'
+                        size='sm'
+                        className='w-full'
+                      >
+                        {UI_MESSAGES.BUTTONS.VOTE_AGAINST}
+                      </Button>
+                    )}
+                  </div>
+                </AnimateHeight>
               </AnimateHeight>
             </div>
           );
