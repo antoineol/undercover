@@ -8,14 +8,14 @@ interface CardProps {
 
 const paddingClasses = {
   sm: 'p-4',
-  md: 'p-6',
+  md: 'py-6 px-5',
   lg: 'p-8',
 };
 
 export default function Card({
   children,
   className = '',
-  padding = 'md'
+  padding = 'md',
 }: CardProps) {
   const baseClasses = 'bg-white rounded-lg shadow';
   const paddingClass = paddingClasses[padding];

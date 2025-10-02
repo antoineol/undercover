@@ -1,82 +1,101 @@
-"use client";
+'use client';
 
-import { useState, useEffect, useCallback } from "react";
-import { useMutation, useQuery } from "convex/react";
-import Link from "next/link";
-import { api } from "../../../../convex/_generated/api";
-import GameRoom from "@/components/GameRoom";
+import { useState, useEffect, useCallback } from 'react';
+import { useMutation, useQuery } from 'convex/react';
+import Link from 'next/link';
+import { api } from '../../../../convex/_generated/api';
+import GameRoom from '@/components/GameRoom';
 
 interface RoomPageClientProps {
   roomCode: string;
 }
 
 export function RoomPageClient({ roomCode }: RoomPageClientProps) {
-  const [playerName, setPlayerName] = useState("");
+  const [playerName, setPlayerName] = useState('');
   const [isHost, setIsHost] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  const [joinError, setJoinError] = useState("");
+  const [joinError, setJoinError] = useState('');
 
   const room = useQuery(api.rooms.getRoom, { roomCode });
   const joinRoom = useMutation(api.rooms.joinRoom);
 
-  const handleJoinRoom = useCallback(async (name: string, isHostPlayer: boolean = false, sessionId?: string) => {
-    try {
-      setJoinError("");
-      const result = await joinRoom({
-        roomCode,
-        playerName: name,
-        sessionId: sessionId, // Pass sessionId for rejoining
-        isHost: isHostPlayer
-      });
+  const handleJoinRoom = useCallback(
+    async (name: string, isHostPlayer: boolean = false, sessionId?: string) => {
+      try {
+        setJoinError('');
+        const result = await joinRoom({
+          roomCode,
+          playerName: name,
+          sessionId: sessionId, // Pass sessionId for rejoining
+          isHost: isHostPlayer,
+        });
 
-      // Save player data to sessionStorage
-      const playerData = {
-        playerName: name,
-        isHost: isHostPlayer,
-        sessionId: result.sessionId
-      };
-      sessionStorage.setItem(`player_${roomCode}`, JSON.stringify(playerData));
+        // Save player data to sessionStorage
+        const playerData = {
+          playerName: name,
+          isHost: isHostPlayer,
+          sessionId: result.sessionId,
+        };
+        sessionStorage.setItem(
+          `player_${roomCode}`,
+          JSON.stringify(playerData)
+        );
 
-      setPlayerName(name);
-      setIsHost(isHostPlayer);
+        setPlayerName(name);
+        setIsHost(isHostPlayer);
 
-      // Log if this is a rejoin (for debugging)
-      if (result.isExisting) {
-        console.log("Player rejoined existing room");
+        // Log if this is a rejoin (for debugging)
+        if (result.isExisting) {
+          console.log('Player rejoined existing room');
+        }
+      } catch (error) {
+        console.error('Failed to join room:', error);
+        const errorMessage =
+          error instanceof Error ? error.message : 'Unknown error';
+
+        // Show specific error messages for different cases
+        if (errorMessage.includes('name already exists')) {
+          setJoinError(
+            'Un joueur avec ce nom existe déjà dans la salle. Veuillez choisir un autre nom.'
+          );
+        } else if (errorMessage.includes('Invalid session')) {
+          setJoinError(
+            'Session invalide. Veuillez rejoindre avec un nouveau nom.'
+          );
+        } else if (errorMessage.includes('Room not found')) {
+          setJoinError('Salle introuvable. Vérifiez le code de la salle.');
+        } else if (errorMessage.includes('Game has already started')) {
+          setJoinError(
+            'La partie a déjà commencé. Vous ne pouvez plus rejoindre cette salle.'
+          );
+        } else if (errorMessage.includes('Room is full')) {
+          setJoinError('La salle est pleine. Maximum 10 joueurs autorisés.');
+        } else {
+          setJoinError(
+            'Impossible de rejoindre la salle. Vérifiez le code de la salle ou essayez un nom différent.'
+          );
+        }
       }
-    } catch (error) {
-      console.error("Failed to join room:", error);
-      const errorMessage = error instanceof Error ? error.message : "Unknown error";
-
-      // Show specific error messages for different cases
-      if (errorMessage.includes("name already exists")) {
-        setJoinError("Un joueur avec ce nom existe déjà dans la salle. Veuillez choisir un autre nom.");
-      } else if (errorMessage.includes("Invalid session")) {
-        setJoinError("Session invalide. Veuillez rejoindre avec un nouveau nom.");
-      } else if (errorMessage.includes("Room not found")) {
-        setJoinError("Salle introuvable. Vérifiez le code de la salle.");
-      } else if (errorMessage.includes("Game has already started")) {
-        setJoinError("La partie a déjà commencé. Vous ne pouvez plus rejoindre cette salle.");
-      } else if (errorMessage.includes("Room is full")) {
-        setJoinError("La salle est pleine. Maximum 10 joueurs autorisés.");
-      } else {
-        setJoinError("Impossible de rejoindre la salle. Vérifiez le code de la salle ou essayez un nom différent.");
-      }
-    }
-  }, [roomCode, joinRoom]);
+    },
+    [roomCode, joinRoom]
+  );
 
   // Check for existing player data on mount
   useEffect(() => {
     const savedPlayerData = sessionStorage.getItem(`player_${roomCode}`);
     if (savedPlayerData) {
       try {
-        const { playerName: savedName, isHost: savedIsHost, sessionId: savedSessionId } = JSON.parse(savedPlayerData);
+        const {
+          playerName: savedName,
+          isHost: savedIsHost,
+          sessionId: savedSessionId,
+        } = JSON.parse(savedPlayerData);
         setPlayerName(savedName);
         setIsHost(savedIsHost);
         // Auto-join if we have saved data, including sessionId for rejoining
         handleJoinRoom(savedName, savedIsHost, savedSessionId);
       } catch (error) {
-        console.error("Error parsing saved player data:", error);
+        console.error('Error parsing saved player data:', error);
         sessionStorage.removeItem(`player_${roomCode}`);
       }
     }
@@ -86,17 +105,17 @@ export function RoomPageClient({ roomCode }: RoomPageClientProps) {
   const handleLeave = () => {
     // Clear saved player data
     sessionStorage.removeItem(`player_${roomCode}`);
-    setPlayerName("");
+    setPlayerName('');
     setIsHost(false);
-    setJoinError("");
+    setJoinError('');
   };
 
   if (isLoading || room === undefined) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Chargement de la salle...</p>
+      <div className='min-h-screen flex items-center justify-center'>
+        <div className='text-center'>
+          <div className='animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4'></div>
+          <p className='text-gray-600'>Chargement de la salle...</p>
         </div>
       </div>
     );
@@ -104,15 +123,19 @@ export function RoomPageClient({ roomCode }: RoomPageClientProps) {
 
   if (room === null) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-500 to-purple-600">
-        <div className="bg-white rounded-lg shadow-xl p-8 w-full max-w-md">
-          <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold text-red-600 mb-2">Salle Introuvable</h1>
-            <p className="text-gray-600">Le code de salle &quot;{roomCode}&quot; n&apos;existe pas.</p>
+      <div className='min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-500 to-purple-600'>
+        <div className='bg-white rounded-lg shadow-xl p-8 w-full max-w-md'>
+          <div className='text-center mb-8'>
+            <h1 className='text-3xl font-bold text-red-600 mb-2'>
+              Salle Introuvable
+            </h1>
+            <p className='text-gray-600'>
+              Le code de salle &quot;{roomCode}&quot; n&apos;existe pas.
+            </p>
           </div>
           <Link
-            href="/"
-            className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 text-center block"
+            href='/'
+            className='w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 text-center block'
           >
             Retour à l&apos;Accueil
           </Link>
@@ -133,18 +156,19 @@ export function RoomPageClient({ roomCode }: RoomPageClientProps) {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-500 to-purple-600">
-      <div className="bg-white rounded-lg shadow-xl p-8 w-full max-w-md">
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-800 mb-2">Rejoindre une Salle</h1>
-          <p className="text-gray-600">Code de la Salle : <span className="font-mono font-bold">{roomCode}</span></p>
+    <div className='min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-500 to-purple-600'>
+      <div className='bg-white rounded-lg shadow-xl p-8 w-full max-w-md'>
+        <div className='text-center mb-8'>
+          <h1 className='text-3xl font-bold text-gray-800 mb-2'>
+            Rejoindre une Salle
+          </h1>
+          <p className='text-gray-600'>
+            Code de la Salle :{' '}
+            <span className='font-mono font-bold'>{roomCode}</span>
+          </p>
         </div>
 
-        <JoinRoomForm
-          onJoin={handleJoinRoom}
-          error={joinError}
-          room={room}
-        />
+        <JoinRoomForm onJoin={handleJoinRoom} error={joinError} room={room} />
       </div>
     </div>
   );
@@ -157,7 +181,7 @@ interface JoinRoomFormProps {
 }
 
 function JoinRoomForm({ onJoin, error, room }: JoinRoomFormProps) {
-  const [name, setName] = useState("");
+  const [name, setName] = useState('');
   const [isHost, setIsHost] = useState(false);
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -168,24 +192,27 @@ function JoinRoomForm({ onJoin, error, room }: JoinRoomFormProps) {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <form onSubmit={handleSubmit} className='space-y-4'>
       {error && (
-        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
+        <div className='bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded'>
           {error}
         </div>
       )}
 
       <div>
-        <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
+        <label
+          htmlFor='name'
+          className='block text-sm font-medium text-gray-700 mb-2'
+        >
           Votre Nom
         </label>
         <input
-          type="text"
-          id="name"
+          type='text'
+          id='name'
           value={name}
-          onChange={(e) => setName(e.target.value)}
-          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-          placeholder="Entrez votre nom"
+          onChange={e => setName(e.target.value)}
+          className='w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500'
+          placeholder='Entrez votre nom'
           required
           maxLength={20}
           autoFocus
@@ -193,33 +220,30 @@ function JoinRoomForm({ onJoin, error, room }: JoinRoomFormProps) {
       </div>
 
       {room.players.length === 0 && (
-        <div className="flex items-center">
+        <div className='flex items-center'>
           <input
-            type="checkbox"
-            id="isHost"
+            type='checkbox'
+            id='isHost'
             checked={isHost}
-            onChange={(e) => setIsHost(e.target.checked)}
-            className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+            onChange={e => setIsHost(e.target.checked)}
+            className='h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded'
           />
-          <label htmlFor="isHost" className="ml-2 block text-sm text-gray-700">
+          <label htmlFor='isHost' className='ml-2 block text-sm text-gray-700'>
             Je suis l&apos;hôte de cette salle
           </label>
         </div>
       )}
 
       <button
-        type="submit"
+        type='submit'
         disabled={!name.trim()}
-        className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+        className='w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed'
       >
         Rejoindre la Salle
       </button>
 
-      <div className="text-center">
-        <Link
-          href="/"
-          className="text-blue-600 hover:text-blue-800 text-sm"
-        >
+      <div className='text-center'>
+        <Link href='/' className='text-blue-600 hover:text-blue-800 text-sm'>
           ← Retour à l&apos;Accueil
         </Link>
       </div>

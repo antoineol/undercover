@@ -38,14 +38,14 @@ export interface GameWords {
 }
 
 // Enums and union types
-export type GameState = "waiting" | "discussion" | "voting" | "results";
-export type PlayerRole = "civilian" | "undercover" | "mr_white";
+export type GameState = 'waiting' | 'discussion' | 'voting' | 'results';
+export type PlayerRole = 'civilian' | 'undercover' | 'mr_white';
 export type GameResult =
-  | "civilians_win"
-  | "undercovers_win"
-  | "mr_white_win"
-  | "undercovers_mrwhite_win"
-  | "max_rounds_reached";
+  | 'civilians_win'
+  | 'undercovers_win'
+  | 'mr_white_win'
+  | 'undercovers_mrwhite_win'
+  | 'max_rounds_reached';
 
 // API response types
 export interface CreateRoomResponse {

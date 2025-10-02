@@ -1,5 +1,10 @@
-import { calculatePlayerCounts, checkWinConditions, countVotes, findEliminatedPlayer } from './utils';
 import { GAME_CONFIG } from './constants';
+import {
+  calculatePlayerCounts,
+  checkWinConditions,
+  countVotes,
+  findEliminatedPlayer,
+} from './utils';
 
 /**
  * Game state management service
@@ -8,13 +13,17 @@ export class GameStateService {
   /**
    * Check if game should end based on win conditions
    */
-  static checkGameEnd(players: any[], currentRound: number, maxRounds: number): string | null {
+  static checkGameEnd(
+    players: any[],
+    currentRound: number,
+    maxRounds: number
+  ): string | null {
     const counts = calculatePlayerCounts(players);
     let gameResult = checkWinConditions(counts);
 
     // Check maximum rounds limit
     if (currentRound >= maxRounds) {
-      gameResult = "max_rounds_reached";
+      gameResult = 'max_rounds_reached';
     }
 
     return gameResult;
@@ -65,6 +74,7 @@ export class PlayerService {
       hasSharedWord: false,
       sharedWord: undefined,
       votes: [],
+      hasVoted: false,
     };
   }
 
@@ -73,8 +83,10 @@ export class PlayerService {
    */
   static async getAlivePlayers(ctx: any, roomId: string) {
     return await ctx.db
-      .query("players")
-      .withIndex("by_room_alive", (q: any) => q.eq("roomId", roomId).eq("isAlive", true))
+      .query('players')
+      .withIndex('by_room_alive', (q: any) =>
+        q.eq('roomId', roomId).eq('isAlive', true)
+      )
       .collect();
   }
 
@@ -83,8 +95,8 @@ export class PlayerService {
    */
   static async getAllPlayers(ctx: any, roomId: string) {
     return await ctx.db
-      .query("players")
-      .withIndex("by_room", (q: any) => q.eq("roomId", roomId))
+      .query('players')
+      .withIndex('by_room', (q: any) => q.eq('roomId', roomId))
       .collect();
   }
 
@@ -124,7 +136,7 @@ export class RoomService {
    */
   static getResetRoomData() {
     return {
-      gameState: "waiting",
+      gameState: 'waiting',
       currentRound: 0,
       currentPlayerIndex: 0,
       playerOrder: [],
@@ -139,31 +151,47 @@ export class GameConfigService {
   /**
    * Validate game configuration
    */
-  static validateConfig(playerCount: number, numUndercovers: number, hasMrWhite: boolean) {
+  static validateConfig(
+    playerCount: number,
+    numUndercovers: number,
+    hasMrWhite: boolean
+  ) {
     if (playerCount < GAME_CONFIG.MIN_PLAYERS) {
-      throw new Error(`Need at least ${GAME_CONFIG.MIN_PLAYERS} players to start`);
+      throw new Error(
+        `Need at least ${GAME_CONFIG.MIN_PLAYERS} players to start`
+      );
     }
 
     if (playerCount > GAME_CONFIG.MAX_PLAYERS) {
-      throw new Error(`Too many players. Maximum is ${GAME_CONFIG.MAX_PLAYERS}`);
+      throw new Error(
+        `Too many players. Maximum is ${GAME_CONFIG.MAX_PLAYERS}`
+      );
     }
 
     if (numUndercovers < GAME_CONFIG.MIN_UNDERCOVERS) {
-      throw new Error(`Need at least ${GAME_CONFIG.MIN_UNDERCOVERS} undercover`);
+      throw new Error(
+        `Need at least ${GAME_CONFIG.MIN_UNDERCOVERS} undercover`
+      );
     }
 
-    const maxUndercovers = Math.floor(playerCount * GAME_CONFIG.MAX_UNDERCOVERS_RATIO);
+    const maxUndercovers = Math.floor(
+      playerCount * GAME_CONFIG.MAX_UNDERCOVERS_RATIO
+    );
     if (numUndercovers > maxUndercovers) {
       throw new Error(`Too many undercovers. Maximum is ${maxUndercovers}`);
     }
 
     const totalSpecialRoles = numUndercovers + (hasMrWhite ? 1 : 0);
     if (totalSpecialRoles >= playerCount) {
-      throw new Error("Need at least 1 civilian player. Reduce undercovers or disable Mr. White.");
+      throw new Error(
+        'Need at least 1 civilian player. Reduce undercovers or disable Mr. White.'
+      );
     }
 
     if (hasMrWhite && playerCount < GAME_CONFIG.MR_WHITE_MIN_PLAYERS) {
-      throw new Error(`Mr. White requires at least ${GAME_CONFIG.MR_WHITE_MIN_PLAYERS} players`);
+      throw new Error(
+        `Mr. White requires at least ${GAME_CONFIG.MR_WHITE_MIN_PLAYERS} players`
+      );
     }
   }
 

@@ -1,14 +1,14 @@
-import { mutation, query } from "./_generated/server";
-import { v } from "convex/values";
-import { generateRoomCode, generateSessionId } from "../src/lib/utils";
-import { GAME_CONFIG } from "../src/lib/constants";
+import { mutation, query } from './_generated/server';
+import { v } from 'convex/values';
+import { generateRoomCode, generateSessionId } from '../src/lib/utils';
+import { GAME_CONFIG } from '../src/lib/constants';
 import {
   RoomNotFoundError,
   GameAlreadyStartedError,
   RoomFullError,
   PlayerNameExistsError,
-  InvalidSessionError
-} from "../src/lib/errors";
+  InvalidSessionError,
+} from '../src/lib/errors';
 
 export const createRoom = mutation({
   args: {
@@ -18,10 +18,10 @@ export const createRoom = mutation({
     const roomCode = generateRoomCode();
     const now = Date.now();
 
-    const roomId = await ctx.db.insert("rooms", {
+    const roomId = await ctx.db.insert('rooms', {
       code: roomCode,
       hostId: `host_${now}`,
-      gameState: "waiting",
+      gameState: 'waiting',
       currentRound: 0,
       maxRounds: GAME_CONFIG.MAX_ROUNDS,
       currentPlayerIndex: 0,
@@ -33,13 +33,13 @@ export const createRoom = mutation({
 
     // Add host as first player
     const hostSessionId = generateSessionId();
-    await ctx.db.insert("players", {
+    await ctx.db.insert('players', {
       roomId,
       name: args.hostName,
       sessionId: hostSessionId,
       isHost: true,
       isAlive: true,
-      role: "civilian", // Will be reassigned when game starts
+      role: 'civilian', // Will be reassigned when game starts
       votes: [],
       hasSharedWord: false,
       createdAt: now,
@@ -58,21 +58,21 @@ export const joinRoom = mutation({
   },
   handler: async (ctx, args) => {
     const room = await ctx.db
-      .query("rooms")
-      .withIndex("by_code", (q) => q.eq("code", args.roomCode))
+      .query('rooms')
+      .withIndex('by_code', q => q.eq('code', args.roomCode))
       .first();
 
     if (!room) {
       throw new RoomNotFoundError(args.roomCode);
     }
 
-    if (room.gameState !== "waiting") {
+    if (room.gameState !== 'waiting') {
       throw new GameAlreadyStartedError();
     }
 
     const players = await ctx.db
-      .query("players")
-      .withIndex("by_room", (q) => q.eq("roomId", room._id))
+      .query('players')
+      .withIndex('by_room', q => q.eq('roomId', room._id))
       .collect();
 
     if (players.length >= GAME_CONFIG.MAX_PLAYERS) {
@@ -88,7 +88,7 @@ export const joinRoom = mutation({
           roomId: room._id,
           playerId: existingPlayer._id,
           sessionId: existingPlayer.sessionId,
-          isExisting: true
+          isExisting: true,
         };
       } else {
         // Invalid sessionId - might be from different room or expired
@@ -97,7 +97,9 @@ export const joinRoom = mutation({
     }
 
     // New player joining - check for name conflicts
-    const existingPlayerWithName = players.find(p => p.name === args.playerName);
+    const existingPlayerWithName = players.find(
+      p => p.name === args.playerName
+    );
     if (existingPlayerWithName) {
       // Name already taken by another player
       throw new PlayerNameExistsError(args.playerName);
@@ -108,13 +110,13 @@ export const joinRoom = mutation({
     const isHostPlayer = args.isHost || players.length === 0;
     const newSessionId = generateSessionId();
 
-    const playerId = await ctx.db.insert("players", {
+    const playerId = await ctx.db.insert('players', {
       roomId: room._id,
       name: args.playerName,
       sessionId: newSessionId,
       isHost: isHostPlayer,
       isAlive: true,
-      role: "civilian", // Will be reassigned when game starts
+      role: 'civilian', // Will be reassigned when game starts
       votes: [],
       hasSharedWord: false,
       createdAt: now,
@@ -124,7 +126,7 @@ export const joinRoom = mutation({
       roomId: room._id,
       playerId,
       sessionId: newSessionId,
-      isExisting: false
+      isExisting: false,
     };
   },
 });
@@ -133,8 +135,8 @@ export const getRoom = query({
   args: { roomCode: v.string() },
   handler: async (ctx, args) => {
     const room = await ctx.db
-      .query("rooms")
-      .withIndex("by_code", (q) => q.eq("code", args.roomCode))
+      .query('rooms')
+      .withIndex('by_code', q => q.eq('code', args.roomCode))
       .first();
 
     if (!room) {
@@ -142,8 +144,8 @@ export const getRoom = query({
     }
 
     const players = await ctx.db
-      .query("players")
-      .withIndex("by_room", (q) => q.eq("roomId", room._id))
+      .query('players')
+      .withIndex('by_room', q => q.eq('roomId', room._id))
       .collect();
 
     return {
@@ -154,12 +156,11 @@ export const getRoom = query({
 });
 
 export const getPlayers = query({
-  args: { roomId: v.id("rooms") },
+  args: { roomId: v.id('rooms') },
   handler: async (ctx, args) => {
     return await ctx.db
-      .query("players")
-      .withIndex("by_room", (q) => q.eq("roomId", args.roomId))
+      .query('players')
+      .withIndex('by_room', q => q.eq('roomId', args.roomId))
       .collect();
   },
 });
-

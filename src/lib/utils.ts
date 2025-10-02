@@ -5,9 +5,11 @@ import { RetryFunction, RetryConfig, GameError } from './types';
  * Generate a random room code
  */
 export function generateRoomCode(): string {
-  let result = "";
+  let result = '';
   for (let i = 0; i < GAME_CONFIG.ROOM_CODE_LENGTH; i++) {
-    result += ID_CHARS.ROOM_CODE.charAt(Math.floor(Math.random() * ID_CHARS.ROOM_CODE.length));
+    result += ID_CHARS.ROOM_CODE.charAt(
+      Math.floor(Math.random() * ID_CHARS.ROOM_CODE.length)
+    );
   }
   return result;
 }
@@ -16,9 +18,11 @@ export function generateRoomCode(): string {
  * Generate a random session ID
  */
 export function generateSessionId(): string {
-  let result = "";
+  let result = '';
   for (let i = 0; i < GAME_CONFIG.SESSION_ID_LENGTH; i++) {
-    result += ID_CHARS.SESSION_ID.charAt(Math.floor(Math.random() * ID_CHARS.SESSION_ID.length));
+    result += ID_CHARS.SESSION_ID.charAt(
+      Math.floor(Math.random() * ID_CHARS.SESSION_ID.length)
+    );
   }
   return result;
 }
@@ -43,7 +47,10 @@ export async function retryWithBackoff<T>(
       }
 
       // Only retry on concurrent access errors
-      if (error.message && error.message.includes("Documents read from or written to")) {
+      if (
+        error.message &&
+        error.message.includes('Documents read from or written to')
+      ) {
         const delay = Math.min(
           config.baseDelay * Math.pow(2, attempt) + Math.random() * 1000,
           config.maxDelay
@@ -55,7 +62,7 @@ export async function retryWithBackoff<T>(
       }
     }
   }
-  throw new Error("Max retries exceeded");
+  throw new Error('Max retries exceeded');
 }
 
 /**
@@ -67,28 +74,40 @@ export function validateGameConfiguration(
   hasMrWhite: boolean
 ): { isValid: boolean; error?: string } {
   if (playerCount < GAME_CONFIG.MIN_PLAYERS) {
-    return { isValid: false, error: "Need at least 3 players to start" };
+    return { isValid: false, error: 'Need at least 3 players to start' };
   }
 
   if (playerCount > GAME_CONFIG.MAX_PLAYERS) {
-    return { isValid: false, error: "Too many players" };
+    return { isValid: false, error: 'Too many players' };
   }
 
   if (numUndercovers < GAME_CONFIG.MIN_UNDERCOVERS) {
-    return { isValid: false, error: "Need at least 1 undercover" };
+    return { isValid: false, error: 'Need at least 1 undercover' };
   }
 
-  if (numUndercovers > Math.floor(playerCount * GAME_CONFIG.MAX_UNDERCOVERS_RATIO)) {
-    return { isValid: false, error: "Too many undercovers. Maximum is half the total players." };
+  if (
+    numUndercovers > Math.floor(playerCount * GAME_CONFIG.MAX_UNDERCOVERS_RATIO)
+  ) {
+    return {
+      isValid: false,
+      error: 'Too many undercovers. Maximum is half the total players.',
+    };
   }
 
   const totalSpecialRoles = numUndercovers + (hasMrWhite ? 1 : 0);
   if (totalSpecialRoles >= playerCount) {
-    return { isValid: false, error: "Need at least 1 civilian player. Reduce undercovers or disable Mr. White." };
+    return {
+      isValid: false,
+      error:
+        'Need at least 1 civilian player. Reduce undercovers or disable Mr. White.',
+    };
   }
 
   if (hasMrWhite && playerCount < GAME_CONFIG.MR_WHITE_MIN_PLAYERS) {
-    return { isValid: false, error: `Mr. White requires at least ${GAME_CONFIG.MR_WHITE_MIN_PLAYERS} players` };
+    return {
+      isValid: false,
+      error: `Mr. White requires at least ${GAME_CONFIG.MR_WHITE_MIN_PLAYERS} players`,
+    };
   }
 
   return { isValid: true };
@@ -106,36 +125,38 @@ export function calculatePlayerCounts(players: any[]): {
   const alive = players.filter(p => p.isAlive);
   return {
     alive: alive.length,
-    undercovers: alive.filter(p => p.role === "undercover").length,
-    civilians: alive.filter(p => p.role === "civilian").length,
-    mrWhite: alive.filter(p => p.role === "mr_white").length,
+    undercovers: alive.filter(p => p.role === 'undercover').length,
+    civilians: alive.filter(p => p.role === 'civilian').length,
+    mrWhite: alive.filter(p => p.role === 'mr_white').length,
   };
 }
 
 /**
  * Check win conditions
  */
-export function checkWinConditions(counts: ReturnType<typeof calculatePlayerCounts>): string | null {
+export function checkWinConditions(
+  counts: ReturnType<typeof calculatePlayerCounts>
+): string | null {
   const { alive, undercovers, civilians, mrWhite } = counts;
 
   // Civilians win if all undercovers AND all Mr. White are eliminated
   if (undercovers === 0 && mrWhite === 0) {
-    return "civilians_win";
+    return 'civilians_win';
   }
 
   // Undercovers win if they equal or outnumber civilians (and no Mr. White)
   if (undercovers >= civilians && mrWhite === 0) {
-    return "undercovers_win";
+    return 'undercovers_win';
   }
 
   // Mr. White solo victory: survives to end (last 2 players) with at least one civilian
   if (mrWhite > 0 && civilians > 0 && undercovers === 0 && alive === 2) {
-    return "mr_white_win";
+    return 'mr_white_win';
   }
 
   // Joint victory: Undercovers + Mr. White win if all civilians eliminated
   if (civilians === 0 && undercovers > 0 && mrWhite > 0) {
-    return "undercovers_mrwhite_win";
+    return 'undercovers_mrwhite_win';
   }
 
   return null;
@@ -236,11 +257,12 @@ export function shuffleArray<T>(array: T[]): T[] {
  * Ensure Mr. White is not first in player order
  */
 export function ensureMrWhiteNotFirst(playerOrder: any[]): any[] {
-  const mrWhiteIndex = playerOrder.findIndex(p => p.role === "mr_white");
+  const mrWhiteIndex = playerOrder.findIndex(p => p.role === 'mr_white');
   if (mrWhiteIndex === 0) {
     // Move Mr. White to a random position (not first)
     const mrWhite = playerOrder.splice(0, 1)[0];
-    const randomPosition = Math.floor(Math.random() * (playerOrder.length - 1)) + 1;
+    const randomPosition =
+      Math.floor(Math.random() * (playerOrder.length - 1)) + 1;
     playerOrder.splice(randomPosition, 0, mrWhite);
   }
   return playerOrder;
@@ -256,15 +278,15 @@ export async function copyToClipboard(text: string): Promise<boolean> {
   } catch (error) {
     // Fallback for older browsers
     try {
-      const textArea = document.createElement("textarea");
+      const textArea = document.createElement('textarea');
       textArea.value = text;
       document.body.appendChild(textArea);
       textArea.select();
-      document.execCommand("copy");
+      document.execCommand('copy');
       document.body.removeChild(textArea);
       return true;
     } catch (fallbackError) {
-      console.error("Failed to copy to clipboard:", fallbackError);
+      console.error('Failed to copy to clipboard:', fallbackError);
       return false;
     }
   }
@@ -273,14 +295,21 @@ export async function copyToClipboard(text: string): Promise<boolean> {
 /**
  * Sanitize input string
  */
-export function sanitizeInput(input: string, maxLength: number = GAME_CONFIG.MAX_PLAYER_NAME_LENGTH): string {
+export function sanitizeInput(
+  input: string,
+  maxLength: number = GAME_CONFIG.MAX_PLAYER_NAME_LENGTH
+): string {
   return input.trim().slice(0, maxLength);
 }
 
 /**
  * Create custom error with code
  */
-export function createGameError(message: string, code: string, details?: Record<string, unknown>): GameError {
+export function createGameError(
+  message: string,
+  code: string,
+  details?: Record<string, unknown>
+): GameError {
   const error = new Error(message) as GameError;
   error.code = code;
   error.details = details;

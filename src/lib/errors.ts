@@ -103,19 +103,19 @@ export class InvalidGameConfigurationError extends Error implements GameError {
  */
 export function getErrorMessage(error: Error): string {
   if (error instanceof RoomNotFoundError) {
-    return "Salle introuvable. Vérifiez le code de la salle.";
+    return 'Salle introuvable. Vérifiez le code de la salle.';
   }
   if (error instanceof GameAlreadyStartedError) {
-    return "La partie a déjà commencé. Vous ne pouvez plus rejoindre cette salle.";
+    return 'La partie a déjà commencé. Vous ne pouvez plus rejoindre cette salle.';
   }
   if (error instanceof RoomFullError) {
-    return "La salle est pleine. Maximum 10 joueurs autorisés.";
+    return 'La salle est pleine. Maximum 10 joueurs autorisés.';
   }
   if (error instanceof PlayerNameExistsError) {
-    return "Un joueur avec ce nom existe déjà dans la salle. Veuillez choisir un autre nom.";
+    return 'Un joueur avec ce nom existe déjà dans la salle. Veuillez choisir un autre nom.';
   }
   if (error instanceof InvalidSessionError) {
-    return "Session invalide. Veuillez rejoindre avec un nouveau nom.";
+    return 'Session invalide. Veuillez rejoindre avec un nouveau nom.';
   }
 
   // Generic error message
@@ -126,7 +126,9 @@ export function getErrorMessage(error: Error): string {
  * Check if error is retryable
  */
 export function isRetryableError(error: Error): boolean {
-  return error.message.includes("Documents read from or written to") ||
-         error.message.includes("concurrent access") ||
-         error.message.includes("network");
+  return (
+    error.message.includes('Documents read from or written to') ||
+    error.message.includes('concurrent access') ||
+    error.message.includes('network')
+  );
 }

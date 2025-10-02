@@ -35,7 +35,8 @@ export default function Button({
   type = 'button',
   title,
 }: ButtonProps) {
-  const baseClasses = 'rounded-md font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2';
+  const baseClasses =
+    'rounded-md font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2';
   const disabledClasses = disabled ? 'opacity-50 cursor-not-allowed' : '';
   const variantClass = variantClasses[variant];
   const sizeClass = sizeClasses[size];

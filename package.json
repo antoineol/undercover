@@ -8,7 +8,13 @@
     "dev:frontend": "next dev --turbo",
     "build": "next build --turbopack",
     "start": "next start",
-    "lint": "eslint",
+    "lint": "eslint . --ext .js,.jsx,.ts,.tsx",
+    "lint:fix": "eslint . --ext .js,.jsx,.ts,.tsx --fix",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "format:staged": "prettier --write --ignore-unknown",
+    "check": "bun run --parallel lint format:check",
+    "fix": "bun run --parallel lint:fix format",
     "convex:dev": "convex dev",
     "convex:deploy": "convex deploy",
     "build:prod": "bunx convex deploy --cmd 'next build'"
@@ -16,20 +22,25 @@
   "dependencies": {
     "convex": "^1.27.3",
     "next": "15.5.4",
+    "qrcode": "^1.5.4",
     "react": "19.1.0",
+    "react-animate-height": "^3.2.3",
     "react-dom": "19.1.0"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
+    "@types/qrcode": "^1.5.5",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "15.5.4",
-    "npm-run-all2": "^8.0.4",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-prettier": "^5.5.4",
+    "prettier": "^3.6.2",
     "tailwindcss": "^4",
     "typescript": "^5"
   },
-  "packageManager": "pnpm@9.11.0+sha512.0a203ffaed5a3f63242cd064c8fb5892366c103e328079318f78062f24ea8c9d50bc6a47aa3567cabefd824d170e78fa2745ed1f16b132e16436146b7688f19b"
+  "packageManager": "bun@1.0.0"
 }

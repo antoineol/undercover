@@ -27,27 +27,34 @@ Un jeu de déduction sociale en temps réel construit avec Next.js, TypeScript e
 ### Setup
 
 1. **Install dependencies**:
+
    ```bash
    bun install
    ```
 
 2. **Set up Convex**:
+
    ```bash
    bunx convex dev --configure
    ```
+
    Follow the prompts to create a new Convex project.
 
 3. **Configure environment**:
    Copy the Convex URL from the setup and create `.env.local`:
+
    ```bash
    cp env.example .env.local
    ```
+
    Then add your Convex URL to `.env.local`.
 
 4. **Start development servers**:
+
    ```bash
    bun run dev
    ```
+
    This will start both Convex and Next.js development servers.
 
 5. **Open the game**:
@@ -115,6 +122,7 @@ Un jeu de déduction sociale en temps réel construit avec Next.js, TypeScript e
 ## Deployment
 
 1. **Deploy Convex**:
+
    ```bash
    bun run convex:deploy
    ```

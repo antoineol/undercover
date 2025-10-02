@@ -11,7 +11,11 @@ export { shareWord, resetWordSharing } from './game_word_sharing';
 export { votePlayer, endVoting, startVoting } from './game_voting';
 
 // Game management functions
-export { validateGameState, restartGame, checkMaxRoundsReached } from './game_management';
+export {
+  validateGameState,
+  restartGame,
+  checkMaxRoundsReached,
+} from './game_management';
 
 // Query functions
 export { getGameWords } from './game_queries';
