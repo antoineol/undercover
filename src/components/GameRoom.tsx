@@ -266,8 +266,9 @@ export default function GameRoom({
           duration={300}
           easing='ease-in-out'
           animateOpacity
+          className='contents'
         >
-          <div>
+          <div className='flex flex-col gap-6'>
             <Button
               onClick={handleStartGame}
               disabled={room.players.length < 3}
@@ -284,8 +285,9 @@ export default function GameRoom({
               duration={300}
               easing='ease-in-out'
               animateOpacity
+              className='contents'
             >
-              <Card className='bg-yellow-50 mt-6'>
+              <Card className='bg-yellow-50'>
                 <h3 className='text-lg font-semibold mb-4'>
                   ⚙️ Configuration du Jeu
                 </h3>
@@ -383,8 +385,9 @@ export default function GameRoom({
           duration={300}
           easing='ease-in-out'
           animateOpacity
+          className='contents'
         >
-          <div>
+          <div className='flex flex-col gap-4'>
             <div className='flex justify-between items-center'>
               <Button
                 onClick={() => setShowWords(!showWords)}
@@ -399,8 +402,9 @@ export default function GameRoom({
               duration={300}
               easing='ease-in-out'
               animateOpacity
+              className='contents'
             >
-              <div className='bg-gray-50 p-4 rounded-lg mt-4'>
+              <div className='bg-gray-50 p-4 rounded-lg'>
                 <div>
                   <span className='text-lg font-bold text-blue-600'>
                     {currentPlayer?.role === 'undercover'
@@ -422,28 +426,22 @@ export default function GameRoom({
           playersWhoVoted={playersWhoVoted}
           currentPlayer={currentPlayer}
         /> */}
+        <WordSharing
+          room={room}
+          currentPlayer={currentPlayer!}
+          wordToShare={wordToShare}
+          setWordToShare={setWordToShare}
+          onShareWord={handleShareWord}
+          isMyTurn={isMyTurn}
+          currentTurnPlayer={currentTurnPlayer}
+          alivePlayers={alivePlayers}
+        />
         <AnimateHeight
           height={currentPlayer ? 'auto' : 0}
           duration={300}
           easing='ease-in-out'
           animateOpacity
-        >
-          <WordSharing
-            room={room}
-            currentPlayer={currentPlayer!}
-            wordToShare={wordToShare}
-            setWordToShare={setWordToShare}
-            onShareWord={handleShareWord}
-            isMyTurn={isMyTurn}
-            currentTurnPlayer={currentTurnPlayer}
-            alivePlayers={alivePlayers}
-          />
-        </AnimateHeight>
-        <AnimateHeight
-          height={currentPlayer ? 'auto' : 0}
-          duration={300}
-          easing='ease-in-out'
-          animateOpacity
+          className='contents'
         >
           <PlayerList
             room={room}
@@ -465,6 +463,7 @@ export default function GameRoom({
           duration={300}
           easing='ease-in-out'
           animateOpacity
+          className='contents'
         >
           <Card className='bg-blue-50'>
             <h3 className='text-lg font-semibold mb-2'>Comment Jouer</h3>
@@ -488,6 +487,7 @@ export default function GameRoom({
           duration={300}
           easing='ease-in-out'
           animateOpacity
+          className='contents'
         >
           <div
             className='fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4'
@@ -512,6 +512,7 @@ export default function GameRoom({
                 duration={300}
                 easing='ease-in-out'
                 animateOpacity
+                className='contents'
               >
                 <div className='text-center'>
                   <Image
@@ -536,6 +537,7 @@ export default function GameRoom({
           duration={300}
           easing='ease-in-out'
           animateOpacity
+          className='contents'
         >
           <Button
             onClick={handleValidateGameState}
@@ -558,6 +560,7 @@ export default function GameRoom({
         duration={300}
         easing='ease-in-out'
         animateOpacity
+        className='contents'
       >
         <div className='fixed bottom-0 left-0 right-0 bg-white border-t shadow-lg p-4 md:hidden'>
           <div className='flex gap-3'>

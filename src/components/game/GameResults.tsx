@@ -1,5 +1,6 @@
 import { UI_MESSAGES } from '@/lib/constants';
 import { Room } from '@/lib/types';
+import AnimateHeight from 'react-animate-height';
 import Button from '../ui/Button';
 import Card from '../ui/Card';
 
@@ -9,15 +10,8 @@ interface GameResultsProps {
   onRestartGame: () => void;
 }
 
-export default function GameResults({
-  room,
-  isHost,
-  onRestartGame,
-}: GameResultsProps) {
-  if (room.gameState !== 'results') {
-    return null;
-  }
-
+// Internal component that handles the game results logic
+function GameResultsContent({ room, isHost, onRestartGame }: GameResultsProps) {
   const determineWinner = () => {
     const alivePlayers = room.players.filter((p: any) => p.isAlive);
     const aliveUndercovers = alivePlayers.filter(
@@ -146,5 +140,23 @@ export default function GameResults({
         </p>
       )}
     </Card>
+  );
+}
+
+// Wrapper component that uses AnimateHeight instead of early return
+export default function GameResults(props: GameResultsProps) {
+  const { room } = props;
+  const shouldShow = room.gameState === 'results';
+
+  return (
+    <AnimateHeight
+      height={shouldShow ? 'auto' : 0}
+      duration={300}
+      easing='ease-in-out'
+      animateOpacity
+      className='contents'
+    >
+      <GameResultsContent {...props} />
+    </AnimateHeight>
   );
 }

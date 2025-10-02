@@ -108,6 +108,7 @@ export default function PlayerList({
                   duration={300}
                   easing='ease-in-out'
                   animateOpacity
+                  className='contents'
                 >
                   <div className='text-sm text-blue-600 mt-1'>
                     &quot;{player.sharedWord}&quot;
@@ -124,6 +125,7 @@ export default function PlayerList({
                 duration={300}
                 easing='ease-in-out'
                 animateOpacity
+                className='contents'
               >
                 <div className='text-sm mt-1'>
                   <span
@@ -140,6 +142,7 @@ export default function PlayerList({
                 duration={300}
                 easing='ease-in-out'
                 animateOpacity
+                className='contents'
               >
                 <div className='text-sm text-red-600 mt-1'>
                   Votes :{' '}
@@ -166,6 +169,7 @@ export default function PlayerList({
                   duration={300}
                   easing='ease-in-out'
                   animateOpacity
+                  className='contents'
                 >
                   <div className='mt-2'>
                     {currentPlayer?.votes.includes(player._id) ? (

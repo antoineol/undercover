@@ -17,7 +17,8 @@ interface WordSharingProps {
   alivePlayers: Player[];
 }
 
-export default function WordSharing({
+// Internal component that handles the word sharing logic
+function WordSharingContent({
   room,
   currentPlayer,
   wordToShare,
@@ -27,10 +28,6 @@ export default function WordSharing({
   currentTurnPlayer,
   alivePlayers,
 }: WordSharingProps) {
-  if (room.gameState !== 'discussion' || !currentPlayer) {
-    return null;
-  }
-
   const hasSharedWord = currentPlayer.hasSharedWord || false;
   const playersWhoShared = room.players.filter(
     (p: any) => p.isAlive && p.hasSharedWord
@@ -62,29 +59,44 @@ export default function WordSharing({
         />
       </div>
 
-      <div>
-        {isMyTurn ? (
+      <div className='flex flex-col gap-6'>
+        <AnimateHeight
+          height={isMyTurn ? 'auto' : 0}
+          duration={300}
+          easing='ease-in-out'
+          animateOpacity
+          className='contents'
+        >
           <div className='p-3 bg-blue-50 rounded-lg'>
             <p className='text-blue-800 font-medium'>
               <span className='animate-pulse'>🎯</span> C&apos;est votre tour de
               partager un mot
             </p>
           </div>
-        ) : (
+        </AnimateHeight>
+
+        <AnimateHeight
+          height={!isMyTurn ? 'auto' : 0}
+          duration={300}
+          easing='ease-in-out'
+          animateOpacity
+          className='contents'
+        >
           <div className='bg-yellow-50 p-3 rounded-lg'>
             <p className='text-yellow-800'>
               ⏳ En attente que {currentTurnPlayer?.name} partage son mot...
             </p>
           </div>
-        )}
+        </AnimateHeight>
 
         <AnimateHeight
           height={isMyTurn && !hasSharedWord ? 'auto' : 0}
           duration={300}
           easing='ease-in-out'
           animateOpacity
+          className='contents'
         >
-          <Card className='flex flex-col gap-4 mt-6'>
+          <Card className='flex flex-col gap-4'>
             <p className='text-gray-700'>
               Décrivez votre mot en un seul mot sans le révéler directement.
             </p>
@@ -108,5 +120,23 @@ export default function WordSharing({
         </AnimateHeight>
       </div>
     </div>
+  );
+}
+
+// Wrapper component that uses AnimateHeight instead of early return
+export default function WordSharing(props: WordSharingProps) {
+  const { room, currentPlayer } = props;
+  const shouldShow = room.gameState === 'discussion' && currentPlayer;
+
+  return (
+    <AnimateHeight
+      height={shouldShow ? 'auto' : 0}
+      duration={300}
+      easing='ease-in-out'
+      animateOpacity
+      className='contents'
+    >
+      <WordSharingContent {...props} />
+    </AnimateHeight>
   );
 }
