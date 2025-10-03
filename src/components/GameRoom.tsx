@@ -1,8 +1,29 @@
 'use client';
 
-import { UI_MESSAGES, GAME_CONFIG } from '@/lib/constants';
+import {
+  calculateMaxUndercovers,
+  calculateVoteData,
+  calculateVotingProgress,
+  generateRoomUrl,
+  getCurrentPlayerByName,
+  getCurrentTurnPlayer,
+  getGameConfigurationDisplay,
+  isDiscussionPhase,
+  isMyTurn,
+  isVotingPhase,
+} from '@/domains/room/room-management.service';
+import {
+  generateShareButtonTextWithTimeout,
+  getGameInstructionsText,
+  getMrWhiteGuessingText,
+  // getGameStateMessage,
+  getStartGameButtonText,
+  getValidationResultMessage,
+  // getConfigurationDisplayText,
+  getWordDisplayText,
+} from '@/domains/ui/ui-helpers.service';
+import { GAME_CONFIG, UI_MESSAGES } from '@/lib/constants';
 import { GameRoomProps, RoomWithPlayers } from '@/lib/convex-types';
-import { Id } from '../../convex/_generated/dataModel';
 import { copyToClipboard, retryWithBackoff } from '@/lib/utils';
 import { useMutation, useQuery } from 'convex/react';
 import Image from 'next/image';
@@ -10,34 +31,13 @@ import QRCode from 'qrcode';
 import { useEffect, useState } from 'react';
 import AnimateHeight from 'react-animate-height';
 import { api } from '../../convex/_generated/api';
+import { Id } from '../../convex/_generated/dataModel';
 import GameHeader from './game/GameHeader';
 import GameResults from './game/GameResults';
 import PlayerList from './game/PlayerList';
 import WordSharing from './game/WordSharing';
 import Button from './ui/Button';
 import Card from './ui/Card';
-import {
-  calculateVotingProgress,
-  getCurrentTurnPlayer,
-  isMyTurn,
-  calculateVoteData,
-  isVotingPhase,
-  isDiscussionPhase,
-  getCurrentPlayerByName,
-  generateRoomUrl,
-  calculateMaxUndercovers,
-  getGameConfigurationDisplay,
-} from '@/domains/room/room-management.service';
-import {
-  generateShareButtonTextWithTimeout,
-  // getGameStateMessage,
-  getStartGameButtonText,
-  // getConfigurationDisplayText,
-  getWordDisplayText,
-  getValidationResultMessage,
-  getGameInstructionsText,
-  getMrWhiteGuessingText,
-} from '@/domains/ui/ui-helpers.service';
 
 export default function GameRoom({
   roomCode,
@@ -55,6 +55,7 @@ export default function GameRoom({
   const [showQR, setShowQR] = useState(false);
   const [qrCodeDataUrl, setQrCodeDataUrl] = useState('');
   const [mrWhiteGuessInput, setMrWhiteGuessInput] = useState('');
+  const [isSharingWord, setIsSharingWord] = useState(false);
 
   const room = useQuery(api.rooms.getRoom, {
     roomCode,
@@ -91,20 +92,25 @@ export default function GameRoom({
   };
 
   const handleShareWord = async () => {
-    if (room && wordToShare.trim()) {
+    if (room && wordToShare.trim() && !isSharingWord) {
       const currentPlayer = room.players.find(
         (p: { name: string }) => p.name === playerName
       );
       if (currentPlayer) {
+        setIsSharingWord(true);
         try {
-          await shareWord({
-            playerId: currentPlayer._id,
-            word: wordToShare.trim(),
-          });
+          await retryWithBackoff(() =>
+            shareWord({
+              playerId: currentPlayer._id,
+              word: wordToShare.trim(),
+            })
+          );
           setWordToShare('');
         } catch (error) {
           console.error('Échec du partage du mot:', error);
           alert('Erreur: ' + ((error as Error).message || 'Erreur inconnue'));
+        } finally {
+          setIsSharingWord(false);
         }
       }
     }
@@ -275,16 +281,15 @@ export default function GameRoom({
         showConfig={showConfig}
       />
 
-      <div className='max-w-4xl mx-auto px-4 py-6 flex flex-col gap-6'>
+      <div className='max-w-4xl mx-auto px-4 py-6 flex flex-col'>
         {/* Start Game Button - Host Only, at top of content */}
         <AnimateHeight
           height={isHost && room.gameState === 'waiting' ? 'auto' : 0}
           duration={300}
           easing='ease-in-out'
           animateOpacity
-          className='contents'
         >
-          <div className='flex flex-col gap-6'>
+          <div className='flex flex-col mt-6'>
             <Button
               onClick={handleStartGame}
               disabled={room.players.length < 3}
@@ -301,9 +306,8 @@ export default function GameRoom({
               duration={300}
               easing='ease-in-out'
               animateOpacity
-              className='contents'
             >
-              <Card className='bg-yellow-50'>
+              <Card className='bg-yellow-50 mt-6'>
                 <h3 className='text-lg font-semibold mb-4'>
                   ⚙️ Configuration du Jeu
                 </h3>
@@ -381,9 +385,8 @@ export default function GameRoom({
           duration={300}
           easing='ease-in-out'
           animateOpacity
-          className='contents'
         >
-          <div className='flex flex-col gap-4'>
+          <div className='flex flex-col mt-6'>
             <div className='flex justify-between items-center'>
               <Button
                 onClick={() => setShowWords(!showWords)}
@@ -398,9 +401,8 @@ export default function GameRoom({
               duration={300}
               easing='ease-in-out'
               animateOpacity
-              className='contents'
             >
-              <div className='bg-gray-50 p-4 rounded-lg'>
+              <div className='bg-gray-50 p-4 rounded-lg mt-4'>
                 <div>
                   <span className='text-lg font-bold text-blue-600'>
                     {getWordDisplayText(
@@ -426,18 +428,17 @@ export default function GameRoom({
           playersWhoVoted={playersWhoVoted}
           currentPlayer={currentPlayer}
         /> */}
-        {currentPlayer && (
-          <WordSharing
-            room={room}
-            currentPlayer={currentPlayer}
-            wordToShare={wordToShare}
-            setWordToShare={setWordToShare}
-            onShareWord={handleShareWord}
-            isMyTurn={isMyTurnState}
-            currentTurnPlayer={currentTurnPlayer || undefined}
-            alivePlayers={alivePlayers}
-          />
-        )}
+        <WordSharing
+          room={room}
+          currentPlayer={currentPlayer}
+          wordToShare={wordToShare}
+          setWordToShare={setWordToShare}
+          onShareWord={handleShareWord}
+          isMyTurn={isMyTurnState}
+          currentTurnPlayer={currentTurnPlayer || undefined}
+          alivePlayers={alivePlayers}
+          isSubmitting={isSharingWord}
+        />
 
         {/* Mr. White Guessing Phase */}
         <AnimateHeight
@@ -445,9 +446,8 @@ export default function GameRoom({
           duration={300}
           easing='ease-in-out'
           animateOpacity
-          className='contents'
         >
-          <Card className='bg-yellow-50 border-yellow-200'>
+          <Card className='bg-yellow-50 border-yellow-200 mt-6'>
             <div className='text-center'>
               {(() => {
                 const mrWhiteText = getMrWhiteGuessingText();
@@ -488,22 +488,19 @@ export default function GameRoom({
           duration={300}
           easing='ease-in-out'
           animateOpacity
-          className='contents'
         >
-          {currentPlayer && (
-            <PlayerList
-              room={room}
-              currentPlayer={currentPlayer}
-              playerName={playerName}
-              isVotingPhase={isVotingPhaseState}
-              isDiscussionPhase={isDiscussionPhaseState}
-              currentTurnPlayerId={currentTurnPlayer?._id}
-              voteCounts={voteCounts}
-              voterNames={voterNames}
-              onVote={handleVote}
-              votingProgress={votingProgress}
-            />
-          )}
+          <PlayerList
+            room={room}
+            currentPlayer={currentPlayer}
+            playerName={playerName}
+            isVotingPhase={isVotingPhaseState}
+            isDiscussionPhase={isDiscussionPhaseState}
+            currentTurnPlayerId={currentTurnPlayer?._id}
+            voteCounts={voteCounts}
+            voterNames={voterNames}
+            onVote={handleVote}
+            votingProgress={votingProgress}
+          />
         </AnimateHeight>
 
         {/* Game Instructions */}
@@ -512,9 +509,8 @@ export default function GameRoom({
           duration={300}
           easing='ease-in-out'
           animateOpacity
-          className='contents'
         >
-          <Card className='bg-blue-50'>
+          <Card className='bg-blue-50 mt-6'>
             <h3 className='text-lg font-semibold mb-2'>Comment Jouer</h3>
             <ul className='text-sm text-gray-700 space-y-1'>
               {getGameInstructionsText().map((instruction, index) => (
@@ -529,10 +525,9 @@ export default function GameRoom({
           duration={300}
           easing='ease-in-out'
           animateOpacity
-          className='contents'
         >
           <div
-            className='fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4'
+            className='fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 mt-6'
             onClick={handleCloseQR}
           >
             <div
@@ -549,16 +544,10 @@ export default function GameRoom({
                   ×
                 </button>
               </div>
-              <AnimateHeight
-                height={qrCodeDataUrl ? 'auto' : 0}
-                duration={300}
-                easing='ease-in-out'
-                animateOpacity
-                className='contents'
-              >
+              {qrCodeDataUrl && (
                 <div className='text-center'>
                   <Image
-                    src={qrCodeDataUrl!}
+                    src={qrCodeDataUrl}
                     alt='QR Code'
                     width={200}
                     height={200}
@@ -568,7 +557,7 @@ export default function GameRoom({
                     Scannez ce code pour rejoindre la salle
                   </p>
                 </div>
-              </AnimateHeight>
+              )}
             </div>
           </div>
         </AnimateHeight>
@@ -579,14 +568,13 @@ export default function GameRoom({
           duration={300}
           easing='ease-in-out'
           animateOpacity
-          className='contents'
         >
           <Button
             onClick={handleValidateGameState}
             disabled={isValidating}
             variant='warning'
             size='md'
-            className='flex-shrink-0 min-h-[44px] px-4 mt-20'
+            className='flex-shrink-0 min-h-[44px] px-4 mt-20 mt-6'
             title="Valider et corriger l'état du jeu"
           >
             {isValidating
@@ -602,7 +590,6 @@ export default function GameRoom({
         duration={300}
         easing='ease-in-out'
         animateOpacity
-        className='contents'
       >
         <div className='fixed bottom-0 left-0 right-0 bg-white border-t shadow-lg p-4 md:hidden'>
           <div className='flex gap-3'>

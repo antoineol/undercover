@@ -1,11 +1,11 @@
-import { UI_MESSAGES } from '@/lib/constants';
-import { RoomWithPlayers } from '@/lib/convex-types';
 import { determineWinner } from '@/domains/game/game-logic.service';
 import {
-  getRoleDisplayName,
-  getRoleBadgeColor,
   formatWinnerText,
+  getRoleBadgeColor,
+  getRoleDisplayName,
 } from '@/domains/ui/ui-helpers.service';
+import { UI_MESSAGES } from '@/lib/constants';
+import { RoomWithPlayers } from '@/lib/convex-types';
 import AnimateHeight from 'react-animate-height';
 import Button from '../ui/Button';
 import Card from '../ui/Card';
@@ -22,7 +22,7 @@ function GameResultsContent({ room, isHost, onRestartGame }: GameResultsProps) {
   const { winner, winnerColor, winnerMessage } = determineWinner(alivePlayers);
 
   return (
-    <Card className='flex flex-col gap-6'>
+    <Card className='flex flex-col mt-6 gap-6'>
       <h2 className='text-2xl font-bold text-center'>🎉 Jeu Terminé !</h2>
 
       <div className='text-center flex flex-col gap-4'>
@@ -75,7 +75,6 @@ export default function GameResults(props: GameResultsProps) {
       duration={300}
       easing='ease-in-out'
       animateOpacity
-      className='contents'
     >
       <GameResultsContent {...props} />
     </AnimateHeight>

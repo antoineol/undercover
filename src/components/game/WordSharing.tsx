@@ -1,7 +1,7 @@
+import { calculateSharingProgress } from '@/domains/ui/ui-helpers.service';
 import { UI_MESSAGES } from '@/lib/constants';
 import { Player, Room } from '@/lib/types';
 import { validateSharedWord } from '@/lib/validation';
-import { calculateSharingProgress } from '@/domains/ui/ui-helpers.service';
 import AnimateHeight from 'react-animate-height';
 import Button from '../ui/Button';
 import Card from '../ui/Card';
@@ -9,13 +9,14 @@ import Input from '../ui/Input';
 
 interface WordSharingProps {
   room: Room;
-  currentPlayer: Player;
+  currentPlayer: Player | null;
   wordToShare: string;
   setWordToShare: (word: string) => void;
   onShareWord: () => void;
   isMyTurn: boolean;
   currentTurnPlayer?: Player;
   alivePlayers: Player[];
+  isSubmitting?: boolean;
 }
 
 // Internal component that handles the word sharing logic
@@ -28,8 +29,9 @@ function WordSharingContent({
   isMyTurn,
   currentTurnPlayer,
   alivePlayers,
+  isSubmitting = false,
 }: WordSharingProps) {
-  const hasSharedWord = currentPlayer.hasSharedWord || false;
+  const hasSharedWord = currentPlayer?.hasSharedWord || false;
   const playersWhoShared = room.players.filter(
     p => p.isAlive && p.hasSharedWord
   ).length;
@@ -52,7 +54,7 @@ function WordSharingContent({
   };
 
   return (
-    <div className='flex flex-col gap-6'>
+    <div className='flex flex-col gap-6 mt-6'>
       <div className='w-full bg-gray-200 rounded-full h-2'>
         <div
           className='bg-blue-600 h-2 rounded-full transition-all duration-300'
@@ -60,13 +62,12 @@ function WordSharingContent({
         />
       </div>
 
-      <div className='flex flex-col gap-6'>
+      <div className='flex flex-col'>
         <AnimateHeight
           height={isMyTurn ? 'auto' : 0}
           duration={300}
           easing='ease-in-out'
           animateOpacity
-          className='contents'
         >
           <div className='p-3 bg-blue-50 rounded-lg'>
             <p className='text-blue-800 font-medium'>
@@ -81,9 +82,8 @@ function WordSharingContent({
           duration={300}
           easing='ease-in-out'
           animateOpacity
-          className='contents'
         >
-          <div className='bg-yellow-50 p-3 rounded-lg'>
+          <div className='bg-yellow-50 p-3 rounded-lg mt-6'>
             <p className='text-yellow-800'>
               ⏳ En attente que {currentTurnPlayer?.name} partage son mot...
             </p>
@@ -95,9 +95,8 @@ function WordSharingContent({
           duration={300}
           easing='ease-in-out'
           animateOpacity
-          className='contents'
         >
-          <Card className='flex flex-col gap-4'>
+          <Card className='flex flex-col gap-4 mt-6'>
             <p className='text-gray-700'>
               Décrivez votre mot en un seul mot sans le révéler directement.
             </p>
@@ -112,8 +111,13 @@ function WordSharingContent({
                   className='flex-1'
                   autoFocus
                 />
-                <Button type='submit' disabled={!wordToShare.trim()}>
-                  {UI_MESSAGES.BUTTONS.SHARE_WORD}
+                <Button
+                  type='submit'
+                  disabled={!wordToShare.trim() || isSubmitting}
+                >
+                  {isSubmitting
+                    ? 'Partage en cours...'
+                    : UI_MESSAGES.BUTTONS.SHARE_WORD}
                 </Button>
               </div>
             </form>
@@ -127,7 +131,7 @@ function WordSharingContent({
 // Wrapper component that uses AnimateHeight instead of early return
 export default function WordSharing(props: WordSharingProps) {
   const { room, currentPlayer } = props;
-  const shouldShow = room.gameState === 'discussion' && currentPlayer;
+  const shouldShow = currentPlayer && room.gameState === 'discussion';
 
   return (
     <AnimateHeight
@@ -135,7 +139,6 @@ export default function WordSharing(props: WordSharingProps) {
       duration={300}
       easing='ease-in-out'
       animateOpacity
-      className='contents'
     >
       <WordSharingContent {...props} />
     </AnimateHeight>
