@@ -554,7 +554,7 @@ export default function GameRoom({
         </AnimateHeight>
       </div>
 
-      {/* Fixed Share Buttons at Bottom - Mobile */}
+      {/* Share Buttons - Fixed on Mobile, Normal Flow on Desktop */}
       <AnimateHeight
         height={room.gameState === 'waiting' ? 'auto' : 0}
         duration={300}
@@ -571,6 +571,28 @@ export default function GameRoom({
               className='flex-shrink-0 min-h-[56px] px-6 text-lg'
             >
               📱 QR
+            </Button>
+            <Button
+              onClick={handleShareLink}
+              variant='primary'
+              size='lg'
+              className='flex-1 min-h-[56px] text-lg font-semibold'
+            >
+              {shareButtonText}
+            </Button>
+          </div>
+        </div>
+
+        {/* Desktop Share Buttons - Normal Flow */}
+        <div className='hidden md:block max-w-4xl mx-auto px-4 pb-6'>
+          <div className='flex gap-3'>
+            <Button
+              onClick={handleShowQR}
+              variant='secondary'
+              size='lg'
+              className='flex-shrink-0 min-h-[56px] px-6 text-lg'
+            >
+              📱 QR Code
             </Button>
             <Button
               onClick={handleShareLink}

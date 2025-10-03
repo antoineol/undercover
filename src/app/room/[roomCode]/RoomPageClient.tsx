@@ -3,6 +3,8 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useMutation, useQuery } from 'convex/react';
 import Link from 'next/link';
+import Image from 'next/image';
+import QRCode from 'qrcode';
 import { api } from '../../../../convex/_generated/api';
 import GameRoom from '@/components/GameRoom';
 
@@ -15,6 +17,7 @@ export function RoomPageClient({ roomCode }: RoomPageClientProps) {
   const [isHost, setIsHost] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [joinError, setJoinError] = useState('');
+  const [qrCodeDataUrl, setQrCodeDataUrl] = useState('');
 
   const room = useQuery(api.rooms.getRoom, { roomCode });
   const joinRoom = useMutation(api.rooms.joinRoom);
@@ -80,7 +83,7 @@ export function RoomPageClient({ roomCode }: RoomPageClientProps) {
     [roomCode, joinRoom]
   );
 
-  // Check for existing player data on mount
+  // Check for existing player data on mount and generate QR code
   useEffect(() => {
     const savedPlayerData = sessionStorage.getItem(`player_${roomCode}`);
     if (savedPlayerData) {
@@ -100,6 +103,26 @@ export function RoomPageClient({ roomCode }: RoomPageClientProps) {
       }
     }
     setIsLoading(false);
+
+    // Generate QR code automatically
+    const generateQRCode = async () => {
+      const roomUrl = `${window.location.origin}/room/${roomCode}`;
+      try {
+        const qrDataUrl = await QRCode.toDataURL(roomUrl, {
+          width: 150,
+          margin: 2,
+          color: {
+            dark: '#000000',
+            light: '#FFFFFF',
+          },
+        });
+        setQrCodeDataUrl(qrDataUrl);
+      } catch (error) {
+        console.error('Failed to generate QR code:', error);
+      }
+    };
+
+    generateQRCode();
   }, [roomCode, handleJoinRoom]);
 
   const handleLeave = () => {
@@ -169,6 +192,20 @@ export function RoomPageClient({ roomCode }: RoomPageClientProps) {
         </div>
 
         <JoinRoomForm onJoin={handleJoinRoom} error={joinError} room={room} />
+
+        {/* QR Code Section */}
+        {qrCodeDataUrl && (
+          <div className='mt-6 text-center'>
+            <Image
+              src={qrCodeDataUrl}
+              alt='QR Code'
+              width={150}
+              height={150}
+              className='mx-auto'
+            />
+            <p className='text-sm text-gray-600 mt-2'>Scannez pour rejoindre</p>
+          </div>
+        )}
       </div>
     </div>
   );

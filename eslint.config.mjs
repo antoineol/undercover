@@ -1,6 +1,7 @@
 import { FlatCompat } from '@eslint/eslintrc';
 import { dirname } from 'path';
 import { fileURLToPath } from 'url';
+import gitignore from 'eslint-config-flat-gitignore';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -10,30 +11,27 @@ const compat = new FlatCompat({
 });
 
 const eslintConfig = [
+  // Apply gitignore patterns
+  gitignore(),
+  // Global ignores for all configurations
+  {
+    ignores: [
+      // Additional patterns not covered by .gitignore
+      '*.config.js',
+      '*.config.mjs',
+      'next-env.d.ts',
+      '**/*.generated.*',
+      '**/turbopack-*.js',
+      '**/_buildManifest.js',
+      '**/_ssgManifest.js',
+    ],
+  },
   ...compat.extends('next/core-web-vitals', 'next/typescript'),
   ...compat.extends('prettier'),
   {
     plugins: {
       prettier: (await import('eslint-plugin-prettier')).default,
     },
-    ignores: [
-      'node_modules/**',
-      '.next/**',
-      'out/**',
-      'build/**',
-      'dist/**',
-      'coverage/**',
-      '*.config.js',
-      '*.config.mjs',
-      'next-env.d.ts',
-      'convex/_generated/**',
-      '**/*.generated.*',
-      '**/turbopack-*.js',
-      '**/_buildManifest.js',
-      '**/_ssgManifest.js',
-      '**/.next/**',
-      '**/node_modules/**',
-    ],
     rules: {
       '@typescript-eslint/no-explicit-any': 'off',
       'prettier/prettier': 'error',

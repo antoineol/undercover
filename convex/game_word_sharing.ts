@@ -4,11 +4,6 @@ import {
   GameValidationHelpers,
   GameFlowHelpers,
 } from '../src/lib/game-helpers';
-import {
-  GameNotInDiscussionError,
-  NotYourTurnError,
-  AlreadySharedWordError,
-} from '../src/lib/errors';
 
 export const shareWord = mutation({
   args: {
