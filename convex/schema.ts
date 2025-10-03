@@ -16,7 +16,7 @@ export default defineSchema({
     maxRounds: v.number(),
     currentPlayerIndex: v.optional(v.number()), // Index of current player to share word
     playerOrder: v.optional(v.array(v.id('players'))), // Order of players for word sharing
-    hasMrWhite: v.optional(v.boolean()), // Whether Mr. White is enabled for this room
+    numMrWhites: v.optional(v.number()), // Number of Mr. White players
     numUndercovers: v.optional(v.number()), // Number of undercover players
     createdAt: v.number(),
   })

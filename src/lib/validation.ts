@@ -1,15 +1,15 @@
-import { GAME_CONFIG } from './constants';
 import {
+  sanitizeHtml as pureSanitizeHtml,
+  sanitizeInput as pureSanitizeInput,
+} from '../domains/utilities/utilities.service';
+import {
+  validateGameConfig as pureValidateGameConfig,
   validatePlayerName as pureValidatePlayerName,
   validateRoomCode as pureValidateRoomCode,
-  validateSharedWord as pureValidateSharedWord,
-  validateGameConfig as pureValidateGameConfig,
   validateSessionId as pureValidateSessionId,
+  validateSharedWord as pureValidateSharedWord,
 } from '../domains/validation/validation.service';
-import {
-  sanitizeInput as pureSanitizeInput,
-  sanitizeHtml as pureSanitizeHtml,
-} from '../domains/utilities/utilities.service';
+import { GAME_CONFIG } from './constants';
 
 export interface ValidationResult {
   isValid: boolean;
@@ -43,12 +43,12 @@ export function validateSharedWord(word: string): ValidationResult {
 export function validateGameConfig(
   playerCount: number,
   numUndercovers: number,
-  hasMrWhite: boolean
+  numMrWhites: number
 ): ValidationResult {
   return pureValidateGameConfig(
     playerCount,
     numUndercovers,
-    hasMrWhite,
+    numMrWhites,
     GAME_CONFIG
   );
 }

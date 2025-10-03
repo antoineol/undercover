@@ -1,9 +1,9 @@
-import { mutation } from './_generated/server';
 import { v } from 'convex/values';
 import {
-  GameValidationHelpers,
   GameFlowHelpers,
+  GameValidationHelpers,
 } from '../src/lib/game-helpers';
+import { mutation } from './_generated/server';
 
 export const shareWord = mutation({
   args: {
@@ -53,8 +53,16 @@ export const shareWord = mutation({
     );
 
     // Check if all alive players have shared their words
+    // We need to refetch players to get the updated hasSharedWord status
+    const updatedAlivePlayers = await ctx.db
+      .query('players')
+      .withIndex('by_room_alive', q =>
+        q.eq('roomId', player.roomId).eq('isAlive', true)
+      )
+      .collect();
+
     const allAlivePlayersShared = GameFlowHelpers.allPlayersCompletedAction(
-      alivePlayers,
+      updatedAlivePlayers,
       'sharedWord'
     );
 

@@ -1,14 +1,14 @@
-import { mutation, query } from './_generated/server';
 import { v } from 'convex/values';
-import { generateRoomCode, generateSessionId } from '../src/lib/utils';
 import { GAME_CONFIG } from '../src/lib/constants';
 import {
-  RoomNotFoundError,
   GameAlreadyStartedError,
-  RoomFullError,
-  PlayerNameExistsError,
   InvalidSessionError,
+  PlayerNameExistsError,
+  RoomFullError,
+  RoomNotFoundError,
 } from '../src/lib/errors';
+import { generateRoomCode, generateSessionId } from '../src/lib/utils';
+import { mutation, query } from './_generated/server';
 
 export const createRoom = mutation({
   args: {
@@ -26,7 +26,7 @@ export const createRoom = mutation({
       maxRounds: GAME_CONFIG.MAX_ROUNDS,
       currentPlayerIndex: 0,
       playerOrder: [],
-      hasMrWhite: false,
+      numMrWhites: 0,
       numUndercovers: 1,
       createdAt: now,
     });

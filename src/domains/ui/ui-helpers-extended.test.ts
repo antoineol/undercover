@@ -5,13 +5,13 @@
 import { describe, expect, test } from 'bun:test';
 import {
   generateShareButtonTextWithTimeout,
-  getGameStateMessage,
-  getStartGameButtonText,
   getConfigurationDisplayText,
-  getWordDisplayText,
-  getValidationResultMessage,
   getGameInstructionsText,
+  getGameStateMessage,
   getMrWhiteGuessingText,
+  getStartGameButtonText,
+  getValidationResultMessage,
+  getWordDisplayText,
 } from './ui-helpers.service';
 
 describe('Extended UI Helper Functions', () => {
@@ -89,7 +89,7 @@ describe('Extended UI Helper Functions', () => {
     test('should display configuration with Mr. White', () => {
       const config = {
         numUndercovers: 2,
-        hasMrWhite: true,
+        numMrWhites: 1,
         totalPlayers: 6,
       };
 
@@ -102,7 +102,7 @@ describe('Extended UI Helper Functions', () => {
     test('should display configuration without Mr. White', () => {
       const config = {
         numUndercovers: 1,
-        hasMrWhite: false,
+        numMrWhites: 0,
         totalPlayers: 4,
       };
 
@@ -115,7 +115,7 @@ describe('Extended UI Helper Functions', () => {
     test('should handle singular forms correctly', () => {
       const config = {
         numUndercovers: 1,
-        hasMrWhite: false,
+        numMrWhites: 0,
         totalPlayers: 3,
       };
 

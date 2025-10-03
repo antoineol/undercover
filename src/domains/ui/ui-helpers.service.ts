@@ -270,15 +270,15 @@ export function getStartGameButtonText(
  */
 export function getConfigurationDisplayText(config: {
   numUndercovers: number;
-  hasMrWhite: boolean;
+  numMrWhites: number;
   totalPlayers: number;
 }): string {
-  const { numUndercovers, hasMrWhite, totalPlayers } = config;
-  const civilians = totalPlayers - numUndercovers - (hasMrWhite ? 1 : 0);
+  const { numUndercovers, numMrWhites, totalPlayers } = config;
+  const civilians = totalPlayers - numUndercovers - numMrWhites;
 
   return `Configuration actuelle:
 • ${numUndercovers} Undercover${numUndercovers > 1 ? 's' : ''}
-• ${hasMrWhite ? '1 Mr. White' : 'Pas de Mr. White'}
+• ${numMrWhites} Mr. White${numMrWhites > 1 ? 's' : ''}${numMrWhites === 0 ? ' (Aucun)' : ''}
 • ${civilians} Civil${civilians > 1 ? 's' : ''}`;
 }
 

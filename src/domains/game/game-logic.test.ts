@@ -1,18 +1,18 @@
 import { describe, expect, test } from 'bun:test';
+import { Id } from '../../../convex/_generated/dataModel';
+import { domainPlayerToConvex, Player } from '../player/player';
 import {
+  allPlayersCompletedAction,
   calculatePlayerCounts,
   checkWinConditions,
   countVotes,
-  findEliminatedPlayer,
-  getVoterNames,
-  allPlayersCompletedAction,
   determineWinner,
+  findEliminatedPlayer,
   getRoleDisplay,
+  getVoterNames,
+  PlayerCounts,
+  VoteCounts,
 } from './game-logic.service';
-import { Player } from '../player/player';
-import { domainPlayerToConvex } from '../player/player';
-import { PlayerCounts, VoteCounts } from './game-logic.service';
-import { Id } from '../../../convex/_generated/dataModel';
 
 describe('Game Logic Functions', () => {
   const mockPlayers: Player[] = [
@@ -208,7 +208,7 @@ describe('Game Logic Functions', () => {
     test('should return true when all players voted', () => {
       const playersWithVotes: Player[] = mockPlayers.map(p => ({
         ...p,
-        votes: ['player1'],
+        hasVoted: true,
       }));
 
       const convexPlayers = playersWithVotes.map(domainPlayerToConvex);

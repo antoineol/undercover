@@ -3,8 +3,8 @@
  * Pure functions for role assignment and player ordering
  */
 
-import { RoleAssignment } from './player';
 import { Id } from '../../../convex/_generated/dataModel';
+import { RoleAssignment } from './player';
 
 // Generic player interface that works with both domain and Convex players
 interface PlayerWithId {
@@ -18,7 +18,7 @@ interface PlayerWithId {
 export function assignRoles(
   players: PlayerWithId[],
   numUndercovers: number,
-  hasMrWhite: boolean
+  numMrWhites: number
 ): RoleAssignment[] {
   const shuffledPlayers = shuffleArray(players);
   const roleAssignments: RoleAssignment[] = [];
@@ -28,7 +28,7 @@ export function assignRoles(
 
     if (i < numUndercovers) {
       role = 'undercover';
-    } else if (i === numUndercovers && hasMrWhite) {
+    } else if (i >= numUndercovers && i < numUndercovers + numMrWhites) {
       role = 'mr_white';
     }
 
@@ -87,18 +87,29 @@ export function shuffleArray<T>(array: T[]): T[] {
 }
 
 /**
- * Ensure Mr. White is not first in player order
+ * Ensure Mr. Whites are not first in player order
  */
 export function ensureMrWhiteNotFirst(
   playerOrder: PlayerWithId[]
 ): PlayerWithId[] {
-  const mrWhiteIndex = playerOrder.findIndex(p => p.role === 'mr_white');
-  if (mrWhiteIndex === 0) {
-    // Move Mr. White to a random position (not first)
-    const mrWhite = playerOrder.splice(0, 1)[0];
-    const randomPosition =
-      Math.floor(Math.random() * (playerOrder.length - 1)) + 1;
-    playerOrder.splice(randomPosition, 0, mrWhite);
+  const mrWhiteIndices = playerOrder
+    .map((p, index) => ({ player: p, index }))
+    .filter(({ player }) => player.role === 'mr_white');
+
+  // If any Mr. White is first, move all Mr. Whites to random positions (not first)
+  if (mrWhiteIndices.some(({ index }) => index === 0)) {
+    const mrWhites = mrWhiteIndices.map(({ player }) => player);
+    const nonMrWhites = playerOrder.filter(p => p.role !== 'mr_white');
+
+    // Insert Mr. Whites at random positions (not first)
+    const result = [...nonMrWhites];
+    for (const mrWhite of mrWhites) {
+      const randomPosition =
+        Math.floor(Math.random() * (result.length - 1)) + 1;
+      result.splice(randomPosition, 0, mrWhite);
+    }
+    return result;
   }
+
   return playerOrder;
 }

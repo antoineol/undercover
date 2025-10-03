@@ -45,7 +45,7 @@ export default function GameRoom({
   const [showWords, setShowWords] = useState(false);
   const [wordToShare, setWordToShare] = useState('');
   const [numUndercovers, setNumUndercovers] = useState(1);
-  const [hasMrWhite, setHasMrWhite] = useState(false);
+  const [numMrWhites, setNumMrWhites] = useState(0);
   // const [isValidating, setIsValidating] = useState(false);
   const [showConfig, setShowConfig] = useState(false);
   const [shareButtonText, setShareButtonText] = useState('📋 Partager le Lien');
@@ -68,6 +68,7 @@ export default function GameRoom({
   // const validateGameState = useMutation(api.game.validateGameState);
   const restartGame = useMutation(api.game.restartGame);
   const mrWhiteGuess = useMutation(api.game.mrWhiteGuess);
+  const stopGame = useMutation(api.game.stopGame);
 
   const handleStartGame = async () => {
     if (room && isHost) {
@@ -76,7 +77,7 @@ export default function GameRoom({
           startGame({
             roomId: room._id,
             numUndercovers,
-            hasMrWhite,
+            numMrWhites,
           })
         );
       } catch (error: unknown) {
@@ -84,6 +85,29 @@ export default function GameRoom({
         const errorMessage =
           error instanceof Error ? error.message : 'Unknown error';
         alert(`Erreur: ${errorMessage}`);
+      }
+    }
+  };
+
+  const handleStopGame = async () => {
+    if (room && isHost) {
+      const confirmed = confirm(
+        "Êtes-vous sûr de vouloir arrêter le jeu en cours ? Tous les joueurs retourneront à l'écran de configuration."
+      );
+
+      if (confirmed) {
+        try {
+          await retryWithBackoff(() =>
+            stopGame({
+              roomId: room._id,
+            })
+          );
+        } catch (error: unknown) {
+          console.error('Failed to stop game:', error);
+          const errorMessage =
+            error instanceof Error ? error.message : 'Unknown error';
+          alert(`Erreur: ${errorMessage}`);
+        }
       }
     }
   };
@@ -278,7 +302,7 @@ export default function GameRoom({
         showConfig={showConfig}
       />
 
-      <div className='max-w-4xl mx-auto px-4 py-6 flex flex-col'>
+      <div className='max-w-4xl mx-auto px-4 py-6 flex flex-col mb-10'>
         {/* Start Game Button - Host Only, at top of content */}
         <AnimateHeight
           height={isHost && room.gameState === 'waiting' ? 'auto' : 0}
@@ -333,19 +357,32 @@ export default function GameRoom({
                     </div>
                   </div>
 
-                  {/* Mr. White Toggle */}
+                  {/* Number of Mr. Whites */}
                   <div>
-                    <label className='flex items-center space-x-3'>
-                      <input
-                        type='checkbox'
-                        checked={hasMrWhite}
-                        onChange={e => setHasMrWhite(e.target.checked)}
-                        className='w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500'
-                      />
-                      <span className='text-sm font-medium text-gray-700'>
-                        Inclure Mr. White (ne connaît aucun mot)
-                      </span>
+                    <label className='block text-sm font-medium text-gray-700 mb-2'>
+                      Nombre de Mr. White: {numMrWhites}
                     </label>
+                    <input
+                      type='range'
+                      min='0'
+                      max={Math.max(
+                        0,
+                        room.players.length - numUndercovers - 1
+                      )}
+                      value={numMrWhites}
+                      onChange={e => setNumMrWhites(parseInt(e.target.value))}
+                      className='w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer'
+                    />
+                    <div className='flex justify-between text-xs text-gray-500 mt-1'>
+                      <span>0</span>
+                      <span>
+                        Max:{' '}
+                        {Math.max(0, room.players.length - numUndercovers - 1)}
+                      </span>
+                    </div>
+                    <p className='text-xs text-gray-600 mt-1'>
+                      Mr. White ne connaît aucun mot
+                    </p>
                   </div>
 
                   {/* Validation Info */}
@@ -356,7 +393,7 @@ export default function GameRoom({
                     <div className='whitespace-pre-line'>
                       {getGameConfigurationDisplay({
                         numUndercovers,
-                        hasMrWhite,
+                        numMrWhites,
                         totalPlayers: room.players.length,
                       })}
                     </div>
@@ -366,6 +403,7 @@ export default function GameRoom({
             </AnimateHeight>
           </div>
         </AnimateHeight>
+
         <GameResults
           room={room}
           isHost={isHost}
@@ -634,6 +672,23 @@ export default function GameRoom({
 
       {/* Bottom padding for mobile to prevent content from being hidden behind fixed buttons */}
       <div className='h-24 md:hidden'></div>
+
+      {/* Discrete Stop Game Button - Host Only, during active gameplay */}
+      {isHost &&
+        room.gameState !== 'waiting' &&
+        room.gameState !== 'results' && (
+          <div className='fixed bottom-4 left-4 z-10'>
+            <Button
+              onClick={handleStopGame}
+              variant='secondary'
+              size='sm'
+              className='text-xs text-gray-600 hover:text-red-600 hover:bg-red-50 border-gray-300'
+              title='Arrêter le jeu et retourner à la configuration'
+            >
+              Arrêter le jeu
+            </Button>
+          </div>
+        )}
     </div>
   );
 }

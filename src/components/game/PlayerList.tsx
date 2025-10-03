@@ -69,7 +69,7 @@ export default function PlayerList({
           const hasCompletedAction = isDiscussionPhase
             ? player.hasSharedWord
             : isVotingPhase
-              ? player.votes && player.votes.length > 0
+              ? player.hasVoted === true
               : false;
 
           // Only show as current turn if they haven't completed their action yet
@@ -94,42 +94,45 @@ export default function PlayerList({
                   {shouldShowAsCurrentTurn && ' →'} {!player.isAlive && '💀'}{' '}
                   {player.name}
                 </span>
-                <AnimateHeight
-                  height={
-                    isDiscussionPhase &&
-                    player.hasSharedWord &&
-                    player.sharedWord
-                      ? 'auto'
-                      : 0
-                  }
-                  duration={300}
-                  easing='ease-in-out'
-                  animateOpacity
-                >
-                  <div className='text-sm text-blue-600 mt-1'>
-                    &quot;{player.sharedWord}&quot;
-                  </div>
-                </AnimateHeight>
-              </div>
-
-              {/* Show role for dead players */}
-
-              <AnimateHeight
-                height={
-                  !player.isAlive && room.gameState !== 'waiting' ? 'auto' : 0
-                }
-                duration={300}
-                easing='ease-in-out'
-                animateOpacity
-              >
-                <div className='text-sm mt-1'>
-                  <span
-                    className={`px-2 py-1 rounded text-xs ${getRoleBadgeColor(player.role)}`}
+                <div>
+                  <AnimateHeight
+                    height={
+                      isDiscussionPhase &&
+                      player.hasSharedWord &&
+                      player.sharedWord
+                        ? 'auto'
+                        : 0
+                    }
+                    duration={300}
+                    easing='ease-in-out'
+                    animateOpacity
                   >
-                    {getRoleDisplayName(player.role)}
-                  </span>
+                    <div className='text-sm text-blue-600'>
+                      &quot;{player.sharedWord}&quot;
+                    </div>
+                  </AnimateHeight>
+
+                  {/* Show role for dead players */}
+                  <AnimateHeight
+                    height={
+                      !player.isAlive && room.gameState !== 'waiting'
+                        ? 'auto'
+                        : 0
+                    }
+                    duration={300}
+                    easing='ease-in-out'
+                    animateOpacity
+                  >
+                    <div className='text-sm'>
+                      <span
+                        className={`px-2 py-1 rounded text-xs ${getRoleBadgeColor(player.role)}`}
+                      >
+                        {getRoleDisplayName(player.role)}
+                      </span>
+                    </div>
+                  </AnimateHeight>
                 </div>
-              </AnimateHeight>
+              </div>
 
               {/* Show vote counts during voting */}
               <AnimateHeight

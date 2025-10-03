@@ -3,22 +3,22 @@
  */
 
 import { describe, expect, test } from 'bun:test';
-import {
-  calculateVotingProgress,
-  getCurrentTurnPlayer,
-  isMyTurn,
-  calculateVoteData,
-  getPlayersWhoVoted,
-  isVotingPhase,
-  isDiscussionPhase,
-  getCurrentPlayerByName,
-  generateRoomUrl,
-  calculateMaxUndercovers,
-  getGameConfigurationDisplay,
-} from './room-management.service';
-import { Room, Player } from '../../lib/types';
-import { ConvexPlayer } from '../../lib/convex-types';
 import { Id } from '../../../convex/_generated/dataModel';
+import { ConvexPlayer } from '../../lib/convex-types';
+import { Player, Room } from '../../lib/types';
+import {
+  calculateMaxUndercovers,
+  calculateVoteData,
+  calculateVotingProgress,
+  generateRoomUrl,
+  getCurrentPlayerByName,
+  getCurrentTurnPlayer,
+  getGameConfigurationDisplay,
+  getPlayersWhoVoted,
+  isDiscussionPhase,
+  isMyTurn,
+  isVotingPhase,
+} from './room-management.service';
 
 describe('Extended Room Management Functions', () => {
   // Helper function to convert test players to ConvexPlayer format
@@ -35,7 +35,7 @@ describe('Extended Room Management Functions', () => {
       votes: p.votes as Id<'players'>[],
       sharedWord: p.sharedWord,
       hasSharedWord: p.hasSharedWord,
-      hasVoted: false,
+      hasVoted: p.votes && p.votes.length > 0,
       createdAt: p.createdAt,
     }));
 
@@ -85,7 +85,7 @@ describe('Extended Room Management Functions', () => {
     currentPlayerIndex: 0,
     playerOrder: ['player1', 'player2', 'player3'],
     players: mockPlayers,
-    hasMrWhite: false,
+    numMrWhites: 0,
     numUndercovers: 1,
     createdAt: Date.now(),
   };
@@ -177,7 +177,7 @@ describe('Extended Room Management Functions', () => {
     test('should return only alive players who voted', () => {
       const playersWhoVoted = getPlayersWhoVoted(toConvexPlayers(mockPlayers));
       expect(playersWhoVoted).toHaveLength(2);
-      expect(playersWhoVoted.every(p => p.isAlive && p.votes.length > 0)).toBe(
+      expect(playersWhoVoted.every(p => p.isAlive && p.hasVoted === true)).toBe(
         true
       );
     });
@@ -262,7 +262,7 @@ describe('Extended Room Management Functions', () => {
     test('should display configuration with Mr. White', () => {
       const config = {
         numUndercovers: 2,
-        hasMrWhite: true,
+        numMrWhites: 1,
         totalPlayers: 6,
       };
 
@@ -275,7 +275,7 @@ describe('Extended Room Management Functions', () => {
     test('should display configuration without Mr. White', () => {
       const config = {
         numUndercovers: 1,
-        hasMrWhite: false,
+        numMrWhites: 0,
         totalPlayers: 4,
       };
 
@@ -288,7 +288,7 @@ describe('Extended Room Management Functions', () => {
     test('should handle singular forms correctly', () => {
       const config = {
         numUndercovers: 1,
-        hasMrWhite: false,
+        numMrWhites: 0,
         totalPlayers: 3,
       };
 

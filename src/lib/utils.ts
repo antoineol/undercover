@@ -1,14 +1,14 @@
-import { GAME_CONFIG, RETRY_CONFIG } from './constants';
-import { GameError, RetryConfig, RetryFunction, Player } from './types';
 import {
+  calculateRetryDelay,
+  isRetryableError,
+  // sanitizeHtml as pureSanitizeHtml,
+  createGameError as pureCreateGameError,
   generateRoomCode as pureGenerateRoomCode,
   generateSessionId as pureGenerateSessionId,
   sanitizeInput as pureSanitizeInput,
-  // sanitizeHtml as pureSanitizeHtml,
-  createGameError as pureCreateGameError,
-  calculateRetryDelay,
-  isRetryableError,
 } from '../domains/utilities/utilities.service';
+import { GAME_CONFIG, RETRY_CONFIG } from './constants';
+import { GameError, Player, RetryConfig, RetryFunction } from './types';
 
 /**
  * Generate a random room code
@@ -62,7 +62,7 @@ export async function retryWithBackoff<T>(
 export function validateGameConfiguration(
   playerCount: number,
   numUndercovers: number,
-  hasMrWhite: boolean
+  numMrWhites: number
 ): { isValid: boolean; error?: string } {
   if (playerCount < GAME_CONFIG.MIN_PLAYERS) {
     return { isValid: false, error: 'Need at least 3 players to start' };
@@ -85,16 +85,16 @@ export function validateGameConfiguration(
     };
   }
 
-  const totalSpecialRoles = numUndercovers + (hasMrWhite ? 1 : 0);
+  const totalSpecialRoles = numUndercovers + numMrWhites;
   if (totalSpecialRoles >= playerCount) {
     return {
       isValid: false,
       error:
-        'Need at least 1 civilian player. Reduce undercovers or disable Mr. White.',
+        'Need at least 1 civilian player. Reduce undercovers or Mr. Whites.',
     };
   }
 
-  if (hasMrWhite && playerCount < GAME_CONFIG.MR_WHITE_MIN_PLAYERS) {
+  if (numMrWhites > 0 && playerCount < GAME_CONFIG.MR_WHITE_MIN_PLAYERS) {
     return {
       isValid: false,
       error: `Mr. White requires at least ${GAME_CONFIG.MR_WHITE_MIN_PLAYERS} players`,

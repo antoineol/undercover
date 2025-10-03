@@ -17,7 +17,7 @@ export interface Room {
   maxRounds: number;
   currentPlayerIndex?: number;
   playerOrder?: string[];
-  hasMrWhite?: boolean;
+  numMrWhites?: number;
   numUndercovers?: number;
   createdAt: number;
 }

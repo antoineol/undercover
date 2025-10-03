@@ -3,8 +3,8 @@
  * Pure functions for room state management and game flow
  */
 
-import { Room, RoomState } from './room';
 import { ConvexPlayer } from '../../lib/convex-types';
+import { Room, RoomState } from './room';
 
 /**
  * Get reset room data for new game
@@ -170,17 +170,24 @@ export function canStartGame(
  * Get room configuration summary
  */
 export function getRoomConfigurationSummary(room: Room): {
-  hasMrWhite: boolean;
+  numMrWhites: number;
   numUndercovers: number;
   maxRounds: number;
   currentRound: number;
 } {
   return {
-    hasMrWhite: room.hasMrWhite || false,
+    numMrWhites: room.numMrWhites || 0,
     numUndercovers: room.numUndercovers || 0,
     maxRounds: room.maxRounds,
     currentRound: room.currentRound,
   };
+}
+
+/**
+ * Check if room has Mr. White players
+ */
+export function hasMrWhite(room: Room): boolean {
+  return (room.numMrWhites || 0) > 0;
 }
 
 /**
@@ -198,7 +205,7 @@ export function isRoomReadyForNextPhase(
   } else if (phase === 'voting') {
     // All alive players should have voted
     const alivePlayers = players.filter(p => p.isAlive);
-    return alivePlayers.every(p => p.votes.length > 0);
+    return alivePlayers.every(p => p.hasVoted === true);
   }
 
   return false;
@@ -268,7 +275,7 @@ export function calculateVotingProgress(players: ConvexPlayer[]): number {
   const alivePlayers = players.filter(p => p.isAlive);
   if (alivePlayers.length === 0) return 0;
 
-  const playersWhoVoted = alivePlayers.filter(p => p.votes.length > 0);
+  const playersWhoVoted = alivePlayers.filter(p => p.hasVoted === true);
   return (playersWhoVoted.length / alivePlayers.length) * 100;
 }
 
@@ -320,7 +327,7 @@ export function calculateVoteData(players: ConvexPlayer[]): {
  */
 export function getPlayersWhoVoted(players: ConvexPlayer[]): ConvexPlayer[] {
   const alivePlayers = players.filter(p => p.isAlive);
-  return alivePlayers.filter(p => p.votes.length > 0);
+  return alivePlayers.filter(p => p.hasVoted === true);
 }
 
 /**
@@ -368,13 +375,13 @@ export function calculateMaxUndercovers(playerCount: number): number {
  */
 export function getGameConfigurationDisplay(config: {
   numUndercovers: number;
-  hasMrWhite: boolean;
+  numMrWhites: number;
   totalPlayers: number;
 }): string {
-  const { numUndercovers, hasMrWhite, totalPlayers } = config;
-  const civilians = totalPlayers - numUndercovers - (hasMrWhite ? 1 : 0);
+  const { numUndercovers, numMrWhites, totalPlayers } = config;
+  const civilians = totalPlayers - numUndercovers - numMrWhites;
 
   return `• ${numUndercovers} Undercover${numUndercovers > 1 ? 's' : ''}
-• ${hasMrWhite ? '1 Mr. White' : 'Pas de Mr. White'}
+• ${numMrWhites} Mr. White${numMrWhites > 1 ? 's' : ''}${numMrWhites === 0 ? ' (Aucun)' : ''}
 • ${civilians} Civil${civilians > 1 ? 's' : ''}`;
 }

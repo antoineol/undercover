@@ -13,7 +13,7 @@ export const startGame = mutation({
   args: {
     roomId: v.id('rooms'),
     numUndercovers: v.number(),
-    hasMrWhite: v.boolean(),
+    numMrWhites: v.number(),
   },
   handler: async (ctx, args) => {
     const room = await ctx.db.get(args.roomId);
@@ -39,7 +39,7 @@ export const startGame = mutation({
     GameConfigService.validateConfig(
       players.length,
       args.numUndercovers,
-      args.hasMrWhite
+      args.numMrWhites
     );
 
     // Select random word pair
@@ -49,7 +49,7 @@ export const startGame = mutation({
     const roleAssignments = GameFlowHelpers.assignRoles(
       players,
       args.numUndercovers,
-      args.hasMrWhite
+      args.numMrWhites
     );
 
     for (const assignment of roleAssignments) {
@@ -61,7 +61,7 @@ export const startGame = mutation({
       roomId: args.roomId,
       civilianWord: wordPair.civilian,
       undercoverWord: wordPair.undercover,
-      mrWhiteWord: args.hasMrWhite ? 'Unknown' : undefined,
+      mrWhiteWord: args.numMrWhites > 0 ? 'Unknown' : undefined,
       createdAt: Date.now(),
     });
 
@@ -83,7 +83,7 @@ export const startGame = mutation({
       currentRound: 1,
       currentPlayerIndex: 0,
       playerOrder: playerOrder,
-      hasMrWhite: args.hasMrWhite,
+      numMrWhites: args.numMrWhites,
       numUndercovers: args.numUndercovers,
     });
 

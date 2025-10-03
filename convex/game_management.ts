@@ -1,5 +1,6 @@
 import { v } from 'convex/values';
 import { GameNotFinishedError } from '../src/lib/errors';
+import { GameFlowHelpers } from '../src/lib/game-helpers';
 import {
   GameStateService,
   PlayerService,
@@ -110,6 +111,49 @@ export const restartGame = mutation({
   },
 });
 
+export const stopGame = mutation({
+  args: { roomId: v.id('rooms') },
+  handler: async (ctx, args) => {
+    const room = await RoomService.getRoom(ctx, args.roomId);
+    if (!room) {
+      throw new Error('Room not found');
+    }
+
+    // Only allow stopping if game is active (not waiting or results)
+    if (room.gameState === 'waiting' || room.gameState === 'results') {
+      throw new Error('Game is not currently active');
+    }
+
+    // Reset all players to alive state and clear game data
+    const players = await PlayerService.getAllPlayers(ctx, args.roomId);
+    for (const player of players) {
+      await ctx.db.patch(player._id, {
+        isAlive: true,
+        hasSharedWord: false,
+        sharedWord: undefined,
+        votes: [],
+        role: 'civilian', // Will be reassigned when game starts
+      });
+    }
+
+    // Reset room state to waiting
+    const resetData = RoomService.getResetRoomData();
+    await RoomService.updateGameState(ctx, args.roomId, resetData);
+
+    // Remove old game words
+    const oldGameWords = await ctx.db
+      .query('gameWords')
+      .withIndex('by_room', q => q.eq('roomId', args.roomId))
+      .first();
+
+    if (oldGameWords) {
+      await ctx.db.delete(oldGameWords._id);
+    }
+
+    return { success: true };
+  },
+});
+
 export const checkMaxRoundsReached = mutation({
   args: { roomId: v.id('rooms') },
   handler: async (ctx, args) => {
@@ -139,5 +183,63 @@ export const checkMaxRoundsReached = mutation({
     }
 
     return { maxRoundsReached: false };
+  },
+});
+
+export const fixDataInconsistency = mutation({
+  args: { roomId: v.id('rooms') },
+  handler: async (ctx, args) => {
+    const room = await RoomService.getRoom(ctx, args.roomId);
+    if (!room) {
+      throw new Error('Room not found');
+    }
+
+    // Only fix inconsistencies in discussion phase
+    if (room.gameState !== 'discussion') {
+      return { success: false, reason: 'Not in discussion phase' };
+    }
+
+    const alivePlayers = await PlayerService.getAlivePlayers(ctx, args.roomId);
+    if (!alivePlayers) {
+      throw new Error('Failed to get alive players');
+    }
+
+    // Check if all players have shared their words
+    const allAlivePlayersShared = alivePlayers.every(
+      p => p.hasSharedWord === true
+    );
+
+    if (allAlivePlayersShared) {
+      // All players have shared, move to voting
+      await RoomService.updateGameState(ctx, args.roomId, {
+        gameState: 'voting',
+      });
+      return { success: true, action: 'moved_to_voting' };
+    }
+
+    // Check if current player has already shared but it's still their turn
+    if (room.playerOrder && room.currentPlayerIndex !== undefined) {
+      const currentPlayerId = room.playerOrder[room.currentPlayerIndex];
+      const currentPlayer = await ctx.db.get(currentPlayerId);
+
+      if (currentPlayer && currentPlayer.hasSharedWord) {
+        // Current player has already shared, move to next player
+        const alivePlayerIds = alivePlayers.map(p => p._id);
+        const nextAlivePlayerIndex = GameFlowHelpers.findNextPlayer(
+          room.playerOrder,
+          room.currentPlayerIndex,
+          alivePlayerIds
+        );
+
+        if (nextAlivePlayerIndex !== -1) {
+          await RoomService.updateGameState(ctx, args.roomId, {
+            currentPlayerIndex: nextAlivePlayerIndex,
+          });
+          return { success: true, action: 'moved_to_next_player' };
+        }
+      }
+    }
+
+    return { success: true, action: 'no_fix_needed' };
   },
 });

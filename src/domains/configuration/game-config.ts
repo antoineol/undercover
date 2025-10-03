@@ -19,6 +19,6 @@ export interface GameConfigValidation {
 
 export interface GameSetup {
   numUndercovers: number;
-  hasMrWhite: boolean;
+  numMrWhites: number;
   maxRounds: number;
 }

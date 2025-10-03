@@ -1,16 +1,16 @@
 import { describe, expect, it } from 'bun:test';
 import {
-  validateGameConfiguration,
-  getDefaultGameSetup,
   calculateOptimalUndercovers,
-  shouldEnableMrWhite,
+  canStartGame,
+  getDefaultGameSetup,
+  getGameConfigurationSuggestions,
   getMaxUndercovers,
   getMinUndercovers,
-  canStartGame,
-  getGameConfigurationSuggestions,
-  validateRoomCapacity,
-  hasEnoughPlayersToStart,
   getPlayerCountStatus,
+  hasEnoughPlayersToStart,
+  shouldEnableMrWhite,
+  validateGameConfiguration,
+  validateRoomCapacity,
 } from './game-config.service';
 
 const mockConfig = {
@@ -25,31 +25,31 @@ const mockConfig = {
 describe('Game Configuration Functions', () => {
   describe('validateGameConfiguration', () => {
     it('should validate correct configuration', () => {
-      const result = validateGameConfiguration(5, 2, true, mockConfig);
+      const result = validateGameConfiguration(5, 2, 1, mockConfig);
       expect(result.isValid).toBe(true);
       expect(result.error).toBeUndefined();
     });
 
     it('should reject too few players', () => {
-      const result = validateGameConfiguration(2, 1, false, mockConfig);
+      const result = validateGameConfiguration(2, 1, 0, mockConfig);
       expect(result.isValid).toBe(false);
       expect(result.error).toContain('Need at least 3 players');
     });
 
     it('should reject too many players', () => {
-      const result = validateGameConfiguration(15, 5, false, mockConfig);
+      const result = validateGameConfiguration(15, 5, 0, mockConfig);
       expect(result.isValid).toBe(false);
       expect(result.error).toContain('Too many players');
     });
 
     it('should reject too few undercovers', () => {
-      const result = validateGameConfiguration(5, 0, false, mockConfig);
+      const result = validateGameConfiguration(5, 0, 0, mockConfig);
       expect(result.isValid).toBe(false);
       expect(result.error).toContain('Need at least 1 undercover');
     });
 
     it('should reject too many undercovers', () => {
-      const result = validateGameConfiguration(5, 3, false, mockConfig);
+      const result = validateGameConfiguration(5, 3, 0, mockConfig);
       expect(result.isValid).toBe(false);
       expect(result.error).toContain('Too many undercovers');
     });
@@ -57,13 +57,13 @@ describe('Game Configuration Functions', () => {
     it('should reject when special roles >= total players', () => {
       // This test case is covered by the "too many undercovers" validation
       // The special roles validation is tested in the existing validation.test.ts
-      const result = validateGameConfiguration(3, 2, false, mockConfig);
+      const result = validateGameConfiguration(3, 2, 0, mockConfig);
       expect(result.isValid).toBe(false);
       expect(result.error).toContain('Too many undercovers');
     });
 
     it('should reject Mr. White with too few players', () => {
-      const result = validateGameConfiguration(3, 1, true, mockConfig);
+      const result = validateGameConfiguration(3, 1, 1, mockConfig);
       expect(result.isValid).toBe(false);
       expect(result.error).toContain('Mr. White requires at least 4 players');
     });
@@ -73,7 +73,7 @@ describe('Game Configuration Functions', () => {
     it('should return default configuration', () => {
       const setup = getDefaultGameSetup(mockConfig);
       expect(setup.numUndercovers).toBe(1);
-      expect(setup.hasMrWhite).toBe(false);
+      expect(setup.numMrWhites).toBe(0);
       expect(setup.maxRounds).toBe(5);
     });
   });
@@ -128,11 +128,11 @@ describe('Game Configuration Functions', () => {
 
   describe('canStartGame', () => {
     it('should allow starting game with valid configuration', () => {
-      expect(canStartGame(5, 2, true, mockConfig)).toBe(true);
+      expect(canStartGame(5, 2, 1, mockConfig)).toBe(true);
     });
 
     it('should prevent starting game with invalid configuration', () => {
-      expect(canStartGame(2, 1, false, mockConfig)).toBe(false);
+      expect(canStartGame(2, 1, 0, mockConfig)).toBe(false);
     });
   });
 

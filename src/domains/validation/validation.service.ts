@@ -3,8 +3,8 @@
  * Pure functions for input validation and game state validation
  */
 
-import { ValidationResult, GameConfig } from './validation';
 import { ConvexPlayer, ConvexRoom } from '../../lib/convex-types';
+import { GameConfig, ValidationResult } from './validation';
 
 /**
  * Validate player name
@@ -128,7 +128,7 @@ export function validateSharedWord(
 export function validateGameConfig(
   playerCount: number,
   numUndercovers: number,
-  hasMrWhite: boolean,
+  numMrWhites: number,
   config: GameConfig
 ): ValidationResult {
   if (playerCount < config.MIN_PLAYERS) {
@@ -152,12 +152,12 @@ export function validateGameConfig(
     };
   }
 
-  const totalSpecialRoles = numUndercovers + (hasMrWhite ? 1 : 0);
+  const totalSpecialRoles = numUndercovers + numMrWhites;
   if (totalSpecialRoles >= playerCount) {
     return {
       isValid: false,
       error:
-        "Il faut au moins 1 joueur civil. Réduisez le nombre d'undercovers ou désactivez Mr. White.",
+        "Il faut au moins 1 joueur civil. Réduisez le nombre d'undercovers ou de Mr. Whites.",
     };
   }
 
@@ -169,7 +169,7 @@ export function validateGameConfig(
     };
   }
 
-  if (hasMrWhite && playerCount < config.MR_WHITE_MIN_PLAYERS) {
+  if (numMrWhites > 0 && playerCount < config.MR_WHITE_MIN_PLAYERS) {
     return {
       isValid: false,
       error: `Mr. White nécessite au moins ${config.MR_WHITE_MIN_PLAYERS} joueurs`,

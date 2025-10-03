@@ -134,7 +134,7 @@ export function allPlayersCompletedAction(
     if (action === 'sharedWord') {
       return p.hasSharedWord === true;
     } else if (action === 'voted') {
-      return p.votes.length > 0;
+      return p.hasVoted === true;
     }
     return false;
   });

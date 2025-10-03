@@ -1,19 +1,19 @@
-import {
-  assignRoles as pureAssignRoles,
-  createPlayerOrder as pureCreatePlayerOrder,
-  findNextAlivePlayer as pureFindNextAlivePlayer,
-} from '../domains/player/role-assignment.service';
+import { Id } from '../../convex/_generated/dataModel';
 import {
   allPlayersCompletedAction as pureAllPlayersCompletedAction,
   determineWinner as pureDetermineWinner,
   getRoleDisplay as pureGetRoleDisplay,
 } from '../domains/game/game-logic.service';
 import {
+  assignRoles as pureAssignRoles,
+  createPlayerOrder as pureCreatePlayerOrder,
+  findNextAlivePlayer as pureFindNextAlivePlayer,
+} from '../domains/player/role-assignment.service';
+import {
   canShareWord as pureCanShareWord,
   canVote as pureCanVote,
 } from '../domains/validation/validation.service';
 import { ConvexPlayer, ConvexRoom } from './convex-types';
-import { Id } from '../../convex/_generated/dataModel';
 
 /**
  * Game flow helpers - pure functions for game logic
@@ -25,14 +25,14 @@ export class GameFlowHelpers {
   static assignRoles(
     players: ConvexPlayer[],
     numUndercovers: number,
-    hasMrWhite: boolean
+    numMrWhites: number
   ) {
     // Convert ConvexPlayer to the format expected by pureAssignRoles
     const domainPlayers = players.map(p => ({
       _id: p._id,
       role: p.role,
     }));
-    return pureAssignRoles(domainPlayers, numUndercovers, hasMrWhite);
+    return pureAssignRoles(domainPlayers, numUndercovers, numMrWhites);
   }
 
   /**

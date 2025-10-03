@@ -1,30 +1,31 @@
 import { describe, expect, it } from 'bun:test';
+import { Id } from '../../../convex/_generated/dataModel';
+import { ConvexPlayer } from '../../lib/convex-types';
+import { Player, Room } from '../../lib/types';
 import {
-  getResetRoomData,
-  isRoomWaiting,
-  isRoomDiscussion,
-  isRoomVoting,
-  isRoomResults,
-  isRoomMrWhiteGuessing,
-  isGameActive,
-  isGameFinished,
+  canStartGame,
   getCurrentTurnPlayerId,
-  isPlayerTurn,
+  getGameProgress,
   getNextTurnPlayerId,
+  getResetRoomData,
+  getRoomConfigurationSummary,
+  getRoomStatistics,
   getRoomStatusText,
   getRoundDisplayText,
-  isMaxRoundsReached,
-  getGameProgress,
-  canStartGame,
-  getRoomConfigurationSummary,
-  isRoomReadyForNextPhase,
   getTurnOrderInfo,
+  hasMrWhite,
+  isGameActive,
+  isGameFinished,
+  isMaxRoundsReached,
+  isPlayerTurn,
+  isRoomDiscussion,
+  isRoomMrWhiteGuessing,
+  isRoomReadyForNextPhase,
+  isRoomResults,
+  isRoomVoting,
+  isRoomWaiting,
   needsStateValidation,
-  getRoomStatistics,
 } from './room-management.service';
-import { Room, Player } from '../../lib/types';
-import { ConvexPlayer } from '../../lib/convex-types';
-import { Id } from '../../../convex/_generated/dataModel';
 
 // Helper function to convert test players to ConvexPlayer format
 const toConvexPlayers = (players: Player[]): ConvexPlayer[] =>
@@ -53,7 +54,7 @@ const mockRoom: Room = {
   maxRounds: 5,
   currentPlayerIndex: 0,
   playerOrder: ['player1', 'player2', 'player3'],
-  hasMrWhite: false,
+  numMrWhites: 0,
   numUndercovers: 1,
   createdAt: Date.now(),
   players: [],
@@ -272,7 +273,7 @@ describe('Room Management Functions', () => {
   describe('getRoomConfigurationSummary', () => {
     it('should return room configuration summary', () => {
       const summary = getRoomConfigurationSummary(mockRoom);
-      expect(summary.hasMrWhite).toBe(false);
+      expect(hasMrWhite(mockRoom)).toBe(false);
       expect(summary.numUndercovers).toBe(1);
       expect(summary.maxRounds).toBe(5);
       expect(summary.currentRound).toBe(1);

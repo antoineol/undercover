@@ -2,7 +2,10 @@ import { calculateSharingProgress } from '@/domains/ui/ui-helpers.service';
 import { UI_MESSAGES } from '@/lib/constants';
 import { Player, Room } from '@/lib/types';
 import { validateSharedWord } from '@/lib/validation';
+import { useMutation } from 'convex/react';
+import { useEffect } from 'react';
 import AnimateHeight from 'react-animate-height';
+import { api } from '../../../convex/_generated/api';
 import Button from '../ui/Button';
 import Card from '../ui/Card';
 import Input from '../ui/Input';
@@ -41,6 +44,22 @@ function WordSharingContent({
     alivePlayers.length
   );
 
+  // Robust check: if it's my turn but I've already shared, there's a data inconsistency
+  // This can happen due to race conditions or data sync issues
+  const isDataInconsistent = isMyTurn && hasSharedWord;
+
+  // Auto-fix the inconsistency
+  const fixDataInconsistency = useMutation(
+    api.game_management.fixDataInconsistency
+  );
+
+  useEffect(() => {
+    if (isDataInconsistent && room._id) {
+      // Automatically try to fix the inconsistency
+      fixDataInconsistency({ roomId: room._id as any }).catch(console.error);
+    }
+  }, [isDataInconsistent, room._id, fixDataInconsistency]);
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -70,6 +89,11 @@ function WordSharingContent({
               <span className='animate-pulse'>🎯</span> C&apos;est votre tour de
               partager un mot
             </p>
+            {isDataInconsistent && (
+              <p className='text-blue-600 text-sm mt-2'>
+                🔄 Correction automatique en cours...
+              </p>
+            )}
           </div>
         </AnimateHeight>
 
@@ -87,7 +111,9 @@ function WordSharingContent({
         </AnimateHeight>
 
         <AnimateHeight
-          height={isMyTurn && !hasSharedWord ? 'auto' : 0}
+          height={
+            isMyTurn && !hasSharedWord && !isDataInconsistent ? 'auto' : 0
+          }
           duration={300}
           easing='ease-in-out'
           animateOpacity

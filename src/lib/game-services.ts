@@ -1,5 +1,5 @@
-import { MutationCtx } from '../../convex/_generated/server';
 import { Id } from '../../convex/_generated/dataModel';
+import { MutationCtx } from '../../convex/_generated/server';
 import {
   calculatePlayerCounts as pureCalculatePlayerCounts,
   checkWinConditions as pureCheckWinConditions,
@@ -183,7 +183,7 @@ export class GameConfigService {
   static validateConfig(
     playerCount: number,
     numUndercovers: number,
-    hasMrWhite: boolean
+    numMrWhites: number
   ) {
     if (playerCount < GAME_CONFIG.MIN_PLAYERS) {
       throw new Error(
@@ -210,14 +210,14 @@ export class GameConfigService {
       throw new Error(`Too many undercovers. Maximum is ${maxUndercovers}`);
     }
 
-    const totalSpecialRoles = numUndercovers + (hasMrWhite ? 1 : 0);
+    const totalSpecialRoles = numUndercovers + numMrWhites;
     if (totalSpecialRoles >= playerCount) {
       throw new Error(
-        'Need at least 1 civilian player. Reduce undercovers or disable Mr. White.'
+        'Need at least 1 civilian player. Reduce undercovers or Mr. Whites.'
       );
     }
 
-    if (hasMrWhite && playerCount < GAME_CONFIG.MR_WHITE_MIN_PLAYERS) {
+    if (numMrWhites > 0 && playerCount < GAME_CONFIG.MR_WHITE_MIN_PLAYERS) {
       throw new Error(
         `Mr. White requires at least ${GAME_CONFIG.MR_WHITE_MIN_PLAYERS} players`
       );
@@ -230,7 +230,7 @@ export class GameConfigService {
   static getDefaultConfig() {
     return {
       numUndercovers: 1,
-      hasMrWhite: false,
+      numMrWhites: 0,
       maxRounds: GAME_CONFIG.MAX_ROUNDS,
     };
   }

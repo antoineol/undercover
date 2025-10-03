@@ -147,7 +147,7 @@ export interface JoinRoomFormProps {
 // Game logic types
 export interface GameConfiguration {
   numUndercovers: number;
-  hasMrWhite: boolean;
+  numMrWhites: number;
 }
 
 export interface VoteCounts {

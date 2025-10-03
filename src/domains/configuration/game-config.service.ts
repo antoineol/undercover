@@ -11,7 +11,7 @@ import { GameConfig, GameConfigValidation, GameSetup } from './game-config';
 export function validateGameConfiguration(
   playerCount: number,
   numUndercovers: number,
-  hasMrWhite: boolean,
+  numMrWhites: number,
   config: GameConfig
 ): GameConfigValidation {
   if (playerCount < config.MIN_PLAYERS) {
@@ -43,16 +43,16 @@ export function validateGameConfiguration(
     };
   }
 
-  const totalSpecialRoles = numUndercovers + (hasMrWhite ? 1 : 0);
+  const totalSpecialRoles = numUndercovers + numMrWhites;
   if (totalSpecialRoles >= playerCount) {
     return {
       isValid: false,
       error:
-        'Need at least 1 civilian player. Reduce undercovers or disable Mr. White.',
+        'Need at least 1 civilian player. Reduce undercovers or Mr. Whites.',
     };
   }
 
-  if (hasMrWhite && playerCount < config.MR_WHITE_MIN_PLAYERS) {
+  if (numMrWhites > 0 && playerCount < config.MR_WHITE_MIN_PLAYERS) {
     return {
       isValid: false,
       error: `Mr. White requires at least ${config.MR_WHITE_MIN_PLAYERS} players`,
@@ -68,7 +68,7 @@ export function validateGameConfiguration(
 export function getDefaultGameSetup(config: GameConfig): GameSetup {
   return {
     numUndercovers: 1,
-    hasMrWhite: false,
+    numMrWhites: 0,
     maxRounds: config.MAX_ROUNDS,
   };
 }
@@ -124,13 +124,13 @@ export function getMinUndercovers(config: GameConfig): number {
 export function canStartGame(
   playerCount: number,
   numUndercovers: number,
-  hasMrWhite: boolean,
+  numMrWhites: number,
   config: GameConfig
 ): boolean {
   const validation = validateGameConfiguration(
     playerCount,
     numUndercovers,
-    hasMrWhite,
+    numMrWhites,
     config
   );
   return validation.isValid;

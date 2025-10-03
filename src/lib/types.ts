@@ -22,7 +22,7 @@ export interface Room {
   maxRounds: number;
   currentPlayerIndex?: number;
   playerOrder?: string[];
-  hasMrWhite?: boolean;
+  numMrWhites?: number;
   numUndercovers?: number;
   createdAt: number;
   players: Player[];
@@ -112,7 +112,7 @@ export interface JoinRoomFormProps {
 // Game logic types
 export interface GameConfiguration {
   numUndercovers: number;
-  hasMrWhite: boolean;
+  numMrWhites: number;
 }
 
 export interface VoteCounts {

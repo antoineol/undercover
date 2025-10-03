@@ -1,4 +1,5 @@
 import { v } from 'convex/values';
+import { ConvexPlayer, ConvexRoom, RoomId } from '../src/lib/convex-types';
 import { InvalidVoteError, VotingNotActiveError } from '../src/lib/errors';
 import { GameValidationHelpers } from '../src/lib/game-helpers';
 import {
@@ -6,9 +7,7 @@ import {
   PlayerService,
   RoomService,
 } from '../src/lib/game-services';
-import { ConvexPlayer, ConvexRoom, RoomId } from '../src/lib/convex-types';
-import { MutationCtx } from './_generated/server';
-import { mutation } from './_generated/server';
+import { mutation, MutationCtx } from './_generated/server';
 
 export const votePlayer = mutation({
   args: {
@@ -239,12 +238,16 @@ export async function processVotingResults(
 
   // Update room state
   if (gameResult) {
+    // Game ended
     await RoomService.updateGameState(ctx, roomId, {
       gameState: 'results',
     });
-  } else {
-    // Reset for next round
+  } else if (eliminatedPlayerId && !tie) {
+    // Someone was eliminated AND game continues: Start next round
     await resetForNextRound(ctx, roomId, room);
+  } else {
+    // No one eliminated (tie or no votes) AND game continues: Stay in discussion, preserve word sharing
+    await resetVotingData(ctx, roomId);
   }
 
   return {
@@ -254,6 +257,25 @@ export async function processVotingResults(
     gameResult,
     voteCounts,
   };
+}
+
+// Helper function to reset voting data and word sharing status for continued discussion
+async function resetVotingData(ctx: MutationCtx, roomId: RoomId) {
+  // Reset voting data AND word sharing data so players can share words again
+  const players = await PlayerService.getAllPlayers(ctx, roomId);
+  for (const player of players) {
+    await ctx.db.patch(player._id, {
+      votes: [],
+      hasVoted: false,
+      hasSharedWord: false,
+      sharedWord: undefined,
+    });
+  }
+
+  // Stay in discussion phase for the same round
+  await RoomService.updateGameState(ctx, roomId, {
+    gameState: 'discussion',
+  });
 }
 
 // Helper function to reset game for next round

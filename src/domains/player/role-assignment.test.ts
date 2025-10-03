@@ -1,13 +1,13 @@
 import { describe, expect, test } from 'bun:test';
+import { Id } from '../../../convex/_generated/dataModel';
+import { Player } from '../../lib/types';
 import {
   assignRoles,
   createPlayerOrder,
+  ensureMrWhiteNotFirst,
   findNextAlivePlayer,
   shuffleArray,
-  ensureMrWhiteNotFirst,
 } from './role-assignment.service';
-import { Player } from '../../lib/types';
-import { Id } from '../../../convex/_generated/dataModel';
 
 describe('Role Assignment Functions', () => {
   // Helper function to convert test players to the format expected by role assignment functions
@@ -59,7 +59,7 @@ describe('Role Assignment Functions', () => {
 
   describe('assignRoles', () => {
     test('should assign roles correctly with undercovers and mr white', () => {
-      const assignments = assignRoles(toPlayerWithId(mockPlayers), 2, true);
+      const assignments = assignRoles(toPlayerWithId(mockPlayers), 2, 1);
 
       expect(assignments).toHaveLength(4);
 
@@ -79,7 +79,7 @@ describe('Role Assignment Functions', () => {
     });
 
     test('should assign roles correctly without mr white', () => {
-      const assignments = assignRoles(toPlayerWithId(mockPlayers), 1, false);
+      const assignments = assignRoles(toPlayerWithId(mockPlayers), 1, 0);
 
       expect(assignments).toHaveLength(4);
 
@@ -99,7 +99,7 @@ describe('Role Assignment Functions', () => {
     });
 
     test('should handle empty player list', () => {
-      const assignments = assignRoles(toPlayerWithId([]), 1, false);
+      const assignments = assignRoles(toPlayerWithId([]), 1, 0);
       expect(assignments).toHaveLength(0);
     });
   });
