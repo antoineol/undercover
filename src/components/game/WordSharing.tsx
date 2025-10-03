@@ -6,6 +6,7 @@ import { useMutation } from 'convex/react';
 import { useEffect } from 'react';
 import AnimateHeight from 'react-animate-height';
 import { api } from '../../../convex/_generated/api';
+import { Id } from '../../../convex/_generated/dataModel';
 import Button from '../ui/Button';
 import Card from '../ui/Card';
 import Input from '../ui/Input';
@@ -56,7 +57,9 @@ function WordSharingContent({
   useEffect(() => {
     if (isDataInconsistent && room._id) {
       // Automatically try to fix the inconsistency
-      fixDataInconsistency({ roomId: room._id as any }).catch(console.error);
+      fixDataInconsistency({ roomId: room._id as Id<'rooms'> }).catch(
+        console.error
+      );
     }
   }, [isDataInconsistent, room._id, fixDataInconsistency]);
 

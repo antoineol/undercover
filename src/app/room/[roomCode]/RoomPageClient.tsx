@@ -1,24 +1,32 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
-import { useMutation, useQuery } from 'convex/react';
-import Link from 'next/link';
-import Image from 'next/image';
-import QRCode from 'qrcode';
-import { api } from '../../../../convex/_generated/api';
 import GameRoom from '@/components/GameRoom';
+import { usePlayerStore } from '@/lib/stores/player-store';
+import { useUIStore } from '@/lib/stores/ui-store';
 import { Room } from '@/lib/types';
+import { useMutation, useQuery } from 'convex/react';
+import Image from 'next/image';
+import Link from 'next/link';
+import QRCode from 'qrcode';
+import { useCallback, useEffect, useState } from 'react';
+import { api } from '../../../../convex/_generated/api';
 
 interface RoomPageClientProps {
   roomCode: string;
 }
 
 export function RoomPageClient({ roomCode }: RoomPageClientProps) {
-  const [playerName, setPlayerName] = useState('');
-  const [isHost, setIsHost] = useState(false);
+  const {
+    playerName,
+    isHost,
+    setPlayer,
+    clearPlayer,
+    loadFromSessionStorage,
+    saveToSessionStorage,
+  } = usePlayerStore();
+  const { qrCodeDataUrl, setQrCodeDataUrl } = useUIStore();
   const [isLoading, setIsLoading] = useState(true);
   const [joinError, setJoinError] = useState('');
-  const [qrCodeDataUrl, setQrCodeDataUrl] = useState('');
 
   const room = useQuery(api.rooms.getRoom, { roomCode });
   const joinRoom = useMutation(api.rooms.joinRoom);
@@ -34,19 +42,14 @@ export function RoomPageClient({ roomCode }: RoomPageClientProps) {
           isHost: isHostPlayer,
         });
 
-        // Save player data to sessionStorage
-        const playerData = {
+        // Save player data to Zustand store and sessionStorage
+        setPlayer({
           playerName: name,
           isHost: isHostPlayer,
           sessionId: result.sessionId,
-        };
-        sessionStorage.setItem(
-          `player_${roomCode}`,
-          JSON.stringify(playerData)
-        );
-
-        setPlayerName(name);
-        setIsHost(isHostPlayer);
+          roomCode,
+        });
+        saveToSessionStorage(roomCode);
 
         // Log if this is a rejoin (for debugging)
         if (result.isExisting) {
@@ -81,32 +84,17 @@ export function RoomPageClient({ roomCode }: RoomPageClientProps) {
         }
       }
     },
-    [roomCode, joinRoom]
+    [roomCode, joinRoom, setPlayer, saveToSessionStorage]
   );
 
   // Check for existing player data on mount and generate QR code
   useEffect(() => {
-    const savedPlayerData = sessionStorage.getItem(`player_${roomCode}`);
-    if (savedPlayerData) {
-      try {
-        const parsedData = JSON.parse(savedPlayerData) as {
-          playerName: string;
-          isHost: boolean;
-          sessionId: string;
-        };
-        const {
-          playerName: savedName,
-          isHost: savedIsHost,
-          sessionId: savedSessionId,
-        } = parsedData;
-        setPlayerName(savedName);
-        setIsHost(savedIsHost);
-        // Auto-join if we have saved data, including sessionId for rejoining
-        handleJoinRoom(savedName, savedIsHost, savedSessionId);
-      } catch (error) {
-        console.error('Error parsing saved player data:', error);
-        sessionStorage.removeItem(`player_${roomCode}`);
-      }
+    // Load from sessionStorage first
+    loadFromSessionStorage(roomCode);
+
+    // Auto-join if we have saved data
+    if (playerName && roomCode) {
+      handleJoinRoom(playerName, isHost, undefined);
     }
     setIsLoading(false);
 
@@ -129,13 +117,19 @@ export function RoomPageClient({ roomCode }: RoomPageClientProps) {
     };
 
     generateQRCode();
-  }, [roomCode, handleJoinRoom]);
+  }, [
+    roomCode,
+    handleJoinRoom,
+    isHost,
+    playerName,
+    setQrCodeDataUrl,
+    loadFromSessionStorage,
+  ]);
 
   const handleLeave = () => {
-    // Clear saved player data
+    // Clear saved player data from both Zustand and sessionStorage
+    clearPlayer();
     sessionStorage.removeItem(`player_${roomCode}`);
-    setPlayerName('');
-    setIsHost(false);
     setJoinError('');
   };
 

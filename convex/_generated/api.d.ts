@@ -19,6 +19,7 @@ import type * as game_queries from "../game_queries.js";
 import type * as game_start from "../game_start.js";
 import type * as game_voting from "../game_voting.js";
 import type * as game_word_sharing from "../game_word_sharing.js";
+import type * as room_config from "../room_config.js";
 import type * as rooms from "../rooms.js";
 
 /**
@@ -36,6 +37,7 @@ declare const fullApi: ApiFromModules<{
   game_start: typeof game_start;
   game_voting: typeof game_voting;
   game_word_sharing: typeof game_word_sharing;
+  room_config: typeof room_config;
   rooms: typeof rooms;
 }>;
 export declare const api: FilterApi<

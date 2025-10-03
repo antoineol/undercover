@@ -1,11 +1,13 @@
 'use client';
 
+import RoomLobby from '@/components/RoomLobby';
+import { usePlayerStore } from '@/lib/stores/player-store';
 import { useMutation } from 'convex/react';
 import { api } from '../../convex/_generated/api';
-import RoomLobby from '@/components/RoomLobby';
 
 export default function Home() {
   const createRoom = useMutation(api.rooms.createRoom);
+  const { setPlayer, saveToSessionStorage } = usePlayerStore();
 
   const handleCreateRoom = async (name: string) => {
     try {
@@ -13,16 +15,14 @@ export default function Home() {
       // Add a small delay to ensure room is fully created
       await new Promise(resolve => setTimeout(resolve, 500));
 
-      // Store host data in sessionStorage before redirecting
-      const hostData = {
+      // Store host data in Zustand store and sessionStorage
+      setPlayer({
         playerName: name,
         isHost: true,
         sessionId: result.sessionId,
-      };
-      sessionStorage.setItem(
-        `player_${result.roomCode}`,
-        JSON.stringify(hostData)
-      );
+        roomCode: result.roomCode,
+      });
+      saveToSessionStorage(result.roomCode);
 
       // Redirect to room URL
       window.location.href = `/room/${result.roomCode}`;
