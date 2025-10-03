@@ -4,6 +4,7 @@ import AnimateHeight from 'react-animate-height';
 import { Id } from '../../../convex/_generated/dataModel';
 import Button from '../ui/Button';
 import Card from '../ui/Card';
+import ProgressBar from '../ui/ProgressBar';
 
 interface PlayerListProps {
   room: RoomWithPlayers;
@@ -58,12 +59,7 @@ export default function PlayerList({
 
   return (
     <Card className='flex flex-col gap-6 mt-6'>
-      <div className='w-full bg-gray-200 rounded-full h-2'>
-        <div
-          className='bg-blue-600 h-2 rounded-full transition-all duration-300'
-          style={{ width: `${votingProgress}%` }}
-        />
-      </div>
+      <ProgressBar progress={votingProgress} />
       <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3'>
         {room.players.map(player => {
           const isCurrentTurn = player._id === currentTurnPlayerId;

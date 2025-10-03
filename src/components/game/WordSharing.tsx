@@ -6,6 +6,7 @@ import AnimateHeight from 'react-animate-height';
 import Button from '../ui/Button';
 import Card from '../ui/Card';
 import Input from '../ui/Input';
+import ProgressBar from '../ui/ProgressBar';
 
 interface WordSharingProps {
   room: Room;
@@ -55,12 +56,7 @@ function WordSharingContent({
 
   return (
     <div className='flex flex-col gap-6 mt-6'>
-      <div className='w-full bg-gray-200 rounded-full h-2'>
-        <div
-          className='bg-blue-600 h-2 rounded-full transition-all duration-300'
-          style={{ width: `${sharingProgress}%` }}
-        />
-      </div>
+      <ProgressBar progress={sharingProgress} />
 
       <div className='flex flex-col'>
         <AnimateHeight
