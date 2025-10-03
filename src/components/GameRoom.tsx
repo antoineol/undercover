@@ -16,13 +16,10 @@ import {
   generateShareButtonTextWithTimeout,
   getGameInstructionsText,
   getMrWhiteGuessingText,
-  // getGameStateMessage,
   getStartGameButtonText,
-  getValidationResultMessage,
-  // getConfigurationDisplayText,
   getWordDisplayText,
 } from '@/domains/ui/ui-helpers.service';
-import { GAME_CONFIG, UI_MESSAGES } from '@/lib/constants';
+import { GAME_CONFIG } from '@/lib/constants';
 import { GameRoomProps, RoomWithPlayers } from '@/lib/convex-types';
 import { copyToClipboard, retryWithBackoff } from '@/lib/utils';
 import { useMutation, useQuery } from 'convex/react';
@@ -49,7 +46,7 @@ export default function GameRoom({
   const [wordToShare, setWordToShare] = useState('');
   const [numUndercovers, setNumUndercovers] = useState(1);
   const [hasMrWhite, setHasMrWhite] = useState(false);
-  const [isValidating, setIsValidating] = useState(false);
+  // const [isValidating, setIsValidating] = useState(false);
   const [showConfig, setShowConfig] = useState(false);
   const [shareButtonText, setShareButtonText] = useState('📋 Partager le Lien');
   const [showQR, setShowQR] = useState(false);
@@ -68,7 +65,7 @@ export default function GameRoom({
   const startGame = useMutation(api.game.startGame);
   const shareWord = useMutation(api.game.shareWord);
   const votePlayer = useMutation(api.game.votePlayer);
-  const validateGameState = useMutation(api.game.validateGameState);
+  // const validateGameState = useMutation(api.game.validateGameState);
   const restartGame = useMutation(api.game.restartGame);
   const mrWhiteGuess = useMutation(api.game.mrWhiteGuess);
 
@@ -166,23 +163,23 @@ export default function GameRoom({
     }, 2000);
   };
 
-  const handleValidateGameState = async () => {
-    if (room && !isValidating) {
-      setIsValidating(true);
-      try {
-        const result = await retryWithBackoff(() =>
-          validateGameState({ roomId: room._id })
-        );
-        const message = getValidationResultMessage(result.action);
-        alert(message);
-      } catch (error: unknown) {
-        console.error('Failed to validate game state after retries:', error);
-        alert('Failed to validate game state after multiple attempts');
-      } finally {
-        setIsValidating(false);
-      }
-    }
-  };
+  // const handleValidateGameState = async () => {
+  //   if (room && !isValidating) {
+  //     setIsValidating(true);
+  //     try {
+  //       const result = await retryWithBackoff(() =>
+  //         validateGameState({ roomId: room._id })
+  //       );
+  //       const message = getValidationResultMessage(result.action);
+  //       alert(message);
+  //     } catch (error: unknown) {
+  //       console.error('Failed to validate game state after retries:', error);
+  //       alert('Failed to validate game state after multiple attempts');
+  //     } finally {
+  //       setIsValidating(false);
+  //     }
+  //   }
+  // };
 
   const handleRestartGame = async () => {
     if (room && isHost) {
@@ -563,7 +560,7 @@ export default function GameRoom({
         </AnimateHeight>
 
         {/* Show validate button for non-waiting states */}
-        <AnimateHeight
+        {/* <AnimateHeight
           height={room.gameState !== 'waiting' ? 'auto' : 0}
           duration={300}
           easing='ease-in-out'
@@ -574,14 +571,14 @@ export default function GameRoom({
             disabled={isValidating}
             variant='warning'
             size='md'
-            className='flex-shrink-0 min-h-[44px] px-4 mt-20 mt-6'
+            className='flex-shrink-0 min-h-[44px] px-4 mt-20'
             title="Valider et corriger l'état du jeu"
           >
             {isValidating
               ? UI_MESSAGES.BUTTONS.VALIDATING
               : UI_MESSAGES.BUTTONS.VALIDATE_GAME}
           </Button>
-        </AnimateHeight>
+        </AnimateHeight> */}
       </div>
 
       {/* Share Buttons - Fixed on Mobile, Normal Flow on Desktop */}
