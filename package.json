@@ -13,7 +13,7 @@
     "lint": "eslint . --ext .js,.jsx,.ts,.tsx --fix",
     "convex:dev": "convex dev",
     "convex:deploy": "convex deploy",
-    "build:prod": "bunx convex deploy --cmd 'next build'"
+    "build:prod": "NODE_ENV=production bunx convex deploy --cmd 'next build'"
   },
   "dependencies": {
     "convex": "^1.27.3",
