@@ -1,7 +1,8 @@
 'use client';
 
 import { UI_MESSAGES, GAME_CONFIG } from '@/lib/constants';
-import { GameRoomProps } from '@/lib/types';
+import { GameRoomProps, RoomWithPlayers } from '@/lib/convex-types';
+import { Id } from '../../convex/_generated/dataModel';
 import { copyToClipboard, retryWithBackoff } from '@/lib/utils';
 import { useMutation, useQuery } from 'convex/react';
 import Image from 'next/image';
@@ -20,7 +21,6 @@ import {
   getCurrentTurnPlayer,
   isMyTurn,
   calculateVoteData,
-  getPlayersWhoVoted,
   isVotingPhase,
   isDiscussionPhase,
   getCurrentPlayerByName,
@@ -30,9 +30,9 @@ import {
 } from '@/domains/room/room-management.service';
 import {
   generateShareButtonTextWithTimeout,
-  getGameStateMessage,
+  // getGameStateMessage,
   getStartGameButtonText,
-  getConfigurationDisplayText,
+  // getConfigurationDisplayText,
   getWordDisplayText,
   getValidationResultMessage,
   getGameInstructionsText,
@@ -56,7 +56,9 @@ export default function GameRoom({
   const [qrCodeDataUrl, setQrCodeDataUrl] = useState('');
   const [mrWhiteGuessInput, setMrWhiteGuessInput] = useState('');
 
-  const room = useQuery(api.rooms.getRoom, { roomCode });
+  const room = useQuery(api.rooms.getRoom, {
+    roomCode,
+  }) as RoomWithPlayers | null;
   const gameWords = useQuery(
     api.game.getGameWords,
     room ? { roomId: room._id } : 'skip'
@@ -79,9 +81,11 @@ export default function GameRoom({
             hasMrWhite,
           })
         );
-      } catch (error: any) {
+      } catch (error: unknown) {
         console.error('Failed to start game:', error);
-        alert(`Erreur: ${error.message}`);
+        const errorMessage =
+          error instanceof Error ? error.message : 'Unknown error';
+        alert(`Erreur: ${errorMessage}`);
       }
     }
   };
@@ -106,7 +110,7 @@ export default function GameRoom({
     }
   };
 
-  const handleVote = async (targetId: string) => {
+  const handleVote = async (targetId: Id<'players'>) => {
     if (room) {
       const currentPlayer = room.players.find(
         (p: { name: string }) => p.name === playerName
@@ -117,7 +121,7 @@ export default function GameRoom({
             votePlayer({
               roomId: room._id,
               voterId: currentPlayer._id,
-              targetId: targetId as any,
+              targetId: targetId,
             })
           );
         } catch (error) {
@@ -165,7 +169,7 @@ export default function GameRoom({
         );
         const message = getValidationResultMessage(result.action);
         alert(message);
-      } catch (error: any) {
+      } catch (error: unknown) {
         console.error('Failed to validate game state after retries:', error);
         alert('Failed to validate game state after multiple attempts');
       } finally {
@@ -246,13 +250,12 @@ export default function GameRoom({
 
   // Use pure functions for business logic calculations
   const currentPlayer = getCurrentPlayerByName(room.players, playerName);
-  const alivePlayers = room.players.filter((p: any) => p.isAlive);
+  const alivePlayers = room.players.filter(p => p.isAlive);
   const isVotingPhaseState = isVotingPhase(room);
   const isDiscussionPhaseState = isDiscussionPhase(room);
 
   // Calculate voting progress using pure function
   const votingProgress = calculateVotingProgress(room.players);
-  const playersWhoVoted = getPlayersWhoVoted(room.players);
 
   // Get current turn player using pure function
   const currentTurnPlayer = getCurrentTurnPlayer(room, room.players);

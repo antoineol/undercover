@@ -1,9 +1,4 @@
 import {
-  ensureMrWhiteNotFirst,
-  findNextAlivePlayer,
-  shuffleArray,
-} from './utils';
-import {
   assignRoles as pureAssignRoles,
   createPlayerOrder as pureCreatePlayerOrder,
   findNextAlivePlayer as pureFindNextAlivePlayer,
@@ -17,6 +12,8 @@ import {
   canShareWord as pureCanShareWord,
   canVote as pureCanVote,
 } from '../domains/validation/validation.service';
+import { ConvexPlayer, ConvexRoom } from './convex-types';
+import { Id } from '../../convex/_generated/dataModel';
 
 /**
  * Game flow helpers - pure functions for game logic
@@ -26,27 +23,37 @@ export class GameFlowHelpers {
    * Assign roles to players
    */
   static assignRoles(
-    players: any[],
+    players: ConvexPlayer[],
     numUndercovers: number,
     hasMrWhite: boolean
   ) {
-    return pureAssignRoles(players, numUndercovers, hasMrWhite);
+    // Convert ConvexPlayer to the format expected by pureAssignRoles
+    const domainPlayers = players.map(p => ({
+      _id: p._id,
+      role: p.role,
+    }));
+    return pureAssignRoles(domainPlayers, numUndercovers, hasMrWhite);
   }
 
   /**
    * Create player order for word sharing
    */
-  static createPlayerOrder(players: any[]) {
-    return pureCreatePlayerOrder(players);
+  static createPlayerOrder(players: ConvexPlayer[]) {
+    // Convert ConvexPlayer to the format expected by pureCreatePlayerOrder
+    const domainPlayers = players.map(p => ({
+      _id: p._id,
+      role: p.role,
+    }));
+    return pureCreatePlayerOrder(domainPlayers);
   }
 
   /**
    * Find next player in turn order
    */
   static findNextPlayer(
-    playerOrder: string[],
+    playerOrder: Id<'players'>[],
     currentIndex: number,
-    alivePlayerIds: string[]
+    alivePlayerIds: Id<'players'>[]
   ) {
     return pureFindNextAlivePlayer(playerOrder, currentIndex, alivePlayerIds);
   }
@@ -55,7 +62,7 @@ export class GameFlowHelpers {
    * Check if all alive players have completed action
    */
   static allPlayersCompletedAction(
-    players: any[],
+    players: ConvexPlayer[],
     action: 'sharedWord' | 'voted'
   ): boolean {
     return pureAllPlayersCompletedAction(players, action);
@@ -70,8 +77,8 @@ export class GameValidationHelpers {
    * Validate player can share word
    */
   static canShareWord(
-    player: any,
-    room: any,
+    player: ConvexPlayer,
+    room: ConvexRoom,
     playerId: string
   ): { canShare: boolean; error?: string } {
     return pureCanShareWord(player, room, playerId);
@@ -81,9 +88,9 @@ export class GameValidationHelpers {
    * Validate player can vote
    */
   static canVote(
-    voter: any,
-    target: any,
-    room: any
+    voter: ConvexPlayer,
+    target: ConvexPlayer,
+    room: ConvexRoom
   ): { canVote: boolean; error?: string } {
     return pureCanVote(voter, target, room);
   }
@@ -96,7 +103,7 @@ export class GameResultHelpers {
   /**
    * Determine winner from game state
    */
-  static determineWinner(alivePlayers: any[]): {
+  static determineWinner(alivePlayers: ConvexPlayer[]): {
     winner: string;
     winnerColor: string;
     winnerMessage: string;

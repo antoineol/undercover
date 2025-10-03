@@ -7,8 +7,13 @@ import {
   ensureMrWhiteNotFirst,
 } from './role-assignment.service';
 import { Player } from '../../lib/types';
+import { Id } from '../../../convex/_generated/dataModel';
 
 describe('Role Assignment Functions', () => {
+  // Helper function to convert test players to the format expected by role assignment functions
+  const toPlayerWithId = (players: Player[]) =>
+    players.map(p => ({ _id: p._id as Id<'players'>, role: p.role }));
+
   const mockPlayers: Player[] = [
     {
       _id: 'player1',
@@ -54,7 +59,7 @@ describe('Role Assignment Functions', () => {
 
   describe('assignRoles', () => {
     test('should assign roles correctly with undercovers and mr white', () => {
-      const assignments = assignRoles(mockPlayers, 2, true);
+      const assignments = assignRoles(toPlayerWithId(mockPlayers), 2, true);
 
       expect(assignments).toHaveLength(4);
 
@@ -74,7 +79,7 @@ describe('Role Assignment Functions', () => {
     });
 
     test('should assign roles correctly without mr white', () => {
-      const assignments = assignRoles(mockPlayers, 1, false);
+      const assignments = assignRoles(toPlayerWithId(mockPlayers), 1, false);
 
       expect(assignments).toHaveLength(4);
 
@@ -94,50 +99,59 @@ describe('Role Assignment Functions', () => {
     });
 
     test('should handle empty player list', () => {
-      const assignments = assignRoles([], 1, false);
+      const assignments = assignRoles(toPlayerWithId([]), 1, false);
       expect(assignments).toHaveLength(0);
     });
   });
 
   describe('createPlayerOrder', () => {
     test('should create player order from players', () => {
-      const playerOrder = createPlayerOrder(mockPlayers);
+      const playerOrder = createPlayerOrder(toPlayerWithId(mockPlayers));
       expect(playerOrder).toHaveLength(4);
-      expect(playerOrder).toContain('player1');
-      expect(playerOrder).toContain('player2');
-      expect(playerOrder).toContain('player3');
-      expect(playerOrder).toContain('player4');
+      expect(playerOrder).toContain('player1' as Id<'players'>);
+      expect(playerOrder).toContain('player2' as Id<'players'>);
+      expect(playerOrder).toContain('player3' as Id<'players'>);
+      expect(playerOrder).toContain('player4' as Id<'players'>);
     });
 
     test('should handle empty player list', () => {
-      const playerOrder = createPlayerOrder([]);
+      const playerOrder = createPlayerOrder(toPlayerWithId([]));
       expect(playerOrder).toHaveLength(0);
     });
   });
 
   describe('findNextAlivePlayer', () => {
-    const playerOrder = ['player1', 'player2', 'player3', 'player4'];
+    const playerOrder = [
+      'player1',
+      'player2',
+      'player3',
+      'player4',
+    ] as Id<'players'>[];
 
     test('should find next alive player', () => {
-      const alivePlayerIds = ['player1', 'player2', 'player4'];
+      const alivePlayerIds = [
+        'player1',
+        'player2',
+        'player4',
+      ] as Id<'players'>[];
       const nextIndex = findNextAlivePlayer(playerOrder, 0, alivePlayerIds);
       expect(nextIndex).toBe(1); // player2
     });
 
     test('should wrap around to beginning', () => {
-      const alivePlayerIds = ['player1', 'player4'];
+      const alivePlayerIds = ['player1', 'player4'] as Id<'players'>[];
       const nextIndex = findNextAlivePlayer(playerOrder, 2, alivePlayerIds);
       expect(nextIndex).toBe(3); // player4
     });
 
     test('should return -1 when no alive players', () => {
-      const alivePlayerIds: string[] = [];
+      const alivePlayerIds: Id<'players'>[] = [];
       const nextIndex = findNextAlivePlayer(playerOrder, 0, alivePlayerIds);
       expect(nextIndex).toBe(-1);
     });
 
     test('should return -1 when only current player is alive', () => {
-      const alivePlayerIds = ['player2'];
+      const alivePlayerIds = ['player2'] as Id<'players'>[];
       const nextIndex = findNextAlivePlayer(playerOrder, 1, alivePlayerIds);
       expect(nextIndex).toBe(-1);
     });
@@ -183,7 +197,9 @@ describe('Role Assignment Functions', () => {
         { ...mockPlayers[3], role: 'civilian' },
       ];
 
-      const reordered = ensureMrWhiteNotFirst(playersWithMrWhiteFirst);
+      const reordered = ensureMrWhiteNotFirst(
+        toPlayerWithId(playersWithMrWhiteFirst)
+      );
       expect(reordered[0].role).not.toBe('mr_white');
       expect(reordered.some(p => p.role === 'mr_white')).toBe(true);
     });
@@ -196,13 +212,15 @@ describe('Role Assignment Functions', () => {
         { ...mockPlayers[3], role: 'civilian' },
       ];
 
-      const reordered = ensureMrWhiteNotFirst(playersWithMrWhiteNotFirst);
+      const reordered = ensureMrWhiteNotFirst(
+        toPlayerWithId(playersWithMrWhiteNotFirst)
+      );
       expect(reordered[0].role).toBe('civilian');
       expect(reordered[1].role).toBe('mr_white');
     });
 
     test('should handle players without mr white', () => {
-      const reordered = ensureMrWhiteNotFirst(mockPlayers);
+      const reordered = ensureMrWhiteNotFirst(toPlayerWithId(mockPlayers));
       expect(reordered).toHaveLength(4);
       expect(reordered.every(p => p.role === 'civilian')).toBe(true);
     });

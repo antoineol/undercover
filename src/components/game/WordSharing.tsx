@@ -31,7 +31,7 @@ function WordSharingContent({
 }: WordSharingProps) {
   const hasSharedWord = currentPlayer.hasSharedWord || false;
   const playersWhoShared = room.players.filter(
-    (p: any) => p.isAlive && p.hasSharedWord
+    p => p.isAlive && p.hasSharedWord
   ).length;
   const sharingProgress = calculateSharingProgress(
     playersWhoShared,

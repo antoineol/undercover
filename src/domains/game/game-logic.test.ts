@@ -9,7 +9,10 @@ import {
   determineWinner,
   getRoleDisplay,
 } from './game-logic.service';
-import { Player, PlayerCounts, VoteCounts } from '../../lib/types';
+import { Player } from '../player/player';
+import { domainPlayerToConvex } from '../player/player';
+import { PlayerCounts, VoteCounts } from './game-logic.service';
+import { Id } from '../../../convex/_generated/dataModel';
 
 describe('Game Logic Functions', () => {
   const mockPlayers: Player[] = [
@@ -21,8 +24,6 @@ describe('Game Logic Functions', () => {
       hasSharedWord: false,
       votes: [],
       roomId: 'room1',
-      isHost: false,
-      createdAt: Date.now(),
     },
     {
       _id: 'player2',
@@ -32,8 +33,6 @@ describe('Game Logic Functions', () => {
       hasSharedWord: false,
       votes: [],
       roomId: 'room1',
-      isHost: false,
-      createdAt: Date.now(),
     },
     {
       _id: 'player3',
@@ -43,8 +42,6 @@ describe('Game Logic Functions', () => {
       hasSharedWord: false,
       votes: [],
       roomId: 'room1',
-      isHost: false,
-      createdAt: Date.now(),
     },
     {
       _id: 'player4',
@@ -54,14 +51,13 @@ describe('Game Logic Functions', () => {
       hasSharedWord: false,
       votes: [],
       roomId: 'room1',
-      isHost: false,
-      createdAt: Date.now(),
     },
   ];
 
   describe('calculatePlayerCounts', () => {
     test('should count alive players correctly', () => {
-      const counts = calculatePlayerCounts(mockPlayers);
+      const convexPlayers = mockPlayers.map(domainPlayerToConvex);
+      const counts = calculatePlayerCounts(convexPlayers);
       expect(counts.alive).toBe(3);
       expect(counts.undercovers).toBe(1);
       expect(counts.civilians).toBe(1);
@@ -137,14 +133,16 @@ describe('Game Logic Functions', () => {
         { ...mockPlayers[2], votes: ['player1'] },
       ];
 
-      const voteCounts = countVotes(playersWithVotes);
+      const convexPlayers = playersWithVotes.map(domainPlayerToConvex);
+      const voteCounts = countVotes(convexPlayers);
       expect(voteCounts['player1']).toBe(1);
       expect(voteCounts['player2']).toBe(2);
       expect(voteCounts['player3']).toBe(1);
     });
 
     test('should handle players with no votes', () => {
-      const voteCounts = countVotes(mockPlayers);
+      const convexPlayers = mockPlayers.map(domainPlayerToConvex);
+      const voteCounts = countVotes(convexPlayers);
       expect(Object.keys(voteCounts)).toHaveLength(0);
     });
   });
@@ -153,7 +151,7 @@ describe('Game Logic Functions', () => {
     test('should find player with most votes', () => {
       const voteCounts: VoteCounts = { player1: 2, player2: 1, player3: 3 };
       const result = findEliminatedPlayer(voteCounts);
-      expect(result.eliminatedPlayerId).toBe('player3');
+      expect(result.eliminatedPlayerId).toBe('player3' as Id<'players'>);
       expect(result.maxVotes).toBe(3);
       expect(result.tie).toBe(false);
     });
@@ -161,7 +159,7 @@ describe('Game Logic Functions', () => {
     test('should detect tie', () => {
       const voteCounts: VoteCounts = { player1: 2, player2: 2 };
       const result = findEliminatedPlayer(voteCounts);
-      expect(result.eliminatedPlayerId).toBe('player1');
+      expect(result.eliminatedPlayerId).toBe('player1' as Id<'players'>);
       expect(result.maxVotes).toBe(2);
       expect(result.tie).toBe(true);
     });
@@ -182,7 +180,8 @@ describe('Game Logic Functions', () => {
         { ...mockPlayers[2], name: 'Charlie', votes: ['player1'] },
       ];
 
-      const voterNames = getVoterNames(playersWithVotes);
+      const convexPlayers = playersWithVotes.map(domainPlayerToConvex);
+      const voterNames = getVoterNames(convexPlayers);
       expect(voterNames['player1']).toEqual(['Bob', 'Charlie']);
       expect(voterNames['player2']).toEqual(['Alice']);
     });
@@ -195,13 +194,15 @@ describe('Game Logic Functions', () => {
         hasSharedWord: true,
       }));
 
-      expect(
-        allPlayersCompletedAction(playersWithSharedWords, 'sharedWord')
-      ).toBe(true);
+      const convexPlayers = playersWithSharedWords.map(domainPlayerToConvex);
+      expect(allPlayersCompletedAction(convexPlayers, 'sharedWord')).toBe(true);
     });
 
     test('should return false when not all players shared word', () => {
-      expect(allPlayersCompletedAction(mockPlayers, 'sharedWord')).toBe(false);
+      const convexPlayers = mockPlayers.map(domainPlayerToConvex);
+      expect(allPlayersCompletedAction(convexPlayers, 'sharedWord')).toBe(
+        false
+      );
     });
 
     test('should return true when all players voted', () => {
@@ -210,7 +211,8 @@ describe('Game Logic Functions', () => {
         votes: ['player1'],
       }));
 
-      expect(allPlayersCompletedAction(playersWithVotes, 'voted')).toBe(true);
+      const convexPlayers = playersWithVotes.map(domainPlayerToConvex);
+      expect(allPlayersCompletedAction(convexPlayers, 'voted')).toBe(true);
     });
   });
 
@@ -221,7 +223,8 @@ describe('Game Logic Functions', () => {
         { ...mockPlayers[3], role: 'civilian' },
       ];
 
-      const result = determineWinner(alivePlayers);
+      const convexPlayers = alivePlayers.map(domainPlayerToConvex);
+      const result = determineWinner(convexPlayers);
       expect(result.winner).toBe('Les civils');
       expect(result.winnerColor).toBe('text-blue-600');
     });
@@ -232,7 +235,8 @@ describe('Game Logic Functions', () => {
         { ...mockPlayers[0], role: 'civilian' },
       ];
 
-      const result = determineWinner(alivePlayers);
+      const convexPlayers = alivePlayers.map(domainPlayerToConvex);
+      const result = determineWinner(convexPlayers);
       expect(result.winner).toBe('Les undercovers');
       expect(result.winnerColor).toBe('text-red-600');
     });

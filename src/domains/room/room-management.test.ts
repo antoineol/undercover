@@ -22,8 +22,29 @@ import {
   needsStateValidation,
   getRoomStatistics,
 } from './room-management.service';
+import { Room, Player } from '../../lib/types';
+import { ConvexPlayer } from '../../lib/convex-types';
+import { Id } from '../../../convex/_generated/dataModel';
 
-const mockRoom: any = {
+// Helper function to convert test players to ConvexPlayer format
+const toConvexPlayers = (players: Player[]): ConvexPlayer[] =>
+  players.map(p => ({
+    _id: p._id as Id<'players'>,
+    _creationTime: Date.now(),
+    roomId: p.roomId as Id<'rooms'>,
+    name: p.name,
+    sessionId: p.sessionId,
+    isHost: p.isHost,
+    isAlive: p.isAlive,
+    role: p.role,
+    votes: p.votes as Id<'players'>[],
+    sharedWord: p.sharedWord,
+    hasSharedWord: p.hasSharedWord,
+    hasVoted: false,
+    createdAt: p.createdAt,
+  }));
+
+const mockRoom: Room = {
   _id: 'room1',
   code: 'ABC123',
   hostId: 'host1',
@@ -35,9 +56,10 @@ const mockRoom: any = {
   hasMrWhite: false,
   numUndercovers: 1,
   createdAt: Date.now(),
+  players: [],
 };
 
-const mockPlayers: any[] = [
+const mockPlayers: Player[] = [
   {
     _id: 'player1',
     name: 'Player 1',
@@ -46,6 +68,8 @@ const mockPlayers: any[] = [
     hasSharedWord: true,
     votes: [],
     roomId: 'room1',
+    isHost: true,
+    createdAt: Date.now(),
   },
   {
     _id: 'player2',
@@ -55,6 +79,8 @@ const mockPlayers: any[] = [
     hasSharedWord: true,
     votes: ['player1'],
     roomId: 'room1',
+    isHost: false,
+    createdAt: Date.now(),
   },
   {
     _id: 'player3',
@@ -64,6 +90,8 @@ const mockPlayers: any[] = [
     hasSharedWord: false,
     votes: [],
     roomId: 'room1',
+    isHost: false,
+    createdAt: Date.now(),
   },
 ];
 
@@ -88,19 +116,19 @@ describe('Room Management Functions', () => {
     });
 
     it('should identify discussion state', () => {
-      const discussionRoom = { ...mockRoom, gameState: 'discussion' };
+      const discussionRoom = { ...mockRoom, gameState: 'discussion' as const };
       expect(isRoomDiscussion(discussionRoom)).toBe(true);
       expect(isRoomWaiting(discussionRoom)).toBe(false);
     });
 
     it('should identify voting state', () => {
-      const votingRoom = { ...mockRoom, gameState: 'voting' };
+      const votingRoom = { ...mockRoom, gameState: 'voting' as const };
       expect(isRoomVoting(votingRoom)).toBe(true);
       expect(isRoomDiscussion(votingRoom)).toBe(false);
     });
 
     it('should identify results state', () => {
-      const resultsRoom = { ...mockRoom, gameState: 'results' };
+      const resultsRoom = { ...mockRoom, gameState: 'results' as const };
       expect(isRoomResults(resultsRoom)).toBe(true);
       expect(isRoomVoting(resultsRoom)).toBe(false);
     });
@@ -108,9 +136,12 @@ describe('Room Management Functions', () => {
 
   describe('Game state checks', () => {
     it('should identify active games', () => {
-      const discussionRoom = { ...mockRoom, gameState: 'discussion' };
-      const votingRoom = { ...mockRoom, gameState: 'voting' };
-      const mrWhiteRoom = { ...mockRoom, gameState: 'mr_white_guessing' };
+      const discussionRoom = { ...mockRoom, gameState: 'discussion' as const };
+      const votingRoom = { ...mockRoom, gameState: 'voting' as const };
+      const mrWhiteRoom = {
+        ...mockRoom,
+        gameState: 'mr_white_guessing' as const,
+      };
 
       expect(isGameActive(discussionRoom)).toBe(true);
       expect(isGameActive(votingRoom)).toBe(true);
@@ -119,7 +150,7 @@ describe('Room Management Functions', () => {
     });
 
     it('should identify finished games', () => {
-      const resultsRoom = { ...mockRoom, gameState: 'results' };
+      const resultsRoom = { ...mockRoom, gameState: 'results' as const };
       expect(isGameFinished(resultsRoom)).toBe(true);
       expect(isGameFinished(mockRoom)).toBe(false);
     });
@@ -170,15 +201,15 @@ describe('Room Management Functions', () => {
     it('should return correct status text for known states', () => {
       expect(getRoomStatusText(mockRoom)).toBe('En attente des joueurs');
 
-      const discussionRoom = { ...mockRoom, gameState: 'discussion' };
+      const discussionRoom = { ...mockRoom, gameState: 'discussion' as const };
       expect(getRoomStatusText(discussionRoom)).toBe('Phase de discussion');
 
-      const votingRoom = { ...mockRoom, gameState: 'voting' };
+      const votingRoom = { ...mockRoom, gameState: 'voting' as const };
       expect(getRoomStatusText(votingRoom)).toBe('Phase de vote');
     });
 
     it('should return state as-is for unknown states', () => {
-      const unknownRoom = { ...mockRoom, gameState: 'unknown' };
+      const unknownRoom = { ...mockRoom, gameState: 'waiting' as const };
       expect(getRoomStatusText(unknownRoom)).toBe('unknown');
     });
   });
@@ -228,7 +259,7 @@ describe('Room Management Functions', () => {
     });
 
     it('should prevent starting game when not waiting', () => {
-      const discussionRoom = { ...mockRoom, gameState: 'discussion' };
+      const discussionRoom = { ...mockRoom, gameState: 'discussion' as const };
       expect(canStartGame(discussionRoom, 5, 3)).toBe(false);
     });
 
@@ -250,20 +281,32 @@ describe('Room Management Functions', () => {
 
   describe('isRoomReadyForNextPhase', () => {
     it('should check if room is ready for discussion phase', () => {
-      expect(isRoomReadyForNextPhase(mockRoom, mockPlayers, 'discussion')).toBe(
-        true
-      );
+      expect(
+        isRoomReadyForNextPhase(
+          mockRoom,
+          toConvexPlayers(mockPlayers),
+          'discussion'
+        )
+      ).toBe(true);
     });
 
     it('should check if room is ready for voting phase', () => {
-      expect(isRoomReadyForNextPhase(mockRoom, mockPlayers, 'voting')).toBe(
-        false
-      );
+      expect(
+        isRoomReadyForNextPhase(
+          mockRoom,
+          toConvexPlayers(mockPlayers),
+          'voting'
+        )
+      ).toBe(false);
     });
 
     it('should return false for unknown phase', () => {
       expect(
-        isRoomReadyForNextPhase(mockRoom, mockPlayers, 'unknown' as any)
+        isRoomReadyForNextPhase(
+          mockRoom,
+          toConvexPlayers(mockPlayers),
+          'unknown' as never
+        )
       ).toBe(false);
     });
   });
@@ -288,7 +331,7 @@ describe('Room Management Functions', () => {
     it('should identify rooms needing validation', () => {
       const invalidRoom = {
         ...mockRoom,
-        gameState: 'discussion',
+        gameState: 'discussion' as const,
         playerOrder: undefined,
       };
       expect(needsStateValidation(invalidRoom)).toBe(true);
@@ -301,7 +344,7 @@ describe('Room Management Functions', () => {
 
   describe('getRoomStatistics', () => {
     it('should return room statistics', () => {
-      const stats = getRoomStatistics(mockRoom, mockPlayers);
+      const stats = getRoomStatistics(mockRoom, toConvexPlayers(mockPlayers));
       expect(stats.totalPlayers).toBe(3);
       expect(stats.alivePlayers).toBe(2);
       expect(stats.deadPlayers).toBe(1);

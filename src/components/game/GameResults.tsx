@@ -1,5 +1,5 @@
 import { UI_MESSAGES } from '@/lib/constants';
-import { Room } from '@/lib/types';
+import { RoomWithPlayers } from '@/lib/convex-types';
 import { determineWinner } from '@/domains/game/game-logic.service';
 import {
   getRoleDisplayName,
@@ -11,14 +11,14 @@ import Button from '../ui/Button';
 import Card from '../ui/Card';
 
 interface GameResultsProps {
-  room: Room;
+  room: RoomWithPlayers;
   isHost: boolean;
   onRestartGame: () => void;
 }
 
 // Internal component that handles the game results logic
 function GameResultsContent({ room, isHost, onRestartGame }: GameResultsProps) {
-  const alivePlayers = room.players.filter((p: any) => p.isAlive);
+  const alivePlayers = room.players.filter(p => p.isAlive);
   const { winner, winnerColor, winnerMessage } = determineWinner(alivePlayers);
 
   return (
@@ -34,7 +34,7 @@ function GameResultsContent({ room, isHost, onRestartGame }: GameResultsProps) {
         <div className='bg-gray-50 rounded-lg p-4'>
           <h3 className='font-semibold mb-2'>Joueurs Survivants</h3>
           <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2'>
-            {alivePlayers.map((player: any) => (
+            {alivePlayers.map(player => (
               <div key={player._id} className='text-sm'>
                 <span className='font-medium'>{player.name}</span>
                 <span

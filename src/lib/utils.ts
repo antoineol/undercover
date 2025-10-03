@@ -1,10 +1,10 @@
-import { GAME_CONFIG, ID_CHARS, RETRY_CONFIG } from './constants';
-import { GameError, RetryConfig, RetryFunction } from './types';
+import { GAME_CONFIG, RETRY_CONFIG } from './constants';
+import { GameError, RetryConfig, RetryFunction, Player } from './types';
 import {
   generateRoomCode as pureGenerateRoomCode,
   generateSessionId as pureGenerateSessionId,
   sanitizeInput as pureSanitizeInput,
-  sanitizeHtml as pureSanitizeHtml,
+  // sanitizeHtml as pureSanitizeHtml,
   createGameError as pureCreateGameError,
   calculateRetryDelay,
   isRetryableError,
@@ -38,7 +38,7 @@ export async function retryWithBackoff<T>(
   for (let attempt = 0; attempt <= config.maxRetries; attempt++) {
     try {
       return await fn();
-    } catch (error: any) {
+    } catch (error: unknown) {
       if (attempt === config.maxRetries) {
         throw error;
       }
@@ -107,7 +107,7 @@ export function validateGameConfiguration(
 /**
  * Calculate player counts by role
  */
-export function calculatePlayerCounts(players: any[]): {
+export function calculatePlayerCounts(players: Player[]): {
   alive: number;
   undercovers: number;
   civilians: number;
@@ -128,7 +128,7 @@ export function calculatePlayerCounts(players: any[]): {
 export function checkWinConditions(
   counts: ReturnType<typeof calculatePlayerCounts>
 ): string | null {
-  const { alive, undercovers, civilians, mrWhite } = counts;
+  const { undercovers, civilians, mrWhite } = counts;
 
   // Civilians win if all undercovers AND all Mr. White are eliminated
   if (undercovers === 0 && mrWhite === 0) {
@@ -156,7 +156,7 @@ export function checkWinConditions(
 /**
  * Count votes for each player
  */
-export function countVotes(players: any[]): Record<string, number> {
+export function countVotes(players: Player[]): Record<string, number> {
   const voteCounts: Record<string, number> = {};
   players.forEach(player => {
     player.votes.forEach((voteId: string) => {
@@ -194,7 +194,7 @@ export function findEliminatedPlayer(voteCounts: Record<string, number>): {
 /**
  * Get voter names for each player
  */
-export function getVoterNames(players: any[]): Record<string, string[]> {
+export function getVoterNames(players: Player[]): Record<string, string[]> {
   const voterNames: Record<string, string[]> = {};
 
   players.forEach(player => {
@@ -247,7 +247,7 @@ export function shuffleArray<T>(array: T[]): T[] {
 /**
  * Ensure Mr. White is not first in player order
  */
-export function ensureMrWhiteNotFirst(playerOrder: any[]): any[] {
+export function ensureMrWhiteNotFirst(playerOrder: Player[]): Player[] {
   const mrWhiteIndex = playerOrder.findIndex(p => p.role === 'mr_white');
   if (mrWhiteIndex === 0) {
     // Move Mr. White to a random position (not first)

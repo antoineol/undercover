@@ -3,7 +3,7 @@
  * Pure functions for UI display formatting and presentation
  */
 
-import { Player, GameResult } from './display';
+// import { Player, GameResult } from './display';
 
 /**
  * Get role display name for UI

@@ -17,8 +17,28 @@ import {
   getGameConfigurationDisplay,
 } from './room-management.service';
 import { Room, Player } from '../../lib/types';
+import { ConvexPlayer } from '../../lib/convex-types';
+import { Id } from '../../../convex/_generated/dataModel';
 
 describe('Extended Room Management Functions', () => {
+  // Helper function to convert test players to ConvexPlayer format
+  const toConvexPlayers = (players: Player[]): ConvexPlayer[] =>
+    players.map(p => ({
+      _id: p._id as Id<'players'>,
+      _creationTime: Date.now(),
+      roomId: p.roomId as Id<'rooms'>,
+      name: p.name,
+      sessionId: p.sessionId,
+      isHost: p.isHost,
+      isAlive: p.isAlive,
+      role: p.role,
+      votes: p.votes as Id<'players'>[],
+      sharedWord: p.sharedWord,
+      hasSharedWord: p.hasSharedWord,
+      hasVoted: false,
+      createdAt: p.createdAt,
+    }));
+
   const mockPlayers: Player[] = [
     {
       _id: 'player1',
@@ -72,13 +92,13 @@ describe('Extended Room Management Functions', () => {
 
   describe('calculateVotingProgress', () => {
     test('should calculate voting progress correctly', () => {
-      const progress = calculateVotingProgress(mockPlayers);
+      const progress = calculateVotingProgress(toConvexPlayers(mockPlayers));
       expect(progress).toBe(100); // 2 alive players, 2 voted = 100%
     });
 
     test('should return 0 when no alive players', () => {
       const deadPlayers = mockPlayers.map(p => ({ ...p, isAlive: false }));
-      const progress = calculateVotingProgress(deadPlayers);
+      const progress = calculateVotingProgress(toConvexPlayers(deadPlayers));
       expect(progress).toBe(0);
     });
 
@@ -87,20 +107,28 @@ describe('Extended Room Management Functions', () => {
         { ...mockPlayers[0], votes: ['player2'] },
         { ...mockPlayers[1], votes: [] },
       ];
-      const progress = calculateVotingProgress(playersWithPartialVoting);
+      const progress = calculateVotingProgress(
+        toConvexPlayers(playersWithPartialVoting)
+      );
       expect(progress).toBe(50); // 1 out of 2 voted
     });
   });
 
   describe('getCurrentTurnPlayer', () => {
     test('should return current turn player', () => {
-      const currentPlayer = getCurrentTurnPlayer(mockRoom, mockPlayers);
-      expect(currentPlayer).toEqual(mockPlayers[0]);
+      const currentPlayer = getCurrentTurnPlayer(
+        mockRoom,
+        toConvexPlayers(mockPlayers)
+      );
+      expect(currentPlayer).toEqual(toConvexPlayers(mockPlayers)[0]);
     });
 
     test('should return null when no current turn player', () => {
       const roomWithoutTurn = { ...mockRoom, currentPlayerIndex: undefined };
-      const currentPlayer = getCurrentTurnPlayer(roomWithoutTurn, mockPlayers);
+      const currentPlayer = getCurrentTurnPlayer(
+        roomWithoutTurn,
+        toConvexPlayers(mockPlayers)
+      );
       expect(currentPlayer).toBeNull();
     });
   });
@@ -119,7 +147,9 @@ describe('Extended Room Management Functions', () => {
 
   describe('calculateVoteData', () => {
     test('should calculate vote counts and voter names', () => {
-      const { voteCounts, voterNames } = calculateVoteData(mockPlayers);
+      const { voteCounts, voterNames } = calculateVoteData(
+        toConvexPlayers(mockPlayers)
+      );
 
       expect(voteCounts).toEqual({
         player2: 1,
@@ -134,7 +164,9 @@ describe('Extended Room Management Functions', () => {
 
     test('should handle players with no votes', () => {
       const playersWithNoVotes = mockPlayers.map(p => ({ ...p, votes: [] }));
-      const { voteCounts, voterNames } = calculateVoteData(playersWithNoVotes);
+      const { voteCounts, voterNames } = calculateVoteData(
+        toConvexPlayers(playersWithNoVotes)
+      );
 
       expect(voteCounts).toEqual({});
       expect(voterNames).toEqual({});
@@ -143,7 +175,7 @@ describe('Extended Room Management Functions', () => {
 
   describe('getPlayersWhoVoted', () => {
     test('should return only alive players who voted', () => {
-      const playersWhoVoted = getPlayersWhoVoted(mockPlayers);
+      const playersWhoVoted = getPlayersWhoVoted(toConvexPlayers(mockPlayers));
       expect(playersWhoVoted).toHaveLength(2);
       expect(playersWhoVoted.every(p => p.isAlive && p.votes.length > 0)).toBe(
         true
@@ -151,7 +183,7 @@ describe('Extended Room Management Functions', () => {
     });
 
     test('should exclude dead players even if they voted', () => {
-      const playersWhoVoted = getPlayersWhoVoted(mockPlayers);
+      const playersWhoVoted = getPlayersWhoVoted(toConvexPlayers(mockPlayers));
       expect(playersWhoVoted.find(p => p._id === 'player3')).toBeUndefined();
     });
   });
@@ -180,12 +212,18 @@ describe('Extended Room Management Functions', () => {
 
   describe('getCurrentPlayerByName', () => {
     test('should find player by name', () => {
-      const player = getCurrentPlayerByName(mockPlayers, 'Alice');
-      expect(player).toEqual(mockPlayers[0]);
+      const player = getCurrentPlayerByName(
+        toConvexPlayers(mockPlayers),
+        'Alice'
+      );
+      expect(player).toEqual(toConvexPlayers(mockPlayers)[0]);
     });
 
     test('should return null for non-existent player', () => {
-      const player = getCurrentPlayerByName(mockPlayers, 'NonExistent');
+      const player = getCurrentPlayerByName(
+        toConvexPlayers(mockPlayers),
+        'NonExistent'
+      );
       expect(player).toBeNull();
     });
   });

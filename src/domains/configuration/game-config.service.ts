@@ -81,7 +81,7 @@ export function calculateOptimalUndercovers(
   config: GameConfig
 ): number {
   const maxUndercovers = Math.floor(playerCount * config.MAX_UNDERCOVERS_RATIO);
-  const minUndercovers = config.MIN_UNDERCOVERS;
+  // const minUndercovers = config.MIN_UNDERCOVERS;
 
   // Return a balanced number of undercovers
   if (playerCount <= 4) return 1;

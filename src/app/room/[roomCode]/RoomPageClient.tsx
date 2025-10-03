@@ -7,6 +7,7 @@ import Image from 'next/image';
 import QRCode from 'qrcode';
 import { api } from '../../../../convex/_generated/api';
 import GameRoom from '@/components/GameRoom';
+import { Room } from '@/lib/types';
 
 interface RoomPageClientProps {
   roomCode: string;
@@ -88,11 +89,16 @@ export function RoomPageClient({ roomCode }: RoomPageClientProps) {
     const savedPlayerData = sessionStorage.getItem(`player_${roomCode}`);
     if (savedPlayerData) {
       try {
+        const parsedData = JSON.parse(savedPlayerData) as {
+          playerName: string;
+          isHost: boolean;
+          sessionId: string;
+        };
         const {
           playerName: savedName,
           isHost: savedIsHost,
           sessionId: savedSessionId,
-        } = JSON.parse(savedPlayerData);
+        } = parsedData;
         setPlayerName(savedName);
         setIsHost(savedIsHost);
         // Auto-join if we have saved data, including sessionId for rejoining
@@ -214,7 +220,7 @@ export function RoomPageClient({ roomCode }: RoomPageClientProps) {
 interface JoinRoomFormProps {
   onJoin: (name: string, isHost?: boolean) => void;
   error: string;
-  room: any;
+  room: Room;
 }
 
 function JoinRoomForm({ onJoin, error, room }: JoinRoomFormProps) {

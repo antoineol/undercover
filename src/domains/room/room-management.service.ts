@@ -4,7 +4,7 @@
  */
 
 import { Room, RoomState } from './room';
-import { Player } from '@/lib/types';
+import { ConvexPlayer } from '../../lib/convex-types';
 
 /**
  * Get reset room data for new game
@@ -188,7 +188,7 @@ export function getRoomConfigurationSummary(room: Room): {
  */
 export function isRoomReadyForNextPhase(
   room: Room,
-  players: Player[],
+  players: ConvexPlayer[],
   phase: 'discussion' | 'voting'
 ): boolean {
   if (phase === 'discussion') {
@@ -241,7 +241,7 @@ export function needsStateValidation(room: Room): boolean {
  */
 export function getRoomStatistics(
   room: Room,
-  players: Player[]
+  players: ConvexPlayer[]
 ): {
   totalPlayers: number;
   alivePlayers: number;
@@ -264,7 +264,7 @@ export function getRoomStatistics(
 /**
  * Calculate voting progress for alive players
  */
-export function calculateVotingProgress(players: Player[]): number {
+export function calculateVotingProgress(players: ConvexPlayer[]): number {
   const alivePlayers = players.filter(p => p.isAlive);
   if (alivePlayers.length === 0) return 0;
 
@@ -277,8 +277,8 @@ export function calculateVotingProgress(players: Player[]): number {
  */
 export function getCurrentTurnPlayer(
   room: Room,
-  players: Player[]
-): Player | null {
+  players: ConvexPlayer[]
+): ConvexPlayer | null {
   const currentTurnPlayerId = getCurrentTurnPlayerId(room);
   if (!currentTurnPlayerId) return null;
 
@@ -296,7 +296,7 @@ export function isMyTurn(playerId: string, room: Room): boolean {
 /**
  * Calculate vote counts and voter names for display
  */
-export function calculateVoteData(players: Player[]): {
+export function calculateVoteData(players: ConvexPlayer[]): {
   voteCounts: Record<string, number>;
   voterNames: Record<string, string[]>;
 } {
@@ -305,7 +305,7 @@ export function calculateVoteData(players: Player[]): {
   const voterNames: Record<string, string[]> = {};
 
   alivePlayers.forEach(player => {
-    player.votes.forEach(voteId => {
+    player.votes.forEach((voteId: string) => {
       voteCounts[voteId] = (voteCounts[voteId] || 0) + 1;
       if (!voterNames[voteId]) voterNames[voteId] = [];
       voterNames[voteId].push(player.name);
@@ -318,7 +318,7 @@ export function calculateVoteData(players: Player[]): {
 /**
  * Get players who have voted
  */
-export function getPlayersWhoVoted(players: Player[]): Player[] {
+export function getPlayersWhoVoted(players: ConvexPlayer[]): ConvexPlayer[] {
   const alivePlayers = players.filter(p => p.isAlive);
   return alivePlayers.filter(p => p.votes.length > 0);
 }
@@ -341,9 +341,9 @@ export function isDiscussionPhase(room: Room): boolean {
  * Get current player by name
  */
 export function getCurrentPlayerByName(
-  players: Player[],
+  players: ConvexPlayer[],
   playerName: string
-): Player | null {
+): ConvexPlayer | null {
   return players.find(p => p.name === playerName) || null;
 }
 

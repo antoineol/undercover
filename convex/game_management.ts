@@ -21,6 +21,10 @@ export const validateGameState = mutation({
     }
 
     const players = await PlayerService.getAlivePlayers(ctx, args.roomId);
+    if (!players) {
+      throw new Error('Failed to get players');
+    }
+
     const gameResult = GameStateService.checkGameEnd(
       players,
       room.currentRound,
@@ -36,7 +40,7 @@ export const validateGameState = mutation({
       action = 'game_ended';
     } else if (room.gameState === 'discussion') {
       const allAlivePlayersShared = players.every(
-        (p: any) => p.hasSharedWord === true
+        p => p.hasSharedWord === true
       );
       if (allAlivePlayersShared) {
         await RoomService.updateGameState(ctx, args.roomId, {
@@ -117,6 +121,10 @@ export const checkMaxRoundsReached = mutation({
     if (room.currentRound >= room.maxRounds) {
       // Determine winner when max rounds are reached
       const players = await PlayerService.getAlivePlayers(ctx, args.roomId);
+      if (!players) {
+        throw new Error('Failed to get players');
+      }
+
       const gameResult = GameStateService.checkGameEnd(
         players,
         room.currentRound,

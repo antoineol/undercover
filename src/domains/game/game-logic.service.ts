@@ -3,24 +3,42 @@
  * Pure game logic functions for win conditions, voting, and game state
  */
 
-import {
-  Player,
-  PlayerCounts,
-  VoteCounts,
-  VoteResult,
-  GameResult,
-} from './player';
+import { ConvexPlayer } from '../../lib/convex-types';
+import { Id } from '../../../convex/_generated/dataModel';
+
+export interface PlayerCounts {
+  alive: number;
+  undercovers: number;
+  civilians: number;
+  mrWhite: number;
+}
+
+export interface VoteCounts {
+  [playerId: string]: number;
+}
+
+export interface VoteResult {
+  eliminatedPlayerId: Id<'players'> | null;
+  maxVotes: number;
+  tie: boolean;
+}
+
+export interface GameResult {
+  winner: string;
+  winnerColor: string;
+  winnerMessage: string;
+}
 
 /**
  * Calculate player counts by role
  */
-export function calculatePlayerCounts(players: Player[]): PlayerCounts {
-  const alive = players.filter(p => p.isAlive);
+export function calculatePlayerCounts(players: ConvexPlayer[]): PlayerCounts {
+  const alivePlayers = players.filter(p => p.isAlive);
   return {
-    alive: alive.length,
-    undercovers: alive.filter(p => p.role === 'undercover').length,
-    civilians: alive.filter(p => p.role === 'civilian').length,
-    mrWhite: alive.filter(p => p.role === 'mr_white').length,
+    alive: alivePlayers.length,
+    undercovers: alivePlayers.filter(p => p.role === 'undercover').length,
+    civilians: alivePlayers.filter(p => p.role === 'civilian').length,
+    mrWhite: alivePlayers.filter(p => p.role === 'mr_white').length,
   };
 }
 
@@ -28,7 +46,7 @@ export function calculatePlayerCounts(players: Player[]): PlayerCounts {
  * Check win conditions based on player counts
  */
 export function checkWinConditions(counts: PlayerCounts): string | null {
-  const { alive, undercovers, civilians, mrWhite } = counts;
+  const { undercovers, civilians, mrWhite } = counts;
 
   // Civilians win if all undercovers AND all Mr. White are eliminated
   if (undercovers === 0 && mrWhite === 0) {
@@ -56,10 +74,10 @@ export function checkWinConditions(counts: PlayerCounts): string | null {
 /**
  * Count votes for each player
  */
-export function countVotes(players: Player[]): VoteCounts {
+export function countVotes(players: ConvexPlayer[]): VoteCounts {
   const voteCounts: VoteCounts = {};
   players.forEach(player => {
-    player.votes.forEach((voteId: string) => {
+    player.votes.forEach((voteId: Id<'players'>) => {
       voteCounts[voteId] = (voteCounts[voteId] || 0) + 1;
     });
   });
@@ -70,14 +88,14 @@ export function countVotes(players: Player[]): VoteCounts {
  * Find player with most votes
  */
 export function findEliminatedPlayer(voteCounts: VoteCounts): VoteResult {
-  let eliminatedPlayerId: string | null = null;
+  let eliminatedPlayerId: Id<'players'> | null = null;
   let maxVotes = 0;
   let tie = false;
 
   for (const [playerId, votes] of Object.entries(voteCounts)) {
     if (votes > maxVotes) {
       maxVotes = votes;
-      eliminatedPlayerId = playerId;
+      eliminatedPlayerId = playerId as Id<'players'>;
       tie = false;
     } else if (votes === maxVotes && votes > 0) {
       tie = true;
@@ -90,7 +108,9 @@ export function findEliminatedPlayer(voteCounts: VoteCounts): VoteResult {
 /**
  * Get voter names for each player
  */
-export function getVoterNames(players: Player[]): Record<string, string[]> {
+export function getVoterNames(
+  players: ConvexPlayer[]
+): Record<string, string[]> {
   const voterNames: Record<string, string[]> = {};
 
   players.forEach(player => {
@@ -107,7 +127,7 @@ export function getVoterNames(players: Player[]): Record<string, string[]> {
  * Check if all alive players have completed an action
  */
 export function allPlayersCompletedAction(
-  players: Player[],
+  players: ConvexPlayer[],
   action: 'sharedWord' | 'voted'
 ): boolean {
   return players.every(p => {
@@ -123,7 +143,7 @@ export function allPlayersCompletedAction(
 /**
  * Determine winner from game state
  */
-export function determineWinner(alivePlayers: Player[]): GameResult {
+export function determineWinner(alivePlayers: ConvexPlayer[]): GameResult {
   const aliveUndercovers = alivePlayers.filter(p => p.role === 'undercover');
   const aliveCivilians = alivePlayers.filter(p => p.role === 'civilian');
   const aliveMrWhite = alivePlayers.filter(p => p.role === 'mr_white');

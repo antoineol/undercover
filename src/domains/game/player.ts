@@ -3,6 +3,10 @@
  * Represents a player in the game with their role and state
  */
 
+import { ConvexPlayer } from '../../lib/convex-types';
+
+export type { ConvexPlayer };
+
 export interface Player {
   _id: string;
   name: string;

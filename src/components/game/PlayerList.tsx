@@ -1,19 +1,20 @@
 import { UI_MESSAGES } from '@/lib/constants';
-import { Player, Room } from '@/lib/types';
+import { ConvexPlayer, RoomWithPlayers } from '@/lib/convex-types';
+import { Id } from '../../../convex/_generated/dataModel';
 import AnimateHeight from 'react-animate-height';
 import Button from '../ui/Button';
 import Card from '../ui/Card';
 
 interface PlayerListProps {
-  room: Room;
-  currentPlayer: Player;
+  room: RoomWithPlayers;
+  currentPlayer: ConvexPlayer;
   playerName: string;
   isVotingPhase: boolean;
   isDiscussionPhase: boolean;
   currentTurnPlayerId?: string;
   voteCounts: Record<string, number>;
   voterNames: Record<string, string[]>;
-  onVote: (playerId: string) => void;
+  onVote: (playerId: Id<'players'>) => void;
   votingProgress: number;
 }
 
@@ -64,7 +65,7 @@ export default function PlayerList({
         />
       </div>
       <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3'>
-        {room.players.map((player: any) => {
+        {room.players.map(player => {
           const isCurrentTurn = player._id === currentTurnPlayerId;
           const isMe = player.name === playerName;
 

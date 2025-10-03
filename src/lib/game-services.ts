@@ -1,16 +1,13 @@
-import { GAME_CONFIG } from './constants';
-import {
-  calculatePlayerCounts,
-  checkWinConditions,
-  countVotes,
-  findEliminatedPlayer,
-} from './utils';
+import { MutationCtx } from '../../convex/_generated/server';
+import { Id } from '../../convex/_generated/dataModel';
 import {
   calculatePlayerCounts as pureCalculatePlayerCounts,
   checkWinConditions as pureCheckWinConditions,
   countVotes as pureCountVotes,
   findEliminatedPlayer as pureFindEliminatedPlayer,
 } from '../domains/game/game-logic.service';
+import { GAME_CONFIG } from './constants';
+import { ConvexPlayer, ConvexRoom, RoomId } from './convex-types';
 
 /**
  * Game state management service
@@ -20,7 +17,7 @@ export class GameStateService {
    * Check if game should end based on win conditions
    */
   static checkGameEnd(
-    players: any[],
+    players: ConvexPlayer[],
     currentRound: number,
     maxRounds: number
   ): string | null {
@@ -38,8 +35,8 @@ export class GameStateService {
   /**
    * Process voting results and determine elimination
    */
-  static processVotingResults(alivePlayers: any[]): {
-    eliminatedPlayerId: string | null;
+  static processVotingResults(alivePlayers: ConvexPlayer[]): {
+    eliminatedPlayerId: Id<'players'> | null;
     voteCounts: Record<string, number>;
     tie: boolean;
   } {
@@ -56,7 +53,7 @@ export class GameStateService {
   /**
    * Get game statistics
    */
-  static getGameStats(players: any[]) {
+  static getGameStats(players: ConvexPlayer[]) {
     const counts = pureCalculatePlayerCounts(players);
     return {
       totalPlayers: players.length,
@@ -87,29 +84,47 @@ export class PlayerService {
   /**
    * Get alive players from room
    */
-  static async getAlivePlayers(ctx: any, roomId: string) {
-    return await ctx.db
+  static async getAlivePlayers(
+    ctx: MutationCtx,
+    roomId: RoomId
+  ): Promise<ConvexPlayer[]> {
+    const players = await ctx.db
       .query('players')
-      .withIndex('by_room_alive', (q: any) =>
+      .withIndex('by_room_alive', q =>
         q.eq('roomId', roomId).eq('isAlive', true)
       )
       .collect();
+
+    if (!players) {
+      throw new Error('Failed to get alive players');
+    }
+
+    return players;
   }
 
   /**
    * Get all players from room
    */
-  static async getAllPlayers(ctx: any, roomId: string) {
-    return await ctx.db
+  static async getAllPlayers(
+    ctx: MutationCtx,
+    roomId: RoomId
+  ): Promise<ConvexPlayer[]> {
+    const players = await ctx.db
       .query('players')
-      .withIndex('by_room', (q: any) => q.eq('roomId', roomId))
+      .withIndex('by_room', q => q.eq('roomId', roomId))
       .collect();
+
+    if (!players) {
+      throw new Error('Failed to get all players');
+    }
+
+    return players;
   }
 
   /**
    * Reset all players in room
    */
-  static async resetAllPlayers(ctx: any, roomId: string) {
+  static async resetAllPlayers(ctx: MutationCtx, roomId: RoomId) {
     const players = await this.getAllPlayers(ctx, roomId);
     const resetData = this.getResetPlayerData();
 
@@ -126,15 +141,23 @@ export class RoomService {
   /**
    * Update room game state
    */
-  static async updateGameState(ctx: any, roomId: string, updates: any) {
+  static async updateGameState(
+    ctx: MutationCtx,
+    roomId: RoomId,
+    updates: Record<string, unknown>
+  ) {
     return await ctx.db.patch(roomId, updates);
   }
 
   /**
    * Get room by ID
    */
-  static async getRoom(ctx: any, roomId: string) {
-    return await ctx.db.get(roomId);
+  static async getRoom(ctx: MutationCtx, roomId: RoomId): Promise<ConvexRoom> {
+    const room = await ctx.db.get(roomId);
+    if (!room) {
+      throw new Error('Room not found');
+    }
+    return room;
   }
 
   /**

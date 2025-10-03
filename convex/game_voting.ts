@@ -6,6 +6,8 @@ import {
   PlayerService,
   RoomService,
 } from '../src/lib/game-services';
+import { ConvexPlayer, ConvexRoom, RoomId } from '../src/lib/convex-types';
+import { MutationCtx } from './_generated/server';
 import { mutation } from './_generated/server';
 
 export const votePlayer = mutation({
@@ -59,7 +61,7 @@ export const votePlayer = mutation({
 
     // Check if all players have made a voting decision
     const allPlayersMadeDecision = allAlivePlayers.every(
-      (player: any) => player.hasVoted === true
+      (player: ConvexPlayer) => player.hasVoted === true
     );
 
     if (allPlayersMadeDecision) {
@@ -158,6 +160,10 @@ export const mrWhiteGuess = mutation({
         ctx,
         args.roomId
       );
+      if (!alivePlayers) {
+        throw new Error('Failed to get alive players');
+      }
+
       const gameResult = GameStateService.checkGameEnd(
         alivePlayers,
         room.currentRound,
@@ -185,10 +191,10 @@ export const mrWhiteGuess = mutation({
 
 // Helper function to process voting results
 export async function processVotingResults(
-  ctx: any,
-  roomId: string,
-  alivePlayers: any[],
-  room: any
+  ctx: MutationCtx,
+  roomId: RoomId,
+  alivePlayers: ConvexPlayer[],
+  room: ConvexRoom
 ) {
   // Process voting results
   const { eliminatedPlayerId, voteCounts, tie } =
@@ -196,10 +202,14 @@ export async function processVotingResults(
 
   // Eliminate player if there's a clear winner
   if (eliminatedPlayerId && !tie) {
-    const eliminatedPlayer = await ctx.db.get(eliminatedPlayerId as any);
+    const eliminatedPlayer = await ctx.db.get(eliminatedPlayerId);
 
     // Check if eliminated player is Mr. White
-    if (eliminatedPlayer && eliminatedPlayer.role === 'mr_white') {
+    if (
+      eliminatedPlayer &&
+      'role' in eliminatedPlayer &&
+      eliminatedPlayer.role === 'mr_white'
+    ) {
       // Mr. White gets a chance to guess the civilian word
       await RoomService.updateGameState(ctx, roomId, {
         gameState: 'mr_white_guessing',
@@ -215,7 +225,7 @@ export async function processVotingResults(
       };
     } else {
       // Regular elimination
-      await ctx.db.patch(eliminatedPlayerId as any, { isAlive: false });
+      await ctx.db.patch(eliminatedPlayerId, { isAlive: false });
     }
   }
 
@@ -247,14 +257,18 @@ export async function processVotingResults(
 }
 
 // Helper function to reset game for next round
-async function resetForNextRound(ctx: any, roomId: string, room: any) {
+async function resetForNextRound(
+  ctx: MutationCtx,
+  roomId: RoomId,
+  room: ConvexRoom
+) {
   // Reset all players' word sharing status and votes
   await PlayerService.resetAllPlayers(ctx, roomId);
 
   // Reset turn order for next round
   if (room.playerOrder) {
     const alivePlayers = await PlayerService.getAlivePlayers(ctx, roomId);
-    const alivePlayerIds = alivePlayers.map((p: any) => p._id);
+    const alivePlayerIds = alivePlayers.map((p: ConvexPlayer) => p._id);
     const shuffledOrder = [...room.playerOrder].sort(() => Math.random() - 0.5);
 
     // Find first alive player in the shuffled order

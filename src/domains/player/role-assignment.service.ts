@@ -3,13 +3,20 @@
  * Pure functions for role assignment and player ordering
  */
 
-import { Player, RoleAssignment } from './player';
+import { RoleAssignment } from './player';
+import { Id } from '../../../convex/_generated/dataModel';
+
+// Generic player interface that works with both domain and Convex players
+interface PlayerWithId {
+  _id: Id<'players'>;
+  role: 'undercover' | 'civilian' | 'mr_white';
+}
 
 /**
  * Assign roles to players
  */
 export function assignRoles(
-  players: Player[],
+  players: PlayerWithId[],
   numUndercovers: number,
   hasMrWhite: boolean
 ): RoleAssignment[] {
@@ -37,7 +44,7 @@ export function assignRoles(
 /**
  * Create player order for word sharing
  */
-export function createPlayerOrder(players: Player[]): string[] {
+export function createPlayerOrder(players: PlayerWithId[]): Id<'players'>[] {
   const playerOrder = ensureMrWhiteNotFirst([...players]);
   return playerOrder.map(p => p._id);
 }
@@ -46,9 +53,9 @@ export function createPlayerOrder(players: Player[]): string[] {
  * Find next alive player in turn order
  */
 export function findNextAlivePlayer(
-  playerOrder: string[],
+  playerOrder: Id<'players'>[],
   currentIndex: number,
-  alivePlayerIds: string[]
+  alivePlayerIds: Id<'players'>[]
 ): number {
   // Look for next alive player in the order
   for (let i = currentIndex + 1; i < playerOrder.length; i++) {
@@ -82,7 +89,9 @@ export function shuffleArray<T>(array: T[]): T[] {
 /**
  * Ensure Mr. White is not first in player order
  */
-export function ensureMrWhiteNotFirst(playerOrder: Player[]): Player[] {
+export function ensureMrWhiteNotFirst(
+  playerOrder: PlayerWithId[]
+): PlayerWithId[] {
   const mrWhiteIndex = playerOrder.findIndex(p => p.role === 'mr_white');
   if (mrWhiteIndex === 0) {
     // Move Mr. White to a random position (not first)

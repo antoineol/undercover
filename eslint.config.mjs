@@ -24,16 +24,30 @@ const eslintConfig = [
       '**/turbopack-*.js',
       '**/_buildManifest.js',
       '**/_ssgManifest.js',
+      'convex/_generated/**',
     ],
   },
   ...compat.extends('next/core-web-vitals', 'next/typescript'),
   ...compat.extends('prettier'),
   {
+    files: ['**/*.ts', '**/*.tsx'],
+    languageOptions: {
+      parser: (await import('@typescript-eslint/parser')).default,
+      parserOptions: {
+        project: './tsconfig.json',
+        tsconfigRootDir: __dirname,
+      },
+    },
     plugins: {
       prettier: (await import('eslint-plugin-prettier')).default,
     },
     rules: {
-      '@typescript-eslint/no-explicit-any': 'off',
+      '@typescript-eslint/no-explicit-any': 'error',
+      '@typescript-eslint/no-unsafe-assignment': 'error',
+      '@typescript-eslint/no-unsafe-member-access': 'error',
+      '@typescript-eslint/no-unsafe-call': 'error',
+      '@typescript-eslint/no-unsafe-return': 'error',
+      '@typescript-eslint/no-unsafe-argument': 'error',
       'prettier/prettier': 'error',
       // Disable ESLint rules that conflict with Prettier
       indent: 'off',

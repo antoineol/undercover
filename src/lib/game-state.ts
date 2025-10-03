@@ -1,5 +1,7 @@
 import { GameStateService, PlayerService, RoomService } from './game-services';
 import { GameFlowHelpers } from './game-helpers';
+import { MutationCtx } from '../../convex/_generated/server';
+import { ConvexRoom, RoomId } from './convex-types';
 
 /**
  * Game state management utilities
@@ -9,8 +11,8 @@ export class GameStateManager {
    * Transition game to next phase
    */
   static async transitionToNextPhase(
-    ctx: any,
-    roomId: string,
+    ctx: MutationCtx,
+    roomId: RoomId,
     currentState: string
   ) {
     const room = await RoomService.getRoom(ctx, roomId);
@@ -31,7 +33,7 @@ export class GameStateManager {
   /**
    * Transition from discussion to voting
    */
-  static async transitionToVoting(ctx: any, roomId: string) {
+  static async transitionToVoting(ctx: MutationCtx, roomId: RoomId) {
     await RoomService.updateGameState(ctx, roomId, {
       gameState: 'voting',
     });
@@ -40,11 +42,15 @@ export class GameStateManager {
   /**
    * Process voting results and determine next state
    */
-  static async processVotingResults(ctx: any, roomId: string) {
+  static async processVotingResults(ctx: MutationCtx, roomId: RoomId) {
     const room = await RoomService.getRoom(ctx, roomId);
     if (!room) return;
 
     const alivePlayers = await PlayerService.getAlivePlayers(ctx, roomId);
+    if (!alivePlayers) {
+      throw new Error('Failed to get alive players');
+    }
+
     const gameResult = GameStateService.checkGameEnd(
       alivePlayers,
       room.currentRound,
@@ -65,14 +71,20 @@ export class GameStateManager {
   /**
    * Start next round
    */
-  static async startNextRound(ctx: any, roomId: string, room: any) {
+  static async startNextRound(
+    ctx: MutationCtx,
+    roomId: RoomId,
+    room: ConvexRoom
+  ) {
     // Reset all players
     await PlayerService.resetAllPlayers(ctx, roomId);
 
     // Create new player order
     const alivePlayers = await PlayerService.getAlivePlayers(ctx, roomId);
-    const alivePlayerIds = alivePlayers.map((p: any) => p._id);
-    const shuffledOrder = [...room.playerOrder].sort(() => Math.random() - 0.5);
+    const alivePlayerIds = alivePlayers.map(p => p._id);
+    const shuffledOrder = [...(room.playerOrder || [])].sort(
+      () => Math.random() - 0.5
+    );
 
     // Find first alive player in the shuffled order
     let firstAliveIndex = 0;
@@ -94,11 +106,15 @@ export class GameStateManager {
   /**
    * Validate and fix game state
    */
-  static async validateAndFixGameState(ctx: any, roomId: string) {
+  static async validateAndFixGameState(ctx: MutationCtx, roomId: RoomId) {
     const room = await RoomService.getRoom(ctx, roomId);
     if (!room) return { action: 'room_not_found' };
 
     const alivePlayers = await PlayerService.getAlivePlayers(ctx, roomId);
+    if (!alivePlayers) {
+      throw new Error('Failed to get alive players');
+    }
+
     const gameResult = GameStateService.checkGameEnd(
       alivePlayers,
       room.currentRound,
@@ -119,10 +135,14 @@ export class GameStateManager {
       room.currentPlayerIndex !== undefined
     ) {
       const currentPlayerId = room.playerOrder[room.currentPlayerIndex];
+      if (!currentPlayerId) {
+        throw new Error('Invalid player order or current player index');
+      }
+
       const currentPlayer = await ctx.db.get(currentPlayerId);
 
       if (currentPlayer && !currentPlayer.isAlive) {
-        const alivePlayerIds = alivePlayers.map((p: any) => p._id);
+        const alivePlayerIds = alivePlayers.map(p => p._id);
         const nextAlivePlayerIndex = GameFlowHelpers.findNextPlayer(
           room.playerOrder,
           room.currentPlayerIndex,

@@ -3,7 +3,7 @@
  * Pure utility functions for common operations
  */
 
-import { GameConfig, RetryConfig, RetryFunction, GameError } from './utilities';
+import { GameConfig, RetryConfig, GameError } from './utilities';
 
 /**
  * Generate a random room code
@@ -82,11 +82,12 @@ export function calculateRetryDelay(
 /**
  * Check if error is retryable (concurrent access error)
  */
-export function isRetryableError(error: any): boolean {
-  if (!error || !error.message) {
+export function isRetryableError(error: unknown): boolean {
+  if (!error || typeof error !== 'object' || !('message' in error)) {
     return false;
   }
-  return error.message.includes('Documents read from or written to');
+  const errorMessage = (error as { message: string }).message;
+  return errorMessage.includes('Documents read from or written to');
 }
 
 /**

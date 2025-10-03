@@ -4,6 +4,7 @@
  */
 
 import { ValidationResult, GameConfig } from './validation';
+import { ConvexPlayer, ConvexRoom } from '../../lib/convex-types';
 
 /**
  * Validate player name
@@ -208,8 +209,8 @@ export function validateSessionId(
  * Validate player can share word
  */
 export function canShareWord(
-  player: any,
-  room: any,
+  player: ConvexPlayer,
+  room: ConvexRoom,
   playerId: string
 ): { canShare: boolean; error?: string } {
   if (!player || !player.isAlive) {
@@ -240,9 +241,9 @@ export function canShareWord(
  * Validate player can vote
  */
 export function canVote(
-  voter: any,
-  target: any,
-  room: any
+  voter: ConvexPlayer,
+  target: ConvexPlayer,
+  room: ConvexRoom
 ): { canVote: boolean; error?: string } {
   if (!voter || !target || !voter.isAlive || !target.isAlive) {
     return { canVote: false, error: 'Invalid vote' };
