@@ -18,6 +18,7 @@ export const GAME_STATES = {
   WAITING: 'waiting',
   DISCUSSION: 'discussion',
   VOTING: 'voting',
+  MR_WHITE_GUESSING: 'mr_white_guessing',
   RESULTS: 'results',
 } as const;
 
@@ -46,6 +47,7 @@ export const UI_MESSAGES = {
     WAITING: 'En attente des joueurs...',
     DISCUSSION: 'Phase de Discussion',
     VOTING: 'Phase de Vote',
+    MR_WHITE_GUESSING: 'Mr. White devine le mot',
     RESULTS: 'Résultats du Jeu',
   },
   PLAYER_STATUS: {

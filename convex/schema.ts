@@ -9,6 +9,7 @@ export default defineSchema({
       v.literal('waiting'),
       v.literal('discussion'),
       v.literal('voting'),
+      v.literal('mr_white_guessing'),
       v.literal('results')
     ),
     currentRound: v.number(),

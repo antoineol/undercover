@@ -8,7 +8,12 @@ export { startGame } from './game_start';
 export { shareWord, resetWordSharing } from './game_word_sharing';
 
 // Voting functions
-export { votePlayer, endVoting, startVoting } from './game_voting';
+export {
+  votePlayer,
+  endVoting,
+  startVoting,
+  mrWhiteGuess,
+} from './game_voting';
 
 // Game management functions
 export {

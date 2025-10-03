@@ -1,6 +1,7 @@
 import { UI_MESSAGES } from '@/lib/constants';
 import { Player, Room } from '@/lib/types';
 import { validateSharedWord } from '@/lib/validation';
+import { calculateSharingProgress } from '@/domains/ui/ui-helpers.service';
 import AnimateHeight from 'react-animate-height';
 import Button from '../ui/Button';
 import Card from '../ui/Card';
@@ -32,10 +33,10 @@ function WordSharingContent({
   const playersWhoShared = room.players.filter(
     (p: any) => p.isAlive && p.hasSharedWord
   ).length;
-  const sharingProgress =
-    alivePlayers.length > 0
-      ? (playersWhoShared / alivePlayers.length) * 100
-      : 0;
+  const sharingProgress = calculateSharingProgress(
+    playersWhoShared,
+    alivePlayers.length
+  );
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();

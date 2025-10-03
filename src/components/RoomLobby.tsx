@@ -1,6 +1,14 @@
 'use client';
 
 import { useState } from 'react';
+import {
+  validatePlayerNameInput,
+  validateRoomCodeInput,
+  formatRoomCodeInput,
+  getFormValidationState,
+  getLoadingStateText,
+  getLobbySectionText,
+} from '@/domains/ui/ui-helpers.service';
 
 interface RoomLobbyProps {
   onCreateRoom: (name: string) => void;
@@ -19,7 +27,8 @@ export default function RoomLobby({
 
   const handleCreateRoom = (e: React.FormEvent) => {
     e.preventDefault();
-    if (createPlayerName.trim()) {
+    const validation = validatePlayerNameInput(createPlayerName);
+    if (validation.isValid) {
       setIsCreating(true);
       onCreateRoom(createPlayerName.trim());
     }
@@ -27,18 +36,27 @@ export default function RoomLobby({
 
   const handleJoinRoom = (e: React.FormEvent) => {
     e.preventDefault();
-    if (joinPlayerName.trim() && roomCode.trim()) {
+    const nameValidation = validatePlayerNameInput(joinPlayerName);
+    const codeValidation = validateRoomCodeInput(roomCode);
+
+    if (nameValidation.isValid && codeValidation.isValid) {
       setIsJoining(true);
       onJoinRoom(roomCode.trim().toUpperCase(), joinPlayerName.trim());
     }
   };
+
+  // Use pure functions for business logic
+  const sectionText = getLobbySectionText();
+  const loadingText = getLoadingStateText(isCreating, isJoining);
+  const formValidation = getFormValidationState(createPlayerName);
+  const joinFormValidation = getFormValidationState(joinPlayerName, roomCode);
 
   return (
     <>
       {/* Create Room */}
       <div className='bg-blue-50 p-6 rounded-lg'>
         <h2 className='text-xl font-semibold text-gray-800 mb-4'>
-          Créer une Salle
+          {sectionText.createTitle}
         </h2>
         <form onSubmit={handleCreateRoom} className='space-y-4'>
           <div>
@@ -60,10 +78,10 @@ export default function RoomLobby({
           </div>
           <button
             type='submit'
-            disabled={isCreating || !createPlayerName.trim()}
+            disabled={isCreating || !formValidation.isCreateFormValid}
             className='w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed'
           >
-            {isCreating ? 'Création...' : 'Créer une Salle'}
+            {loadingText.createButtonText}
           </button>
         </form>
       </div>
@@ -71,9 +89,9 @@ export default function RoomLobby({
       {/* Join Room */}
       <div className='bg-green-50 p-6 rounded-lg flex flex-col gap-4'>
         <h2 className='text-xl font-semibold text-gray-800'>
-          Rejoindre une Salle
+          {sectionText.joinTitle}
         </h2>
-        <p>Demandez le lien de la salle ou entrez le code :</p>
+        <p>{sectionText.joinDescription}</p>
         <form onSubmit={handleJoinRoom} className='space-y-4'>
           <div>
             <label
@@ -103,7 +121,7 @@ export default function RoomLobby({
               id='room-code'
               type='text'
               value={roomCode}
-              onChange={e => setRoomCode(e.target.value.toUpperCase())}
+              onChange={e => setRoomCode(formatRoomCodeInput(e.target.value))}
               className='w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500'
               placeholder='Entrez le code de la salle'
               maxLength={6}
@@ -112,10 +130,10 @@ export default function RoomLobby({
           </div>
           <button
             type='submit'
-            disabled={isJoining || !joinPlayerName.trim() || !roomCode.trim()}
+            disabled={isJoining || !joinFormValidation.isJoinFormValid}
             className='w-full bg-green-600 text-white py-2 px-4 rounded-md hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed'
           >
-            {isJoining ? 'Rejoindre...' : 'Rejoindre la Salle'}
+            {loadingText.joinButtonText}
           </button>
         </form>
       </div>

@@ -5,6 +5,12 @@ import {
   countVotes,
   findEliminatedPlayer,
 } from './utils';
+import {
+  calculatePlayerCounts as pureCalculatePlayerCounts,
+  checkWinConditions as pureCheckWinConditions,
+  countVotes as pureCountVotes,
+  findEliminatedPlayer as pureFindEliminatedPlayer,
+} from '../domains/game/game-logic.service';
 
 /**
  * Game state management service
@@ -18,8 +24,8 @@ export class GameStateService {
     currentRound: number,
     maxRounds: number
   ): string | null {
-    const counts = calculatePlayerCounts(players);
-    let gameResult = checkWinConditions(counts);
+    const counts = pureCalculatePlayerCounts(players);
+    let gameResult = pureCheckWinConditions(counts);
 
     // Check maximum rounds limit
     if (currentRound >= maxRounds) {
@@ -37,8 +43,8 @@ export class GameStateService {
     voteCounts: Record<string, number>;
     tie: boolean;
   } {
-    const voteCounts = countVotes(alivePlayers);
-    const { eliminatedPlayerId, tie } = findEliminatedPlayer(voteCounts);
+    const voteCounts = pureCountVotes(alivePlayers);
+    const { eliminatedPlayerId, tie } = pureFindEliminatedPlayer(voteCounts);
 
     return {
       eliminatedPlayerId,
@@ -51,7 +57,7 @@ export class GameStateService {
    * Get game statistics
    */
   static getGameStats(players: any[]) {
-    const counts = calculatePlayerCounts(players);
+    const counts = pureCalculatePlayerCounts(players);
     return {
       totalPlayers: players.length,
       alivePlayers: counts.alive,

@@ -1,6 +1,6 @@
 'use client';
 
-import { UI_MESSAGES } from '@/lib/constants';
+import { UI_MESSAGES, GAME_CONFIG } from '@/lib/constants';
 import { GameRoomProps } from '@/lib/types';
 import { copyToClipboard, retryWithBackoff } from '@/lib/utils';
 import { useMutation, useQuery } from 'convex/react';
@@ -15,6 +15,29 @@ import PlayerList from './game/PlayerList';
 import WordSharing from './game/WordSharing';
 import Button from './ui/Button';
 import Card from './ui/Card';
+import {
+  calculateVotingProgress,
+  getCurrentTurnPlayer,
+  isMyTurn,
+  calculateVoteData,
+  getPlayersWhoVoted,
+  isVotingPhase,
+  isDiscussionPhase,
+  getCurrentPlayerByName,
+  generateRoomUrl,
+  calculateMaxUndercovers,
+  getGameConfigurationDisplay,
+} from '@/domains/room/room-management.service';
+import {
+  generateShareButtonTextWithTimeout,
+  getGameStateMessage,
+  getStartGameButtonText,
+  getConfigurationDisplayText,
+  getWordDisplayText,
+  getValidationResultMessage,
+  getGameInstructionsText,
+  getMrWhiteGuessingText,
+} from '@/domains/ui/ui-helpers.service';
 
 export default function GameRoom({
   roomCode,
@@ -31,6 +54,7 @@ export default function GameRoom({
   const [shareButtonText, setShareButtonText] = useState('📋 Partager le Lien');
   const [showQR, setShowQR] = useState(false);
   const [qrCodeDataUrl, setQrCodeDataUrl] = useState('');
+  const [mrWhiteGuessInput, setMrWhiteGuessInput] = useState('');
 
   const room = useQuery(api.rooms.getRoom, { roomCode });
   const gameWords = useQuery(
@@ -43,6 +67,7 @@ export default function GameRoom({
   const votePlayer = useMutation(api.game.votePlayer);
   const validateGameState = useMutation(api.game.validateGameState);
   const restartGame = useMutation(api.game.restartGame);
+  const mrWhiteGuess = useMutation(api.game.mrWhiteGuess);
 
   const handleStartGame = async () => {
     if (room && isHost) {
@@ -106,20 +131,29 @@ export default function GameRoom({
     }
   };
 
-  const handleShareLink = async () => {
-    const roomUrl = `${window.location.origin}/room/${roomCode}`;
-    const success = await copyToClipboard(roomUrl);
-    if (success) {
-      setShareButtonText('✅ Lien copié !');
-      setTimeout(() => {
-        setShareButtonText('📋 Partager le Lien');
-      }, 2000);
-    } else {
-      setShareButtonText('❌ Erreur de copie');
-      setTimeout(() => {
-        setShareButtonText('📋 Partager le Lien');
-      }, 2000);
+  const handleMrWhiteGuess = async () => {
+    if (room && mrWhiteGuessInput.trim()) {
+      try {
+        await mrWhiteGuess({
+          roomId: room._id,
+          guess: mrWhiteGuessInput.trim(),
+        });
+        setMrWhiteGuessInput('');
+      } catch (error) {
+        console.error('Échec de la devinette:', error);
+        alert('Erreur: ' + ((error as Error).message || 'Erreur inconnue'));
+      }
     }
+  };
+
+  const handleShareLink = async () => {
+    const roomUrl = generateRoomUrl(roomCode);
+    const success = await copyToClipboard(roomUrl);
+    const newButtonText = generateShareButtonTextWithTimeout(success, !success);
+    setShareButtonText(newButtonText);
+    setTimeout(() => {
+      setShareButtonText('📋 Partager le Lien');
+    }, 2000);
   };
 
   const handleValidateGameState = async () => {
@@ -129,15 +163,8 @@ export default function GameRoom({
         const result = await retryWithBackoff(() =>
           validateGameState({ roomId: room._id })
         );
-        if (result.action !== 'no_action_needed') {
-          if (result.action === 'skipped_dead_player') {
-            alert('Joueur mort ignoré - passage au joueur suivant');
-          } else {
-            alert(`Game state fixed: ${result.action}`);
-          }
-        } else {
-          alert('Game state is valid - no action needed');
-        }
+        const message = getValidationResultMessage(result.action);
+        alert(message);
       } catch (error: any) {
         console.error('Failed to validate game state after retries:', error);
         alert('Failed to validate game state after multiple attempts');
@@ -164,7 +191,7 @@ export default function GameRoom({
 
   const handleShowQR = async () => {
     if (!showQR) {
-      const roomUrl = `${window.location.origin}/room/${roomCode}`;
+      const roomUrl = generateRoomUrl(roomCode);
       try {
         const qrDataUrl = await QRCode.toDataURL(roomUrl, {
           width: 200,
@@ -217,38 +244,24 @@ export default function GameRoom({
     );
   }
 
-  const currentPlayer = room.players.find(
-    (p: { name: string }) => p.name === playerName
-  );
+  // Use pure functions for business logic calculations
+  const currentPlayer = getCurrentPlayerByName(room.players, playerName);
   const alivePlayers = room.players.filter((p: any) => p.isAlive);
-  const isVotingPhase = room.gameState === 'voting';
-  const isDiscussionPhase = room.gameState === 'discussion';
+  const isVotingPhaseState = isVotingPhase(room);
+  const isDiscussionPhaseState = isDiscussionPhase(room);
 
-  // Calculate voting progress (only alive players)
-  const playersWhoVoted = alivePlayers.filter((p: any) => p.votes.length > 0);
-  const votingProgress =
-    alivePlayers.length > 0
-      ? (playersWhoVoted.length / alivePlayers.length) * 100
-      : 0;
+  // Calculate voting progress using pure function
+  const votingProgress = calculateVotingProgress(room.players);
+  const playersWhoVoted = getPlayersWhoVoted(room.players);
 
-  // Get current player whose turn it is to share word
-  const currentTurnPlayerId = room.playerOrder?.[room.currentPlayerIndex || 0];
-  const currentTurnPlayer = room.players.find(
-    (p: { _id: string }) => p._id === currentTurnPlayerId
-  );
-  const isMyTurn = currentTurnPlayerId === currentPlayer?._id;
+  // Get current turn player using pure function
+  const currentTurnPlayer = getCurrentTurnPlayer(room, room.players);
+  const isMyTurnState = currentPlayer
+    ? isMyTurn(currentPlayer._id, room)
+    : false;
 
-  // Get vote counts for display
-  const voteCounts: Record<string, number> = {};
-  const voterNames: Record<string, string[]> = {};
-
-  alivePlayers.forEach((player: { votes: string[]; name: string }) => {
-    player.votes.forEach((voteId: string) => {
-      voteCounts[voteId] = (voteCounts[voteId] || 0) + 1;
-      if (!voterNames[voteId]) voterNames[voteId] = [];
-      voterNames[voteId].push(player.name);
-    });
-  });
+  // Calculate vote data using pure function
+  const { voteCounts, voterNames } = calculateVoteData(room.players);
 
   return (
     <div className='min-h-screen bg-gray-100'>
@@ -276,7 +289,7 @@ export default function GameRoom({
               size='lg'
               className='w-full min-h-[56px] text-lg font-semibold'
             >
-              {UI_MESSAGES.BUTTONS.START_GAME} ({room.players.length}/3+)
+              {getStartGameButtonText(room.players.length)}
             </Button>
 
             {/* Game Configuration - Host Only, Collapsible with Animation */}
@@ -301,10 +314,7 @@ export default function GameRoom({
                     <input
                       type='range'
                       min='1'
-                      max={Math.min(
-                        Math.floor(room.players.length / 2),
-                        room.players.length - 1
-                      )}
+                      max={calculateMaxUndercovers(room.players.length)}
                       value={numUndercovers}
                       onChange={e =>
                         setNumUndercovers(parseInt(e.target.value))
@@ -314,11 +324,7 @@ export default function GameRoom({
                     <div className='flex justify-between text-xs text-gray-500 mt-1'>
                       <span>1</span>
                       <span>
-                        Max:{' '}
-                        {Math.min(
-                          Math.floor(room.players.length / 2),
-                          room.players.length - 1
-                        )}
+                        Max: {calculateMaxUndercovers(room.players.length)}
                       </span>
                     </div>
                   </div>
@@ -343,25 +349,12 @@ export default function GameRoom({
                     <div className='font-medium mb-1'>
                       Configuration actuelle:
                     </div>
-                    <div>
-                      • {numUndercovers} Undercover
-                      {numUndercovers > 1 ? 's' : ''}
-                    </div>
-                    <div>
-                      • {hasMrWhite ? '1 Mr. White' : 'Pas de Mr. White'}
-                    </div>
-                    <div>
-                      •{' '}
-                      {room.players.length -
-                        numUndercovers -
-                        (hasMrWhite ? 1 : 0)}{' '}
-                      Civil
-                      {room.players.length -
-                        numUndercovers -
-                        (hasMrWhite ? 1 : 0) >
-                      1
-                        ? 's'
-                        : ''}
+                    <div className='whitespace-pre-line'>
+                      {getGameConfigurationDisplay({
+                        numUndercovers,
+                        hasMrWhite,
+                        totalPlayers: room.players.length,
+                      })}
                     </div>
                   </div>
                 </div>
@@ -407,11 +400,15 @@ export default function GameRoom({
               <div className='bg-gray-50 p-4 rounded-lg'>
                 <div>
                   <span className='text-lg font-bold text-blue-600'>
-                    {currentPlayer?.role === 'undercover'
-                      ? gameWords?.undercoverWord
-                      : currentPlayer?.role === 'mr_white'
-                        ? 'Vous êtes Mr. White.'
-                        : gameWords?.civilianWord}
+                    {getWordDisplayText(
+                      currentPlayer?.role || '',
+                      gameWords
+                        ? {
+                            civilianWord: gameWords.civilianWord,
+                            undercoverWord: gameWords.undercoverWord,
+                          }
+                        : null
+                    )}
                   </span>
                 </div>
               </div>
@@ -426,16 +423,63 @@ export default function GameRoom({
           playersWhoVoted={playersWhoVoted}
           currentPlayer={currentPlayer}
         /> */}
-        <WordSharing
-          room={room}
-          currentPlayer={currentPlayer!}
-          wordToShare={wordToShare}
-          setWordToShare={setWordToShare}
-          onShareWord={handleShareWord}
-          isMyTurn={isMyTurn}
-          currentTurnPlayer={currentTurnPlayer}
-          alivePlayers={alivePlayers}
-        />
+        {currentPlayer && (
+          <WordSharing
+            room={room}
+            currentPlayer={currentPlayer}
+            wordToShare={wordToShare}
+            setWordToShare={setWordToShare}
+            onShareWord={handleShareWord}
+            isMyTurn={isMyTurnState}
+            currentTurnPlayer={currentTurnPlayer || undefined}
+            alivePlayers={alivePlayers}
+          />
+        )}
+
+        {/* Mr. White Guessing Phase */}
+        <AnimateHeight
+          height={room.gameState === 'mr_white_guessing' ? 'auto' : 0}
+          duration={300}
+          easing='ease-in-out'
+          animateOpacity
+          className='contents'
+        >
+          <Card className='bg-yellow-50 border-yellow-200'>
+            <div className='text-center'>
+              {(() => {
+                const mrWhiteText = getMrWhiteGuessingText();
+                return (
+                  <>
+                    <h3 className='text-lg font-semibold mb-4 text-yellow-800'>
+                      {mrWhiteText.title}
+                    </h3>
+                    <p className='text-sm text-yellow-700 mb-4'>
+                      {mrWhiteText.description}
+                    </p>
+                    <div className='flex flex-col gap-3 max-w-md mx-auto'>
+                      <input
+                        type='text'
+                        value={mrWhiteGuessInput}
+                        onChange={e => setMrWhiteGuessInput(e.target.value)}
+                        placeholder={mrWhiteText.placeholder}
+                        className='px-4 py-2 border border-yellow-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent'
+                        maxLength={GAME_CONFIG.MAX_WORD_LENGTH}
+                      />
+                      <Button
+                        onClick={handleMrWhiteGuess}
+                        variant='primary'
+                        disabled={!mrWhiteGuessInput.trim()}
+                        className='bg-yellow-600 hover:bg-yellow-700'
+                      >
+                        {mrWhiteText.buttonText}
+                      </Button>
+                    </div>
+                  </>
+                );
+              })()}
+            </div>
+          </Card>
+        </AnimateHeight>
         <AnimateHeight
           height={currentPlayer ? 'auto' : 0}
           duration={300}
@@ -443,18 +487,20 @@ export default function GameRoom({
           animateOpacity
           className='contents'
         >
-          <PlayerList
-            room={room}
-            currentPlayer={currentPlayer!}
-            playerName={playerName}
-            isVotingPhase={isVotingPhase}
-            isDiscussionPhase={isDiscussionPhase}
-            currentTurnPlayerId={currentTurnPlayerId}
-            voteCounts={voteCounts}
-            voterNames={voterNames}
-            onVote={handleVote}
-            votingProgress={votingProgress}
-          />
+          {currentPlayer && (
+            <PlayerList
+              room={room}
+              currentPlayer={currentPlayer}
+              playerName={playerName}
+              isVotingPhase={isVotingPhaseState}
+              isDiscussionPhase={isDiscussionPhaseState}
+              currentTurnPlayerId={currentTurnPlayer?._id}
+              voteCounts={voteCounts}
+              voterNames={voterNames}
+              onVote={handleVote}
+              votingProgress={votingProgress}
+            />
+          )}
         </AnimateHeight>
 
         {/* Game Instructions */}
@@ -468,16 +514,9 @@ export default function GameRoom({
           <Card className='bg-blue-50'>
             <h3 className='text-lg font-semibold mb-2'>Comment Jouer</h3>
             <ul className='text-sm text-gray-700 space-y-1'>
-              <li>• 3-10 joueurs peuvent rejoindre cette salle</li>
-              <li>• La plupart des joueurs sont des Civils avec un mot</li>
-              <li>• 1-3 joueurs sont Undercovers avec un mot différent</li>
-              <li>• Mr. White (4+ joueurs) ne connaît aucun mot</li>
-              <li>• Discutez et votez contre les joueurs suspects</li>
-              <li>• Les Civils gagnent en éliminant tous les Undercovers</li>
-              <li>
-                • Les Undercovers gagnent en survivant ou en surpassant les
-                Civils
-              </li>
+              {getGameInstructionsText().map((instruction, index) => (
+                <li key={index}>{instruction}</li>
+              ))}
             </ul>
           </Card>
         </AnimateHeight>

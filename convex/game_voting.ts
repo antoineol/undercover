@@ -114,6 +114,75 @@ export const startVoting = mutation({
   },
 });
 
+export const mrWhiteGuess = mutation({
+  args: {
+    roomId: v.id('rooms'),
+    guess: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const room = await RoomService.getRoom(ctx, args.roomId);
+    if (!room || room.gameState !== 'mr_white_guessing') {
+      throw new Error('Game is not in Mr. White guessing phase');
+    }
+
+    // Get the game words
+    const gameWords = await ctx.db
+      .query('gameWords')
+      .withIndex('by_room', q => q.eq('roomId', args.roomId))
+      .first();
+
+    if (!gameWords) {
+      throw new Error('Game words not found');
+    }
+
+    // Check if the guess is correct (case-insensitive)
+    const isCorrect =
+      args.guess.toLowerCase().trim() ===
+      gameWords.civilianWord.toLowerCase().trim();
+
+    if (isCorrect) {
+      // Mr. White wins immediately
+      await RoomService.updateGameState(ctx, args.roomId, {
+        gameState: 'results',
+      });
+
+      return {
+        success: true,
+        correct: true,
+        gameResult: 'mr_white_win',
+        civilianWord: gameWords.civilianWord,
+      };
+    } else {
+      // Mr. White is eliminated, continue with normal game flow
+      const alivePlayers = await PlayerService.getAlivePlayers(
+        ctx,
+        args.roomId
+      );
+      const gameResult = GameStateService.checkGameEnd(
+        alivePlayers,
+        room.currentRound,
+        room.maxRounds
+      );
+
+      if (gameResult) {
+        await RoomService.updateGameState(ctx, args.roomId, {
+          gameState: 'results',
+        });
+      } else {
+        // Reset for next round
+        await resetForNextRound(ctx, args.roomId, room);
+      }
+
+      return {
+        success: true,
+        correct: false,
+        gameResult,
+        civilianWord: gameWords.civilianWord,
+      };
+    }
+  },
+});
+
 // Helper function to process voting results
 export async function processVotingResults(
   ctx: any,
@@ -127,7 +196,27 @@ export async function processVotingResults(
 
   // Eliminate player if there's a clear winner
   if (eliminatedPlayerId && !tie) {
-    await ctx.db.patch(eliminatedPlayerId as any, { isAlive: false });
+    const eliminatedPlayer = await ctx.db.get(eliminatedPlayerId as any);
+
+    // Check if eliminated player is Mr. White
+    if (eliminatedPlayer && eliminatedPlayer.role === 'mr_white') {
+      // Mr. White gets a chance to guess the civilian word
+      await RoomService.updateGameState(ctx, roomId, {
+        gameState: 'mr_white_guessing',
+      });
+
+      return {
+        success: true,
+        allVoted: true,
+        eliminatedPlayer: eliminatedPlayerId,
+        gameResult: null,
+        voteCounts,
+        mrWhiteGuessing: true,
+      };
+    } else {
+      // Regular elimination
+      await ctx.db.patch(eliminatedPlayerId as any, { isAlive: false });
+    }
   }
 
   // Check win conditions - refetch alive players after elimination

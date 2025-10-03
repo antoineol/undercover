@@ -52,7 +52,7 @@ export const startGame = mutation({
     );
 
     for (const assignment of roleAssignments) {
-      await ctx.db.patch(assignment.playerId, { role: assignment.role });
+      await ctx.db.patch(assignment.playerId as any, { role: assignment.role });
     }
 
     // Create game words
@@ -81,7 +81,7 @@ export const startGame = mutation({
       gameState: 'discussion',
       currentRound: 1,
       currentPlayerIndex: 0,
-      playerOrder,
+      playerOrder: playerOrder as any,
       hasMrWhite: args.hasMrWhite,
       numUndercovers: args.numUndercovers,
     });

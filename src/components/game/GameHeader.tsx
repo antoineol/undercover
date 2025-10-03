@@ -23,6 +23,8 @@ export default function GameHeader({
         return UI_MESSAGES.GAME_STATES.DISCUSSION;
       case 'voting':
         return UI_MESSAGES.GAME_STATES.VOTING;
+      case 'mr_white_guessing':
+        return UI_MESSAGES.GAME_STATES.MR_WHITE_GUESSING;
       case 'results':
         return UI_MESSAGES.GAME_STATES.RESULTS;
       default:

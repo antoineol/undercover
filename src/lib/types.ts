@@ -38,7 +38,12 @@ export interface GameWords {
 }
 
 // Enums and union types
-export type GameState = 'waiting' | 'discussion' | 'voting' | 'results';
+export type GameState =
+  | 'waiting'
+  | 'discussion'
+  | 'voting'
+  | 'mr_white_guessing'
+  | 'results';
 export type PlayerRole = 'civilian' | 'undercover' | 'mr_white';
 export type GameResult =
   | 'civilians_win'

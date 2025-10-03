@@ -1,30 +1,27 @@
 import { GAME_CONFIG, ID_CHARS, RETRY_CONFIG } from './constants';
 import { GameError, RetryConfig, RetryFunction } from './types';
+import {
+  generateRoomCode as pureGenerateRoomCode,
+  generateSessionId as pureGenerateSessionId,
+  sanitizeInput as pureSanitizeInput,
+  sanitizeHtml as pureSanitizeHtml,
+  createGameError as pureCreateGameError,
+  calculateRetryDelay,
+  isRetryableError,
+} from '../domains/utilities/utilities.service';
 
 /**
  * Generate a random room code
  */
 export function generateRoomCode(): string {
-  let result = '';
-  for (let i = 0; i < GAME_CONFIG.ROOM_CODE_LENGTH; i++) {
-    result += ID_CHARS.ROOM_CODE.charAt(
-      Math.floor(Math.random() * ID_CHARS.ROOM_CODE.length)
-    );
-  }
-  return result;
+  return pureGenerateRoomCode(GAME_CONFIG);
 }
 
 /**
  * Generate a random session ID
  */
 export function generateSessionId(): string {
-  let result = '';
-  for (let i = 0; i < GAME_CONFIG.SESSION_ID_LENGTH; i++) {
-    result += ID_CHARS.SESSION_ID.charAt(
-      Math.floor(Math.random() * ID_CHARS.SESSION_ID.length)
-    );
-  }
-  return result;
+  return pureGenerateSessionId(GAME_CONFIG);
 }
 
 /**
@@ -47,14 +44,8 @@ export async function retryWithBackoff<T>(
       }
 
       // Only retry on concurrent access errors
-      if (
-        error.message &&
-        error.message.includes('Documents read from or written to')
-      ) {
-        const delay = Math.min(
-          config.baseDelay * Math.pow(2, attempt) + Math.random() * 1000,
-          config.maxDelay
-        );
+      if (isRetryableError(error)) {
+        const delay = calculateRetryDelay(attempt, config);
         console.log(`Retry attempt ${attempt + 1} after ${delay}ms delay`);
         await new Promise(resolve => setTimeout(resolve, delay));
       } else {
@@ -144,13 +135,13 @@ export function checkWinConditions(
     return 'civilians_win';
   }
 
-  // Undercovers win if they equal or outnumber civilians (and no Mr. White)
-  if (undercovers >= civilians && mrWhite === 0) {
+  // Undercovers win if only 1 civilian remains (or less)
+  if (civilians <= 1 && undercovers > 0) {
     return 'undercovers_win';
   }
 
-  // Mr. White solo victory: survives to end (last 2 players) with at least one civilian
-  if (mrWhite > 0 && civilians > 0 && undercovers === 0 && alive === 2) {
+  // Mr. White wins if only 1 civilian remains (or less) and Mr. White is alive
+  if (civilians <= 1 && mrWhite > 0) {
     return 'mr_white_win';
   }
 
@@ -299,7 +290,7 @@ export function sanitizeInput(
   input: string,
   maxLength: number = GAME_CONFIG.MAX_PLAYER_NAME_LENGTH
 ): string {
-  return input.trim().slice(0, maxLength);
+  return pureSanitizeInput(input, maxLength);
 }
 
 /**
@@ -310,8 +301,5 @@ export function createGameError(
   code: string,
   details?: Record<string, unknown>
 ): GameError {
-  const error = new Error(message) as GameError;
-  error.code = code;
-  error.details = details;
-  return error;
+  return pureCreateGameError(message, code, details);
 }
