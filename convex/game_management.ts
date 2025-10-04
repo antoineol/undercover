@@ -220,6 +220,9 @@ export const fixDataInconsistency = mutation({
     // Check if current player has already shared but it's still their turn
     if (room.playerOrder && room.currentPlayerIndex !== undefined) {
       const currentPlayerId = room.playerOrder[room.currentPlayerIndex];
+      if (!currentPlayerId) {
+        throw new Error("Invalid player order or current player index");
+      }
       const currentPlayer = await ctx.db.get(currentPlayerId);
 
       if (currentPlayer?.hasSharedWord) {

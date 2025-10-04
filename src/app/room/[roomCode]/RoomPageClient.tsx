@@ -1,15 +1,15 @@
-'use client';
+"use client";
 
-import GameRoom from '@/components/GameRoom';
-import { usePlayerStore } from '@/lib/stores/player-store';
-import { useUIStore } from '@/lib/stores/ui-store';
-import { Room } from '@/lib/types';
-import { useMutation, useQuery } from 'convex/react';
-import Image from 'next/image';
-import Link from 'next/link';
-import QRCode from 'qrcode';
-import { useCallback, useEffect, useState } from 'react';
-import { api } from '../../../../convex/_generated/api';
+import GameRoom from "@/components/GameRoom";
+import { usePlayerStore } from "@/lib/stores/player-store";
+import { useUIStore } from "@/lib/stores/ui-store";
+import { type Room } from "@/lib/types";
+import { useMutation, useQuery } from "convex/react";
+import Image from "next/image";
+import Link from "next/link";
+import QRCode from "qrcode";
+import { useCallback, useEffect, useState } from "react";
+import { api } from "../../../../convex/_generated/api";
 
 interface RoomPageClientProps {
   roomCode: string;
@@ -26,15 +26,15 @@ export function RoomPageClient({ roomCode }: RoomPageClientProps) {
   } = usePlayerStore();
   const { qrCodeDataUrl, setQrCodeDataUrl } = useUIStore();
   const [isLoading, setIsLoading] = useState(true);
-  const [joinError, setJoinError] = useState('');
+  const [joinError, setJoinError] = useState("");
 
   const room = useQuery(api.rooms.getRoom, { roomCode });
   const joinRoom = useMutation(api.rooms.joinRoom);
 
   const handleJoinRoom = useCallback(
-    async (name: string, isHostPlayer: boolean = false, sessionId?: string) => {
+    async (name: string, isHostPlayer = false, sessionId?: string) => {
       try {
-        setJoinError('');
+        setJoinError("");
         const result = await joinRoom({
           roomCode,
           playerName: name,
@@ -53,38 +53,38 @@ export function RoomPageClient({ roomCode }: RoomPageClientProps) {
 
         // Log if this is a rejoin (for debugging)
         if (result.isExisting) {
-          console.log('Player rejoined existing room');
+          console.log("Player rejoined existing room");
         }
       } catch (error) {
-        console.error('Failed to join room:', error);
+        console.error("Failed to join room:", error);
         const errorMessage =
-          error instanceof Error ? error.message : 'Unknown error';
+          error instanceof Error ? error.message : "Unknown error";
 
         // Show specific error messages for different cases
-        if (errorMessage.includes('name already exists')) {
+        if (errorMessage.includes("name already exists")) {
           setJoinError(
-            'Un joueur avec ce nom existe déjà dans la salle. Veuillez choisir un autre nom.'
+            "Un joueur avec ce nom existe déjà dans la salle. Veuillez choisir un autre nom.",
           );
-        } else if (errorMessage.includes('Invalid session')) {
+        } else if (errorMessage.includes("Invalid session")) {
           setJoinError(
-            'Session invalide. Veuillez rejoindre avec un nouveau nom.'
+            "Session invalide. Veuillez rejoindre avec un nouveau nom.",
           );
-        } else if (errorMessage.includes('Room not found')) {
-          setJoinError('Salle introuvable. Vérifiez le code de la salle.');
-        } else if (errorMessage.includes('Game has already started')) {
+        } else if (errorMessage.includes("Room not found")) {
+          setJoinError("Salle introuvable. Vérifiez le code de la salle.");
+        } else if (errorMessage.includes("Game has already started")) {
           setJoinError(
-            'La partie a déjà commencé. Vous ne pouvez plus rejoindre cette salle.'
+            "La partie a déjà commencé. Vous ne pouvez plus rejoindre cette salle.",
           );
-        } else if (errorMessage.includes('Room is full')) {
-          setJoinError('La salle est pleine. Maximum 10 joueurs autorisés.');
+        } else if (errorMessage.includes("Room is full")) {
+          setJoinError("La salle est pleine. Maximum 10 joueurs autorisés.");
         } else {
           setJoinError(
-            'Impossible de rejoindre la salle. Vérifiez le code de la salle ou essayez un nom différent.'
+            "Impossible de rejoindre la salle. Vérifiez le code de la salle ou essayez un nom différent.",
           );
         }
       }
     },
-    [roomCode, joinRoom, setPlayer, saveToSessionStorage]
+    [roomCode, joinRoom, setPlayer, saveToSessionStorage],
   );
 
   // Check for existing player data on mount and generate QR code
@@ -94,7 +94,7 @@ export function RoomPageClient({ roomCode }: RoomPageClientProps) {
 
     // Auto-join if we have saved data
     if (playerName && roomCode) {
-      handleJoinRoom(playerName, isHost, undefined);
+      void handleJoinRoom(playerName, isHost, undefined);
     }
     setIsLoading(false);
 
@@ -106,17 +106,17 @@ export function RoomPageClient({ roomCode }: RoomPageClientProps) {
           width: 150,
           margin: 2,
           color: {
-            dark: '#000000',
-            light: '#FFFFFF',
+            dark: "#000000",
+            light: "#FFFFFF",
           },
         });
         setQrCodeDataUrl(qrDataUrl);
       } catch (error) {
-        console.error('Failed to generate QR code:', error);
+        console.error("Failed to generate QR code:", error);
       }
     };
 
-    generateQRCode();
+    void generateQRCode();
   }, [
     roomCode,
     handleJoinRoom,
@@ -130,15 +130,15 @@ export function RoomPageClient({ roomCode }: RoomPageClientProps) {
     // Clear saved player data from both Zustand and sessionStorage
     clearPlayer();
     sessionStorage.removeItem(`player_${roomCode}`);
-    setJoinError('');
+    setJoinError("");
   };
 
   if (isLoading || room === undefined) {
     return (
-      <div className='min-h-screen flex items-center justify-center'>
-        <div className='text-center'>
-          <div className='animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4'></div>
-          <p className='text-gray-600'>Chargement de la salle...</p>
+      <div className="flex min-h-screen items-center justify-center">
+        <div className="text-center">
+          <div className="mx-auto mb-4 h-12 w-12 animate-spin rounded-full border-b-2 border-blue-600"></div>
+          <p className="text-gray-600">Chargement de la salle...</p>
         </div>
       </div>
     );
@@ -146,19 +146,19 @@ export function RoomPageClient({ roomCode }: RoomPageClientProps) {
 
   if (room === null) {
     return (
-      <div className='min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-500 to-purple-600'>
-        <div className='bg-white rounded-lg shadow-xl p-8 w-full max-w-md'>
-          <div className='text-center mb-8'>
-            <h1 className='text-3xl font-bold text-red-600 mb-2'>
+      <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-blue-500 to-purple-600">
+        <div className="w-full max-w-md rounded-lg bg-white p-8 shadow-xl">
+          <div className="mb-8 text-center">
+            <h1 className="mb-2 text-3xl font-bold text-red-600">
               Salle Introuvable
             </h1>
-            <p className='text-gray-600'>
+            <p className="text-gray-600">
               Le code de salle &quot;{roomCode}&quot; n&apos;existe pas.
             </p>
           </div>
           <Link
-            href='/'
-            className='w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 text-center block'
+            href="/"
+            className="block w-full rounded-md bg-blue-600 px-4 py-2 text-center text-white hover:bg-blue-700"
           >
             Retour à l&apos;Accueil
           </Link>
@@ -179,15 +179,15 @@ export function RoomPageClient({ roomCode }: RoomPageClientProps) {
   }
 
   return (
-    <div className='min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-500 to-purple-600'>
-      <div className='bg-white rounded-lg shadow-xl p-8 w-full max-w-md'>
-        <div className='text-center mb-8'>
-          <h1 className='text-3xl font-bold text-gray-800 mb-2'>
+    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-blue-500 to-purple-600">
+      <div className="w-full max-w-md rounded-lg bg-white p-8 shadow-xl">
+        <div className="mb-8 text-center">
+          <h1 className="mb-2 text-3xl font-bold text-gray-800">
             Rejoindre une Salle
           </h1>
-          <p className='text-gray-600'>
-            Code de la Salle :{' '}
-            <span className='font-mono font-bold'>{roomCode}</span>
+          <p className="text-gray-600">
+            Code de la Salle :{" "}
+            <span className="font-mono font-bold">{roomCode}</span>
           </p>
         </div>
 
@@ -195,15 +195,15 @@ export function RoomPageClient({ roomCode }: RoomPageClientProps) {
 
         {/* QR Code Section */}
         {qrCodeDataUrl && (
-          <div className='mt-6 text-center'>
+          <div className="mt-6 text-center">
             <Image
               src={qrCodeDataUrl}
-              alt='QR Code'
+              alt="QR Code"
               width={150}
               height={150}
-              className='mx-auto'
+              className="mx-auto"
             />
-            <p className='text-sm text-gray-600 mt-2'>Scannez pour rejoindre</p>
+            <p className="mt-2 text-sm text-gray-600">Scannez pour rejoindre</p>
           </div>
         )}
       </div>
@@ -218,7 +218,7 @@ interface JoinRoomFormProps {
 }
 
 function JoinRoomForm({ onJoin, error, room }: JoinRoomFormProps) {
-  const [name, setName] = useState('');
+  const [name, setName] = useState("");
   const [isHost, setIsHost] = useState(false);
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -229,27 +229,27 @@ function JoinRoomForm({ onJoin, error, room }: JoinRoomFormProps) {
   };
 
   return (
-    <form onSubmit={handleSubmit} className='space-y-4'>
+    <form onSubmit={handleSubmit} className="space-y-4">
       {error && (
-        <div className='bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded'>
+        <div className="rounded border border-red-200 bg-red-50 px-4 py-3 text-red-700">
           {error}
         </div>
       )}
 
       <div>
         <label
-          htmlFor='name'
-          className='block text-sm font-medium text-gray-700 mb-2'
+          htmlFor="name"
+          className="mb-2 block text-sm font-medium text-gray-700"
         >
           Votre Nom
         </label>
         <input
-          type='text'
-          id='name'
+          type="text"
+          id="name"
           value={name}
-          onChange={e => setName(e.target.value)}
-          className='w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500'
-          placeholder='Entrez votre nom'
+          onChange={(e) => setName(e.target.value)}
+          className="w-full rounded-md border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+          placeholder="Entrez votre nom"
           required
           maxLength={20}
           autoFocus
@@ -257,30 +257,30 @@ function JoinRoomForm({ onJoin, error, room }: JoinRoomFormProps) {
       </div>
 
       {room.players.length === 0 && (
-        <div className='flex items-center'>
+        <div className="flex items-center">
           <input
-            type='checkbox'
-            id='isHost'
+            type="checkbox"
+            id="isHost"
             checked={isHost}
-            onChange={e => setIsHost(e.target.checked)}
-            className='h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded'
+            onChange={(e) => setIsHost(e.target.checked)}
+            className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
           />
-          <label htmlFor='isHost' className='ml-2 block text-sm text-gray-700'>
+          <label htmlFor="isHost" className="ml-2 block text-sm text-gray-700">
             Je suis l&apos;hôte de cette salle
           </label>
         </div>
       )}
 
       <button
-        type='submit'
+        type="submit"
         disabled={!name.trim()}
-        className='w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed'
+        className="w-full rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
       >
         Rejoindre la Salle
       </button>
 
-      <div className='text-center'>
-        <Link href='/' className='text-blue-600 hover:text-blue-800 text-sm'>
+      <div className="text-center">
+        <Link href="/" className="text-sm text-blue-600 hover:text-blue-800">
           ← Retour à l&apos;Accueil
         </Link>
       </div>

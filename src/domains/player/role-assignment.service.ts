@@ -32,8 +32,12 @@ export function assignRoles(
       role = "mr_white";
     }
 
+    const player = shuffledPlayers[i];
+    if (!player?._id) {
+      throw new Error("Invalid player data");
+    }
     roleAssignments.push({
-      playerId: shuffledPlayers[i]._id,
+      playerId: player._id,
       role,
     });
   }
@@ -59,14 +63,16 @@ export function findNextAlivePlayer(
 ): number {
   // Look for next alive player in the order
   for (let i = currentIndex + 1; i < playerOrder.length; i++) {
-    if (alivePlayerIds.includes(playerOrder[i])) {
+    const playerId = playerOrder[i];
+    if (playerId && alivePlayerIds.includes(playerId)) {
       return i;
     }
   }
 
   // If no next alive player found, check from the beginning
   for (let i = 0; i < currentIndex; i++) {
-    if (alivePlayerIds.includes(playerOrder[i])) {
+    const playerId = playerOrder[i];
+    if (playerId && alivePlayerIds.includes(playerId)) {
       return i;
     }
   }
@@ -81,7 +87,9 @@ export function shuffleArray<T>(array: T[]): T[] {
   const shuffled = [...array];
   for (let i = shuffled.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
-    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    const temp = shuffled[i]!;
+    shuffled[i] = shuffled[j]!;
+    shuffled[j] = temp;
   }
   return shuffled;
 }

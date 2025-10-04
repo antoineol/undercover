@@ -1,4 +1,5 @@
 import { FlatCompat } from "@eslint/eslintrc";
+import gitignore from "eslint-config-flat-gitignore";
 import eslintPluginPrettierRecommended from "eslint-plugin-prettier/recommended";
 import tseslint from "typescript-eslint";
 
@@ -7,8 +8,9 @@ const compat = new FlatCompat({
 });
 
 export default tseslint.config(
+  gitignore(),
   {
-    ignores: [".next"],
+    ignores: ["next-env.d.ts", "convex/_generated/**"],
   },
   ...compat.extends("next/core-web-vitals"),
   {

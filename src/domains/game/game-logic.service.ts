@@ -76,7 +76,7 @@ export function countVotes(players: ConvexPlayer[]): VoteCounts {
   const voteCounts: VoteCounts = {};
   players.forEach((player) => {
     player.votes.forEach((voteId: Id<"players">) => {
-      voteCounts[voteId] = (voteCounts[voteId] || 0) + 1;
+      voteCounts[voteId] = (voteCounts[voteId] ?? 0) + 1;
     });
   });
   return voteCounts;
@@ -113,7 +113,7 @@ export function getVoterNames(
 
   players.forEach((player) => {
     player.votes.forEach((voteId: string) => {
-      if (!voterNames[voteId]) voterNames[voteId] = [];
+      voterNames[voteId] ??= [];
       voterNames[voteId].push(player.name);
     });
   });

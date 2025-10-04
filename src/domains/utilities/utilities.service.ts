@@ -3,7 +3,7 @@
  * Pure utility functions for common operations
  */
 
-import { type GameConfig, type RetryConfig, type GameError } from "./utilities";
+import { type GameConfig, type GameError, type RetryConfig } from "./utilities";
 
 /**
  * Generate a random room code
@@ -122,7 +122,7 @@ export function getGameStateDisplay(gameState: string): string {
     results: "Résultats",
   };
 
-  return stateMap[gameState] || gameState;
+  return stateMap[gameState] ?? gameState;
 }
 
 /**

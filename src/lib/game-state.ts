@@ -1,7 +1,7 @@
-import { GameStateService, PlayerService, RoomService } from "./game-services";
-import { GameFlowHelpers } from "./game-helpers";
 import { type MutationCtx } from "../../convex/_generated/server";
 import { type ConvexRoom, type RoomId } from "./convex-types";
+import { GameFlowHelpers } from "./game-helpers";
+import { GameStateService, PlayerService, RoomService } from "./game-services";
 
 /**
  * Game state management utilities
@@ -82,14 +82,15 @@ export class GameStateManager {
     // Create new player order
     const alivePlayers = await PlayerService.getAlivePlayers(ctx, roomId);
     const alivePlayerIds = alivePlayers.map((p) => p._id);
-    const shuffledOrder = [...(room.playerOrder || [])].sort(
+    const shuffledOrder = [...(room.playerOrder ?? [])].sort(
       () => Math.random() - 0.5,
     );
 
     // Find first alive player in the shuffled order
     let firstAliveIndex = 0;
     for (let i = 0; i < shuffledOrder.length; i++) {
-      if (alivePlayerIds.includes(shuffledOrder[i])) {
+      const playerId = shuffledOrder[i];
+      if (playerId && alivePlayerIds.includes(playerId)) {
         firstAliveIndex = i;
         break;
       }

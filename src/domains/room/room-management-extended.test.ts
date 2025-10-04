@@ -103,9 +103,29 @@ describe("Extended Room Management Functions", () => {
     });
 
     test("should calculate partial progress", () => {
-      const playersWithPartialVoting = [
-        { ...mockPlayers[0], votes: ["player2"] },
-        { ...mockPlayers[1], votes: [] },
+      const playersWithPartialVoting: Player[] = [
+        {
+          _id: "player1",
+          name: "Alice",
+          role: "civilian",
+          isAlive: true,
+          hasSharedWord: false,
+          votes: ["player2"],
+          roomId: "room1",
+          isHost: false,
+          createdAt: Date.now(),
+        },
+        {
+          _id: "player2",
+          name: "Bob",
+          role: "undercover",
+          isAlive: true,
+          hasSharedWord: false,
+          votes: [],
+          roomId: "room1",
+          isHost: false,
+          createdAt: Date.now(),
+        },
       ];
       const progress = calculateVotingProgress(
         toConvexPlayers(playersWithPartialVoting),
@@ -120,7 +140,7 @@ describe("Extended Room Management Functions", () => {
         mockRoom,
         toConvexPlayers(mockPlayers),
       );
-      expect(currentPlayer).toEqual(toConvexPlayers(mockPlayers)[0]);
+      expect(currentPlayer).toEqual(toConvexPlayers(mockPlayers)[0] ?? null);
     });
 
     test("should return null when no current turn player", () => {
@@ -216,7 +236,7 @@ describe("Extended Room Management Functions", () => {
         toConvexPlayers(mockPlayers),
         "Alice",
       );
-      expect(player).toEqual(toConvexPlayers(mockPlayers)[0]);
+      expect(player).toEqual(toConvexPlayers(mockPlayers)[0] ?? null);
     });
 
     test("should return null for non-existent player", () => {

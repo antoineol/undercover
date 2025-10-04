@@ -1,5 +1,5 @@
-import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
+import { mutation, query } from "./_generated/server";
 
 /**
  * Update room game configuration
@@ -29,8 +29,8 @@ export const getGameConfig = query({
       throw new Error("Room not found");
     }
     return {
-      numUndercovers: room.numUndercovers || 1,
-      numMrWhites: room.numMrWhites || 0,
+      numUndercovers: room.numUndercovers ?? 1,
+      numMrWhites: room.numMrWhites ?? 0,
     };
   },
 });

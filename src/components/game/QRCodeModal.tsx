@@ -1,6 +1,6 @@
-import { useUIStore } from '@/lib/stores/ui-store';
-import Image from 'next/image';
-import AnimateHeight from 'react-animate-height';
+import { useUIStore } from "@/lib/stores/ui-store";
+import Image from "next/image";
+import AnimateHeight from "react-animate-height";
 
 export default function QRCodeModal() {
   const { showQR, setShowQR, qrCodeDataUrl } = useUIStore();
@@ -9,39 +9,39 @@ export default function QRCodeModal() {
 
   return (
     <AnimateHeight
-      height={showQR ? 'auto' : 0}
+      height={showQR ? "auto" : 0}
       duration={300}
-      easing='ease-in-out'
+      easing="ease-in-out"
       animateOpacity
     >
       <div
-        className='fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 mt-6'
+        className="bg-opacity-50 fixed inset-0 z-50 mt-6 flex items-center justify-center bg-black p-4"
         onClick={handleClose}
       >
         <div
-          className='bg-white rounded-lg p-6 max-w-sm w-full'
-          onClick={e => e.stopPropagation()}
+          className="w-full max-w-sm rounded-lg bg-white p-6"
+          onClick={(e) => e.stopPropagation()}
         >
-          <div className='flex justify-between items-center mb-4'>
-            <h3 className='text-lg font-semibold'>Code QR de la Salle</h3>
+          <div className="mb-4 flex items-center justify-between">
+            <h3 className="text-lg font-semibold">Code QR de la Salle</h3>
             <button
               onClick={handleClose}
-              className='text-gray-500 hover:text-gray-700 text-xl font-bold w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 transition-colors'
-              aria-label='Fermer le modal'
+              className="flex h-8 w-8 items-center justify-center rounded-full text-xl font-bold text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-700"
+              aria-label="Fermer le modal"
             >
               ×
             </button>
           </div>
           {qrCodeDataUrl && (
-            <div className='text-center'>
+            <div className="text-center">
               <Image
                 src={qrCodeDataUrl}
-                alt='QR Code'
+                alt="QR Code"
                 width={200}
                 height={200}
-                className='mx-auto mb-4'
+                className="mx-auto mb-4"
               />
-              <p className='text-sm text-gray-600'>
+              <p className="text-sm text-gray-600">
                 Scannez ce code pour rejoindre la salle
               </p>
             </div>

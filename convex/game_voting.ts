@@ -300,7 +300,8 @@ async function resetForNextRound(
     // Find first alive player in the shuffled order
     let firstAliveIndex = 0;
     for (let i = 0; i < shuffledOrder.length; i++) {
-      if (alivePlayerIds.includes(shuffledOrder[i])) {
+      const playerId = shuffledOrder[i];
+      if (playerId && alivePlayerIds.includes(playerId)) {
         firstAliveIndex = i;
         break;
       }

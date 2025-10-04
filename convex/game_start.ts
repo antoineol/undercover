@@ -57,6 +57,10 @@ export const startGame = mutation({
     }
 
     // Create game words
+    if (!wordPair) {
+      throw new Error("Failed to get word pair");
+    }
+
     await ctx.db.insert("gameWords", {
       roomId: args.roomId,
       civilianWord: wordPair.civilian,

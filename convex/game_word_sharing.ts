@@ -78,9 +78,11 @@ export const shareWord = mutation({
         currentPlayerIndex: nextAlivePlayerIndex,
       });
 
-      const nextPlayer = await ctx.db.get(
-        room.playerOrder![nextAlivePlayerIndex],
-      );
+      const nextPlayerId = room.playerOrder?.[nextAlivePlayerIndex];
+      if (!nextPlayerId) {
+        throw new Error("Invalid player order");
+      }
+      const nextPlayer = await ctx.db.get(nextPlayerId);
       return {
         success: true,
         allShared: false,

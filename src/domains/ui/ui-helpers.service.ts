@@ -15,7 +15,7 @@ export function getRoleDisplayName(role: string): string {
     civilian: "Civil",
   };
 
-  return roleMap[role as keyof typeof roleMap] || role;
+  return roleMap[role as keyof typeof roleMap] ?? role;
 }
 
 /**
@@ -28,7 +28,7 @@ export function getRoleBadgeColor(role: string): string {
     civilian: "bg-blue-100 text-blue-800",
   };
 
-  return colorMap[role as keyof typeof colorMap] || "bg-gray-100 text-gray-800";
+  return colorMap[role as keyof typeof colorMap] ?? "bg-gray-100 text-gray-800";
 }
 
 /**
@@ -88,7 +88,7 @@ export function getGameStateDisplayText(gameState: string): string {
     results: "Résultats du jeu",
   };
 
-  return stateMap[gameState] || gameState;
+  return stateMap[gameState] ?? gameState;
 }
 
 /**
@@ -179,7 +179,7 @@ export function getValidationErrorMessage(error: string): string {
     "Players not in same room": "Les joueurs ne sont pas dans la même salle",
   };
 
-  return errorMap[error] || error;
+  return errorMap[error] ?? error;
 }
 
 /**
@@ -252,7 +252,7 @@ export function getGameStateMessage(gameState: string): string {
     results: "Résultats du jeu",
   };
 
-  return stateMap[gameState] || "";
+  return stateMap[gameState] ?? "";
 }
 
 /**
@@ -311,7 +311,7 @@ export function getValidationResultMessage(action: string): string {
     no_action_needed: "Game state is valid - no action needed",
   };
 
-  return messageMap[action] || `Game state fixed: ${action}`;
+  return messageMap[action] ?? `Game state fixed: ${action}`;
 }
 
 /**
@@ -455,4 +455,3 @@ export function getLoadingStateText(
     joinButtonText: isJoining ? "Rejoindre..." : "Rejoindre la Salle",
   };
 }
-

@@ -36,7 +36,7 @@ function WordSharingContent({
   alivePlayers,
   isSubmitting = false,
 }: WordSharingProps) {
-  const hasSharedWord = currentPlayer?.hasSharedWord || false;
+  const hasSharedWord = currentPlayer?.hasSharedWord ?? false;
   const playersWhoShared = room.players.filter(
     (p) => p.isAlive && p.hasSharedWord,
   ).length;

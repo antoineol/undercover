@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import {
   calculateVoteData,
@@ -8,26 +8,26 @@ import {
   isDiscussionPhase,
   isMyTurn,
   isVotingPhase,
-} from '@/domains/room/room-management.service';
-import { GameRoomProps, RoomWithPlayers } from '@/lib/convex-types';
-import { useUIStore } from '@/lib/stores/ui-store';
-import { retryWithBackoff } from '@/lib/utils';
-import { useMutation, useQuery } from 'convex/react';
-import AnimateHeight from 'react-animate-height';
-import { api } from '../../convex/_generated/api';
-import { Id } from '../../convex/_generated/dataModel';
-import GameConfiguration from './game/GameConfiguration';
-import GameHeader from './game/GameHeader';
-import GameInstructions from './game/GameInstructions';
-import GameResults from './game/GameResults';
-import GameStartButton from './game/GameStartButton';
-import MrWhiteGuessing from './game/MrWhiteGuessing';
-import PlayerList from './game/PlayerList';
-import QRCodeModal from './game/QRCodeModal';
-import ShareButtons from './game/ShareButtons';
-import StopGameButton from './game/StopGameButton';
-import WordDisplay from './game/WordDisplay';
-import WordSharing from './game/WordSharing';
+} from "@/domains/room/room-management.service";
+import { type GameRoomProps, type RoomWithPlayers } from "@/lib/convex-types";
+import { useUIStore } from "@/lib/stores/ui-store";
+import { retryWithBackoff } from "@/lib/utils";
+import { useMutation, useQuery } from "convex/react";
+import AnimateHeight from "react-animate-height";
+import { api } from "../../convex/_generated/api";
+import { type Id } from "../../convex/_generated/dataModel";
+import GameConfiguration from "./game/GameConfiguration";
+import GameHeader from "./game/GameHeader";
+import GameInstructions from "./game/GameInstructions";
+import GameResults from "./game/GameResults";
+import GameStartButton from "./game/GameStartButton";
+import MrWhiteGuessing from "./game/MrWhiteGuessing";
+import PlayerList from "./game/PlayerList";
+import QRCodeModal from "./game/QRCodeModal";
+import ShareButtons from "./game/ShareButtons";
+import StopGameButton from "./game/StopGameButton";
+import WordDisplay from "./game/WordDisplay";
+import WordSharing from "./game/WordSharing";
 
 export default function GameRoom({
   roomCode,
@@ -44,7 +44,7 @@ export default function GameRoom({
   }) as RoomWithPlayers | null;
   const gameWords = useQuery(
     api.game.getGameWords,
-    room ? { roomId: room._id } : 'skip'
+    room ? { roomId: room._id } : "skip",
   );
 
   const shareWord = useMutation(api.game.shareWord);
@@ -54,7 +54,7 @@ export default function GameRoom({
   const handleShareWord = async () => {
     if (room && wordToShare.trim() && !isSharingWord) {
       const currentPlayer = room.players.find(
-        (p: { name: string }) => p.name === playerName
+        (p: { name: string }) => p.name === playerName,
       );
       if (currentPlayer) {
         setIsSharingWord(true);
@@ -63,12 +63,12 @@ export default function GameRoom({
             shareWord({
               playerId: currentPlayer._id,
               word: wordToShare.trim(),
-            })
+            }),
           );
-          setWordToShare('');
+          setWordToShare("");
         } catch (error) {
-          console.error('Échec du partage du mot:', error);
-          alert('Erreur: ' + ((error as Error).message || 'Erreur inconnue'));
+          console.error("Échec du partage du mot:", error);
+          alert("Erreur: " + ((error as Error).message || "Erreur inconnue"));
         } finally {
           setIsSharingWord(false);
         }
@@ -76,10 +76,10 @@ export default function GameRoom({
     }
   };
 
-  const handleVote = async (targetId: Id<'players'>) => {
+  const handleVote = async (targetId: Id<"players">) => {
     if (room) {
       const currentPlayer = room.players.find(
-        (p: { name: string }) => p.name === playerName
+        (p: { name: string }) => p.name === playerName,
       );
       if (currentPlayer) {
         try {
@@ -88,13 +88,13 @@ export default function GameRoom({
               roomId: room._id,
               voterId: currentPlayer._id,
               targetId: targetId,
-            })
+            }),
           );
         } catch (error) {
-          console.error('Échec du vote:', error);
+          console.error("Échec du vote:", error);
           alert(
-            'Erreur lors du vote: ' +
-              ((error as Error).message || 'Erreur inconnue')
+            "Erreur lors du vote: " +
+              ((error as Error).message || "Erreur inconnue"),
           );
         }
       }
@@ -106,8 +106,8 @@ export default function GameRoom({
       try {
         await restartGame({ roomId: room._id });
       } catch (error) {
-        console.error('Failed to restart game:', error);
-        alert('Échec du redémarrage du jeu');
+        console.error("Failed to restart game:", error);
+        alert("Échec du redémarrage du jeu");
       }
     }
   };
@@ -118,10 +118,10 @@ export default function GameRoom({
 
   if (!room) {
     return (
-      <div className='min-h-screen flex items-center justify-center'>
-        <div className='text-center'>
-          <div className='animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4'></div>
-          <p className='text-gray-600'>Chargement de la salle...</p>
+      <div className="flex min-h-screen items-center justify-center">
+        <div className="text-center">
+          <div className="mx-auto mb-4 h-12 w-12 animate-spin rounded-full border-b-2 border-blue-600"></div>
+          <p className="text-gray-600">Chargement de la salle...</p>
         </div>
       </div>
     );
@@ -129,7 +129,7 @@ export default function GameRoom({
 
   // Use pure functions for business logic calculations
   const currentPlayer = getCurrentPlayerByName(room.players, playerName);
-  const alivePlayers = room.players.filter(p => p.isAlive);
+  const alivePlayers = room.players.filter((p) => p.isAlive);
   const isVotingPhaseState = isVotingPhase(room);
   const isDiscussionPhaseState = isDiscussionPhase(room);
 
@@ -146,7 +146,7 @@ export default function GameRoom({
   const { voteCounts, voterNames } = calculateVoteData(room.players);
 
   return (
-    <div className='min-h-screen bg-gray-100'>
+    <div className="min-h-screen bg-gray-100">
       <GameHeader
         room={room}
         onLeave={onLeave}
@@ -154,15 +154,15 @@ export default function GameRoom({
         showConfig={showConfig}
       />
 
-      <div className='max-w-4xl mx-auto px-4 py-6 flex flex-col mb-10'>
+      <div className="mx-auto mb-10 flex max-w-4xl flex-col px-4 py-6">
         {/* Start Game Button and Configuration */}
         <AnimateHeight
-          height={isHost && room.gameState === 'waiting' ? 'auto' : 0}
+          height={isHost && room.gameState === "waiting" ? "auto" : 0}
           duration={300}
-          easing='ease-in-out'
+          easing="ease-in-out"
           animateOpacity
         >
-          <div className='flex flex-col mt-6'>
+          <div className="mt-6 flex flex-col">
             <GameStartButton room={room} isHost={isHost} />
             <GameConfiguration room={room} showConfig={showConfig} />
           </div>
@@ -177,7 +177,7 @@ export default function GameRoom({
         <WordDisplay
           room={room}
           currentPlayer={currentPlayer}
-          gameWords={gameWords || null}
+          gameWords={gameWords ?? null}
         />
 
         <WordSharing
@@ -187,7 +187,7 @@ export default function GameRoom({
           setWordToShare={setWordToShare}
           onShareWord={handleShareWord}
           isMyTurn={isMyTurnState}
-          currentTurnPlayer={currentTurnPlayer || undefined}
+          currentTurnPlayer={currentTurnPlayer ?? undefined}
           alivePlayers={alivePlayers}
           isSubmitting={isSharingWord}
         />
@@ -195,9 +195,9 @@ export default function GameRoom({
         <MrWhiteGuessing room={room} />
 
         <AnimateHeight
-          height={currentPlayer ? 'auto' : 0}
+          height={currentPlayer ? "auto" : 0}
           duration={300}
-          easing='ease-in-out'
+          easing="ease-in-out"
           animateOpacity
         >
           <PlayerList

@@ -191,32 +191,104 @@ describe("Role Assignment Functions", () => {
   describe("ensureMrWhiteNotFirst", () => {
     test("should move mr white from first position", () => {
       const playersWithMrWhiteFirst: Player[] = [
-        { ...mockPlayers[0], role: "mr_white" },
-        { ...mockPlayers[1], role: "civilian" },
-        { ...mockPlayers[2], role: "civilian" },
-        { ...mockPlayers[3], role: "civilian" },
+        {
+          _id: "player1",
+          name: "Alice",
+          role: "mr_white",
+          isAlive: true,
+          votes: [],
+          roomId: "room1",
+          isHost: false,
+          createdAt: Date.now(),
+        },
+        {
+          _id: "player2",
+          name: "Bob",
+          role: "civilian",
+          isAlive: true,
+          votes: [],
+          roomId: "room1",
+          isHost: false,
+          createdAt: Date.now(),
+        },
+        {
+          _id: "player3",
+          name: "Charlie",
+          role: "civilian",
+          isAlive: true,
+          votes: [],
+          roomId: "room1",
+          isHost: false,
+          createdAt: Date.now(),
+        },
+        {
+          _id: "player4",
+          name: "David",
+          role: "civilian",
+          isAlive: true,
+          votes: [],
+          roomId: "room1",
+          isHost: false,
+          createdAt: Date.now(),
+        },
       ];
 
       const reordered = ensureMrWhiteNotFirst(
         toPlayerWithId(playersWithMrWhiteFirst),
       );
-      expect(reordered[0].role).not.toBe("mr_white");
+      expect(reordered[0]?.role).not.toBe("mr_white");
       expect(reordered.some((p) => p.role === "mr_white")).toBe(true);
     });
 
     test("should not change order when mr white is not first", () => {
       const playersWithMrWhiteNotFirst: Player[] = [
-        { ...mockPlayers[0], role: "civilian" },
-        { ...mockPlayers[1], role: "mr_white" },
-        { ...mockPlayers[2], role: "civilian" },
-        { ...mockPlayers[3], role: "civilian" },
+        {
+          _id: "player1",
+          name: "Alice",
+          role: "civilian",
+          isAlive: true,
+          votes: [],
+          roomId: "room1",
+          isHost: false,
+          createdAt: Date.now(),
+        },
+        {
+          _id: "player2",
+          name: "Bob",
+          role: "mr_white",
+          isAlive: true,
+          votes: [],
+          roomId: "room1",
+          isHost: false,
+          createdAt: Date.now(),
+        },
+        {
+          _id: "player3",
+          name: "Charlie",
+          role: "civilian",
+          isAlive: true,
+          votes: [],
+          roomId: "room1",
+          isHost: false,
+          createdAt: Date.now(),
+        },
+        {
+          _id: "player4",
+          name: "David",
+          role: "civilian",
+          isAlive: true,
+          votes: [],
+          roomId: "room1",
+          isHost: false,
+          createdAt: Date.now(),
+        },
       ];
 
       const reordered = ensureMrWhiteNotFirst(
         toPlayerWithId(playersWithMrWhiteNotFirst),
       );
-      expect(reordered[0].role).toBe("civilian");
-      expect(reordered[1].role).toBe("mr_white");
+      expect(reordered[0]?.role).toBe("civilian");
+      expect(reordered[1]?.role).toBe("mr_white");
     });
 
     test("should handle players without mr white", () => {

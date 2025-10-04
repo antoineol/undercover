@@ -1,4 +1,4 @@
-import { create } from 'zustand';
+import { create } from "zustand";
 
 interface UIState {
   showWords: boolean;
@@ -27,22 +27,22 @@ const initialState: UIState = {
   showWords: false,
   showConfig: false,
   showQR: false,
-  shareButtonText: '📋 Partager le Lien',
-  qrCodeDataUrl: '',
+  shareButtonText: "📋 Partager le Lien",
+  qrCodeDataUrl: "",
   isSharingWord: false,
-  mrWhiteGuessInput: '',
-  wordToShare: '',
+  mrWhiteGuessInput: "",
+  wordToShare: "",
 };
 
-export const useUIStore = create<UIState & UIActions>(set => ({
+export const useUIStore = create<UIState & UIActions>((set) => ({
   ...initialState,
-  setShowWords: show => set({ showWords: show }),
-  setShowConfig: show => set({ showConfig: show }),
-  setShowQR: show => set({ showQR: show }),
-  setShareButtonText: text => set({ shareButtonText: text }),
-  setQrCodeDataUrl: url => set({ qrCodeDataUrl: url }),
-  setIsSharingWord: sharing => set({ isSharingWord: sharing }),
-  setMrWhiteGuessInput: input => set({ mrWhiteGuessInput: input }),
-  setWordToShare: word => set({ wordToShare: word }),
+  setShowWords: (show) => set({ showWords: show }),
+  setShowConfig: (show) => set({ showConfig: show }),
+  setShowQR: (show) => set({ showQR: show }),
+  setShareButtonText: (text) => set({ shareButtonText: text }),
+  setQrCodeDataUrl: (url) => set({ qrCodeDataUrl: url }),
+  setIsSharingWord: (sharing) => set({ isSharingWord: sharing }),
+  setMrWhiteGuessInput: (input) => set({ mrWhiteGuessInput: input }),
+  setWordToShare: (word) => set({ wordToShare: word }),
   resetUI: () => set(initialState),
 }));

@@ -11,7 +11,7 @@
     "build": "next build --turbopack",
     "start": "next start",
     "test": "bun test",
-    "lint": "eslint . --ext .js,.jsx,.ts,.tsx --fix",
+    "lint": "eslint --fix",
     "convex:dev": "convex dev",
     "convex:deploy": "convex deploy",
     "build:prod": "bunx convex deploy --cmd 'next build'"

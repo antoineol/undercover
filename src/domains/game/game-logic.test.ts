@@ -128,9 +128,33 @@ describe("Game Logic Functions", () => {
   describe("countVotes", () => {
     test("should count votes correctly", () => {
       const playersWithVotes: Player[] = [
-        { ...mockPlayers[0], votes: ["player2", "player3"] },
-        { ...mockPlayers[1], votes: ["player2"] },
-        { ...mockPlayers[2], votes: ["player1"] },
+        {
+          _id: "player1",
+          name: "Alice",
+          role: "civilian",
+          isAlive: true,
+          hasSharedWord: false,
+          votes: ["player2", "player3"],
+          roomId: "room1",
+        },
+        {
+          _id: "player2",
+          name: "Bob",
+          role: "undercover",
+          isAlive: true,
+          hasSharedWord: false,
+          votes: ["player2"],
+          roomId: "room1",
+        },
+        {
+          _id: "player3",
+          name: "Charlie",
+          role: "civilian",
+          isAlive: true,
+          hasSharedWord: false,
+          votes: ["player1"],
+          roomId: "room1",
+        },
       ];
 
       const convexPlayers = playersWithVotes.map(domainPlayerToConvex);
@@ -175,9 +199,33 @@ describe("Game Logic Functions", () => {
   describe("getVoterNames", () => {
     test("should map voter names to voted players", () => {
       const playersWithVotes: Player[] = [
-        { ...mockPlayers[0], name: "Alice", votes: ["player2"] },
-        { ...mockPlayers[1], name: "Bob", votes: ["player1"] },
-        { ...mockPlayers[2], name: "Charlie", votes: ["player1"] },
+        {
+          _id: "player1",
+          name: "Alice",
+          role: "civilian",
+          isAlive: true,
+          hasSharedWord: false,
+          votes: ["player2"],
+          roomId: "room1",
+        },
+        {
+          _id: "player2",
+          name: "Bob",
+          role: "undercover",
+          isAlive: true,
+          hasSharedWord: false,
+          votes: ["player1"],
+          roomId: "room1",
+        },
+        {
+          _id: "player3",
+          name: "Charlie",
+          role: "civilian",
+          isAlive: true,
+          hasSharedWord: false,
+          votes: ["player1"],
+          roomId: "room1",
+        },
       ];
 
       const convexPlayers = playersWithVotes.map(domainPlayerToConvex);
@@ -190,8 +238,13 @@ describe("Game Logic Functions", () => {
   describe("allPlayersCompletedAction", () => {
     test("should return true when all players shared word", () => {
       const playersWithSharedWords: Player[] = mockPlayers.map((p) => ({
-        ...p,
+        _id: p._id,
+        name: p.name,
+        role: p.role,
+        isAlive: p.isAlive,
         hasSharedWord: true,
+        votes: p.votes,
+        roomId: p.roomId,
       }));
 
       const convexPlayers = playersWithSharedWords.map(domainPlayerToConvex);
@@ -207,8 +260,14 @@ describe("Game Logic Functions", () => {
 
     test("should return true when all players voted", () => {
       const playersWithVotes: Player[] = mockPlayers.map((p) => ({
-        ...p,
+        _id: p._id,
+        name: p.name,
+        role: p.role,
+        isAlive: p.isAlive,
+        hasSharedWord: p.hasSharedWord,
         hasVoted: true,
+        votes: p.votes,
+        roomId: p.roomId,
       }));
 
       const convexPlayers = playersWithVotes.map(domainPlayerToConvex);
@@ -219,8 +278,24 @@ describe("Game Logic Functions", () => {
   describe("determineWinner", () => {
     test("should return civilians win when no undercovers and no mr white", () => {
       const alivePlayers: Player[] = [
-        { ...mockPlayers[0], role: "civilian" },
-        { ...mockPlayers[3], role: "civilian" },
+        {
+          _id: "player1",
+          name: "Alice",
+          role: "civilian",
+          isAlive: true,
+          hasSharedWord: false,
+          votes: [],
+          roomId: "room1",
+        },
+        {
+          _id: "player4",
+          name: "David",
+          role: "civilian",
+          isAlive: true,
+          hasSharedWord: false,
+          votes: [],
+          roomId: "room1",
+        },
       ];
 
       const convexPlayers = alivePlayers.map(domainPlayerToConvex);
@@ -231,8 +306,24 @@ describe("Game Logic Functions", () => {
 
     test("should return undercovers win when they outnumber civilians", () => {
       const alivePlayers: Player[] = [
-        { ...mockPlayers[1], role: "undercover" },
-        { ...mockPlayers[0], role: "civilian" },
+        {
+          _id: "player2",
+          name: "Bob",
+          role: "undercover",
+          isAlive: true,
+          hasSharedWord: false,
+          votes: [],
+          roomId: "room1",
+        },
+        {
+          _id: "player1",
+          name: "Alice",
+          role: "civilian",
+          isAlive: true,
+          hasSharedWord: false,
+          votes: [],
+          roomId: "room1",
+        },
       ];
 
       const convexPlayers = alivePlayers.map(domainPlayerToConvex);

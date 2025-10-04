@@ -75,7 +75,7 @@ export function getCurrentTurnPlayerId(room: Room): string | null {
     return null;
   }
 
-  return room.playerOrder[room.currentPlayerIndex] || null;
+  return room.playerOrder[room.currentPlayerIndex] ?? null;
 }
 
 /**
@@ -99,15 +99,17 @@ export function getNextTurnPlayerId(
 
   // Look for next alive player in the order
   for (let i = room.currentPlayerIndex + 1; i < room.playerOrder.length; i++) {
-    if (alivePlayerIds.includes(room.playerOrder[i])) {
-      return room.playerOrder[i];
+    const playerId = room.playerOrder[i];
+    if (playerId && alivePlayerIds.includes(playerId)) {
+      return playerId;
     }
   }
 
   // If no next alive player found, check from the beginning
   for (let i = 0; i < room.currentPlayerIndex; i++) {
-    if (alivePlayerIds.includes(room.playerOrder[i])) {
-      return room.playerOrder[i];
+    const playerId = room.playerOrder[i];
+    if (playerId && alivePlayerIds.includes(playerId)) {
+      return playerId;
     }
   }
 
@@ -126,7 +128,7 @@ export function getRoomStatusText(room: Room): string {
     results: "Résultats du jeu",
   };
 
-  return statusMap[room.gameState] || room.gameState;
+  return statusMap[room.gameState] ?? room.gameState;
 }
 
 /**
@@ -176,8 +178,8 @@ export function getRoomConfigurationSummary(room: Room): {
   currentRound: number;
 } {
   return {
-    numMrWhites: room.numMrWhites || 0,
-    numUndercovers: room.numUndercovers || 0,
+    numMrWhites: room.numMrWhites ?? 0,
+    numUndercovers: room.numUndercovers ?? 0,
     maxRounds: room.maxRounds,
     currentRound: room.currentRound,
   };
@@ -187,7 +189,7 @@ export function getRoomConfigurationSummary(room: Room): {
  * Check if room has Mr. White players
  */
 export function hasMrWhite(room: Room): boolean {
-  return (room.numMrWhites || 0) > 0;
+  return (room.numMrWhites ?? 0) > 0;
 }
 
 /**
@@ -220,8 +222,8 @@ export function getTurnOrderInfo(room: Room): {
   isLastTurn: boolean;
   turnText: string;
 } {
-  const currentIndex = room.currentPlayerIndex || 0;
-  const totalPlayers = room.playerOrder?.length || 0;
+  const currentIndex = room.currentPlayerIndex ?? 0;
+  const totalPlayers = room.playerOrder?.length ?? 0;
   const isLastTurn = currentIndex >= totalPlayers - 1;
 
   return {
@@ -289,7 +291,7 @@ export function getCurrentTurnPlayer(
   const currentTurnPlayerId = getCurrentTurnPlayerId(room);
   if (!currentTurnPlayerId) return null;
 
-  return players.find((p) => p._id === currentTurnPlayerId) || null;
+  return players.find((p) => p._id === currentTurnPlayerId) ?? null;
 }
 
 /**
@@ -313,8 +315,8 @@ export function calculateVoteData(players: ConvexPlayer[]): {
 
   alivePlayers.forEach((player) => {
     player.votes.forEach((voteId: string) => {
-      voteCounts[voteId] = (voteCounts[voteId] || 0) + 1;
-      if (!voterNames[voteId]) voterNames[voteId] = [];
+      voteCounts[voteId] = (voteCounts[voteId] ?? 0) + 1;
+      voterNames[voteId] ??= [];
       voterNames[voteId].push(player.name);
     });
   });
@@ -351,7 +353,7 @@ export function getCurrentPlayerByName(
   players: ConvexPlayer[],
   playerName: string,
 ): ConvexPlayer | null {
-  return players.find((p) => p.name === playerName) || null;
+  return players.find((p) => p.name === playerName) ?? null;
 }
 
 /**
@@ -359,7 +361,7 @@ export function getCurrentPlayerByName(
  */
 export function generateRoomUrl(roomCode: string, baseUrl?: string): string {
   const origin =
-    baseUrl || (typeof window !== "undefined" ? window.location.origin : "");
+    baseUrl ?? (typeof window !== "undefined" ? window.location.origin : "");
   return `${origin}/room/${roomCode}`;
 }
 

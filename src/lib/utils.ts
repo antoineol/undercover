@@ -165,7 +165,7 @@ export function countVotes(players: Player[]): Record<string, number> {
   const voteCounts: Record<string, number> = {};
   players.forEach((player) => {
     player.votes.forEach((voteId: string) => {
-      voteCounts[voteId] = (voteCounts[voteId] || 0) + 1;
+      voteCounts[voteId] = (voteCounts[voteId] ?? 0) + 1;
     });
   });
   return voteCounts;
@@ -204,7 +204,7 @@ export function getVoterNames(players: Player[]): Record<string, string[]> {
 
   players.forEach((player) => {
     player.votes.forEach((voteId: string) => {
-      if (!voterNames[voteId]) voterNames[voteId] = [];
+      voterNames[voteId] ??= [];
       voterNames[voteId].push(player.name);
     });
   });
@@ -222,14 +222,16 @@ export function findNextAlivePlayer(
 ): number {
   // Look for next alive player in the order
   for (let i = currentIndex + 1; i < playerOrder.length; i++) {
-    if (alivePlayerIds.includes(playerOrder[i])) {
+    const playerId = playerOrder[i];
+    if (playerId && alivePlayerIds.includes(playerId)) {
       return i;
     }
   }
 
   // If no next alive player found, check from the beginning
   for (let i = 0; i < currentIndex; i++) {
-    if (alivePlayerIds.includes(playerOrder[i])) {
+    const playerId = playerOrder[i];
+    if (playerId && alivePlayerIds.includes(playerId)) {
       return i;
     }
   }
@@ -244,7 +246,9 @@ export function shuffleArray<T>(array: T[]): T[] {
   const shuffled = [...array];
   for (let i = shuffled.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
-    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    const temp = shuffled[i]!;
+    shuffled[i] = shuffled[j]!;
+    shuffled[j] = temp;
   }
   return shuffled;
 }
@@ -259,7 +263,9 @@ export function ensureMrWhiteNotFirst(playerOrder: Player[]): Player[] {
     const mrWhite = playerOrder.splice(0, 1)[0];
     const randomPosition =
       Math.floor(Math.random() * (playerOrder.length - 1)) + 1;
-    playerOrder.splice(randomPosition, 0, mrWhite);
+    if (mrWhite) {
+      playerOrder.splice(randomPosition, 0, mrWhite);
+    }
   }
   return playerOrder;
 }

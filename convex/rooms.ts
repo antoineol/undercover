@@ -109,7 +109,7 @@ export const joinRoom = mutation({
 
     // Create new player
     const now = Date.now();
-    const isHostPlayer = args.isHost || players.length === 0;
+    const isHostPlayer = args.isHost ?? players.length === 0;
     const newSessionId = generateSessionId();
 
     const playerId = await ctx.db.insert("players", {

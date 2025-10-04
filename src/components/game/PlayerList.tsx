@@ -143,7 +143,7 @@ export default function PlayerList({
               >
                 <div className="mt-1 text-sm text-red-600">
                   Votes :{" "}
-                  {voteCounts[player._id] > 0 ? (
+                  {(voteCounts[player._id] ?? 0) > 0 ? (
                     <>
                       {voteCounts[player._id]} (
                       {voterNames[player._id]?.join(", ")})
@@ -158,8 +158,7 @@ export default function PlayerList({
                   height={
                     player.isAlive &&
                     player.name !== playerName &&
-                    currentPlayer &&
-                    currentPlayer.isAlive
+                    currentPlayer?.isAlive
                       ? "auto"
                       : 0
                   }
@@ -168,7 +167,7 @@ export default function PlayerList({
                   animateOpacity
                 >
                   <div className="mt-2">
-                    {currentPlayer?.votes.includes(player._id) ? (
+                    {currentPlayer?.votes?.includes?.(player._id) ? (
                       <Button
                         onClick={() => onVote(player._id)}
                         variant="success"

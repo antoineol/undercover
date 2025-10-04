@@ -19,6 +19,7 @@ export const createRoomSchema = z.object({
 
 export type CreateRoomFormData = z.infer<typeof createRoomSchema>;
 
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
 interface CreateRoomFormProps {}
 
 export default function CreateRoomForm({}: CreateRoomFormProps) {
