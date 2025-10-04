@@ -17,17 +17,20 @@
     "build:prod": "bunx convex deploy --cmd 'next build'"
   },
   "dependencies": {
+    "@hookform/resolvers": "^5.2.2",
     "convex": "^1.27.3",
     "next": "15.5.4",
     "qrcode": "^1.5.4",
     "react": "19.1.0",
     "react-animate-height": "^3.2.3",
     "react-dom": "19.1.0",
+    "react-hook-form": "^7.64.0",
+    "zod": "^4.1.11",
     "zustand": "^5.0.8"
   },
   "devDependencies": {
-    "@eslint/eslintrc": "^3",
-    "@tailwindcss/postcss": "^4",
+    "@eslint/eslintrc": "^3.3.1",
+    "@tailwindcss/postcss": "^4.1.13",
     "@trivago/prettier-plugin-sort-imports": "^5.2.2",
     "@types/node": "^24.6.2",
     "@types/qrcode": "^1.5.5",
@@ -42,8 +45,8 @@
     "npm-run-all2": "^8.0.4",
     "prettier": "^3.6.2",
     "prettier-plugin-tailwindcss": "^0.6.14",
-    "tailwindcss": "^4",
-    "typescript": "^5",
+    "tailwindcss": "^4.1.13",
+    "typescript": "^5.9.2",
     "typescript-eslint": "^8.45.0"
   },
   "packageManager": "bun@1.0.0"

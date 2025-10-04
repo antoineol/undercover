@@ -4,12 +4,11 @@
 
 import { describe, expect, test } from "bun:test";
 import {
-  validatePlayerNameInput,
-  validateRoomCodeInput,
   formatRoomCodeInput,
   getFormValidationState,
   getLoadingStateText,
-  getLobbySectionText,
+  validatePlayerNameInput,
+  validateRoomCodeInput,
 } from "./ui-helpers.service";
 
 describe("Lobby UI Helper Functions", () => {
@@ -197,17 +196,6 @@ describe("Lobby UI Helper Functions", () => {
       const result = getLoadingStateText(true, true);
       expect(result.createButtonText).toBe("Création...");
       expect(result.joinButtonText).toBe("Rejoindre...");
-    });
-  });
-
-  describe("getLobbySectionText", () => {
-    test("should return correct section text", () => {
-      const result = getLobbySectionText();
-      expect(result.createTitle).toBe("Créer une Salle");
-      expect(result.joinTitle).toBe("Rejoindre une Salle");
-      expect(result.joinDescription).toBe(
-        "Demandez le lien de la salle ou entrez le code :",
-      );
     });
   });
 });

@@ -1,4 +1,4 @@
-import { create } from 'zustand';
+import { create } from "zustand";
 
 interface PlayerState {
   playerName: string;
@@ -16,7 +16,7 @@ interface PlayerActions {
 }
 
 const initialState: PlayerState = {
-  playerName: '',
+  playerName: "",
   isHost: false,
   sessionId: null,
   roomCode: null,
@@ -25,9 +25,9 @@ const initialState: PlayerState = {
 export const usePlayerStore = create<PlayerState & PlayerActions>()(
   (set, get) => ({
     ...initialState,
-    setPlayer: player => set(state => ({ ...state, ...player })),
+    setPlayer: (player) => set((state) => ({ ...state, ...player })),
     clearPlayer: () => set(initialState),
-    setRoomCode: roomCode => set({ roomCode }),
+    setRoomCode: (roomCode) => set({ roomCode }),
 
     loadFromSessionStorage: (roomCode: string) => {
       try {
@@ -46,7 +46,7 @@ export const usePlayerStore = create<PlayerState & PlayerActions>()(
           });
         }
       } catch (error) {
-        console.error('Error loading player data from sessionStorage:', error);
+        console.error("Error loading player data from sessionStorage:", error);
         sessionStorage.removeItem(`player_${roomCode}`);
       }
     },
@@ -61,9 +61,9 @@ export const usePlayerStore = create<PlayerState & PlayerActions>()(
         };
         sessionStorage.setItem(
           `player_${roomCode}`,
-          JSON.stringify(playerData)
+          JSON.stringify(playerData),
         );
       }
     },
-  })
+  }),
 );

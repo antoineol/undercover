@@ -456,17 +456,3 @@ export function getLoadingStateText(
   };
 }
 
-/**
- * Get lobby section titles and descriptions
- */
-export function getLobbySectionText(): {
-  createTitle: string;
-  joinTitle: string;
-  joinDescription: string;
-} {
-  return {
-    createTitle: "Créer une Salle",
-    joinTitle: "Rejoindre une Salle",
-    joinDescription: "Demandez le lien de la salle ou entrez le code :",
-  };
-}

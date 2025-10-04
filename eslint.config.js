@@ -1,20 +1,18 @@
-import { FlatCompat } from '@eslint/eslintrc';
-import gitignore from 'eslint-config-flat-gitignore';
-import eslintPluginPrettierRecommended from 'eslint-plugin-prettier/recommended';
-import tseslint from 'typescript-eslint';
+import { FlatCompat } from "@eslint/eslintrc";
+import eslintPluginPrettierRecommended from "eslint-plugin-prettier/recommended";
+import tseslint from "typescript-eslint";
 
 const compat = new FlatCompat({
   baseDirectory: import.meta.dirname,
 });
 
-const eslintConfig = [
-  gitignore(),
+export default tseslint.config(
   {
-    ignores: ['next-env.d.ts', 'convex/_generated/**'],
+    ignores: [".next"],
   },
-  ...compat.extends('next/core-web-vitals'),
+  ...compat.extends("next/core-web-vitals"),
   {
-    files: ['**/*.ts', '**/*.tsx'],
+    files: ["**/*.ts", "**/*.tsx"],
     plugins: {},
     extends: [
       ...tseslint.configs.recommended,
@@ -22,19 +20,19 @@ const eslintConfig = [
       ...tseslint.configs.stylisticTypeChecked,
     ],
     rules: {
-      '@typescript-eslint/array-type': 'off',
-      '@typescript-eslint/consistent-type-definitions': 'off',
-      '@typescript-eslint/consistent-type-imports': [
-        'warn',
-        { prefer: 'type-imports', fixStyle: 'inline-type-imports' },
+      "@typescript-eslint/array-type": "off",
+      "@typescript-eslint/consistent-type-definitions": "off",
+      "@typescript-eslint/consistent-type-imports": [
+        "warn",
+        { prefer: "type-imports", fixStyle: "inline-type-imports" },
       ],
-      '@typescript-eslint/no-unused-vars': [
-        'warn',
-        { argsIgnorePattern: '^_' },
+      "@typescript-eslint/no-unused-vars": [
+        "warn",
+        { argsIgnorePattern: "^_" },
       ],
-      '@typescript-eslint/require-await': 'off',
-      '@typescript-eslint/no-misused-promises': [
-        'error',
+      "@typescript-eslint/require-await": "off",
+      "@typescript-eslint/no-misused-promises": [
+        "error",
         { checksVoidReturn: { attributes: false } },
       ],
     },
@@ -50,6 +48,4 @@ const eslintConfig = [
     },
   },
   eslintPluginPrettierRecommended,
-];
-
-export default eslintConfig;
+);

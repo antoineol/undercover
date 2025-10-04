@@ -1,38 +1,21 @@
-"use client";
-
-import { useState } from "react";
+import CreateRoomForm from "@/app/_components/CreateRoomForm";
 import {
-  validatePlayerNameInput,
-  validateRoomCodeInput,
   formatRoomCodeInput,
   getFormValidationState,
   getLoadingStateText,
-  getLobbySectionText,
+  validatePlayerNameInput,
+  validateRoomCodeInput,
 } from "@/domains/ui/ui-helpers.service";
+import { useState } from "react";
 
 interface RoomLobbyProps {
-  onCreateRoom: (name: string) => void;
   onJoinRoom: (roomCode: string, name: string) => void;
 }
 
-export default function RoomLobby({
-  onCreateRoom,
-  onJoinRoom,
-}: RoomLobbyProps) {
-  const [createPlayerName, setCreatePlayerName] = useState("");
+export default function RoomLobby({ onJoinRoom }: RoomLobbyProps) {
   const [joinPlayerName, setJoinPlayerName] = useState("");
   const [roomCode, setRoomCode] = useState("");
-  const [isCreating, setIsCreating] = useState(false);
   const [isJoining, setIsJoining] = useState(false);
-
-  const handleCreateRoom = (e: React.FormEvent) => {
-    e.preventDefault();
-    const validation = validatePlayerNameInput(createPlayerName);
-    if (validation.isValid) {
-      setIsCreating(true);
-      onCreateRoom(createPlayerName.trim());
-    }
-  };
 
   const handleJoinRoom = (e: React.FormEvent) => {
     e.preventDefault();
@@ -46,9 +29,7 @@ export default function RoomLobby({
   };
 
   // Use pure functions for business logic
-  const sectionText = getLobbySectionText();
-  const loadingText = getLoadingStateText(isCreating, isJoining);
-  const formValidation = getFormValidationState(createPlayerName);
+  const loadingText = getLoadingStateText(false, isJoining);
   const joinFormValidation = getFormValidationState(joinPlayerName, roomCode);
 
   return (
@@ -56,42 +37,17 @@ export default function RoomLobby({
       {/* Create Room */}
       <div className="rounded-lg bg-blue-50 p-6">
         <h2 className="mb-4 text-xl font-semibold text-gray-800">
-          {sectionText.createTitle}
+          Créer une Salle
         </h2>
-        <form onSubmit={handleCreateRoom} className="space-y-4">
-          <div>
-            <label
-              htmlFor="create-name"
-              className="mb-1 block text-sm font-medium text-gray-700"
-            >
-              Votre Nom
-            </label>
-            <input
-              id="create-name"
-              type="text"
-              value={createPlayerName}
-              onChange={(e) => setCreatePlayerName(e.target.value)}
-              className="w-full rounded-md border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
-              placeholder="Entrez votre nom"
-              required
-            />
-          </div>
-          <button
-            type="submit"
-            disabled={isCreating || !formValidation.isCreateFormValid}
-            className="w-full rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            {loadingText.createButtonText}
-          </button>
-        </form>
+        <CreateRoomForm />
       </div>
 
       {/* Join Room */}
       <div className="flex flex-col gap-4 rounded-lg bg-green-50 p-6">
         <h2 className="text-xl font-semibold text-gray-800">
-          {sectionText.joinTitle}
+          Rejoindre une Salle
         </h2>
-        <p>{sectionText.joinDescription}</p>
+        <p>Demandez le lien de la salle ou entrez le code :</p>
         <form onSubmit={handleJoinRoom} className="space-y-4">
           <div>
             <label
