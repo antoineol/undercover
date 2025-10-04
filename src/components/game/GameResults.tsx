@@ -5,7 +5,7 @@ import {
   getRoleDisplayName,
 } from "@/domains/ui/ui-helpers.service";
 import { UI_MESSAGES } from "@/lib/constants";
-import { type RoomWithPlayers } from "@/lib/convex-types";
+import type { RoomWithPlayers } from "@/lib/convex-types";
 import AnimateHeight from "react-animate-height";
 import Button from "../ui/Button";
 import Card from "../ui/Card";

@@ -1,6 +1,6 @@
 import { generateRoomUrl } from "@/domains/room/room-management.service";
 import { generateShareButtonTextWithTimeout } from "@/domains/ui/ui-helpers.service";
-import { type RoomWithPlayers } from "@/lib/convex-types";
+import type { RoomWithPlayers } from "@/lib/convex-types";
 import { useUIStore } from "@/lib/stores/ui-store";
 import { copyToClipboard } from "@/lib/utils";
 import AnimateHeight from "react-animate-height";

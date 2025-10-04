@@ -1,6 +1,6 @@
 import { UI_MESSAGES } from "@/lib/constants";
-import { type ConvexPlayer, type RoomWithPlayers } from "@/lib/convex-types";
-import { type Id } from "cvx/dataModel";
+import type { ConvexPlayer, RoomWithPlayers } from "@/lib/convex-types";
+import type { Id } from "cvx/dataModel";
 import AnimateHeight from "react-animate-height";
 import Button from "../ui/Button";
 import Card from "../ui/Card";

@@ -3,8 +3,8 @@
  * Pure functions for room state management and game flow
  */
 
-import { type ConvexPlayer } from "../../lib/convex-types";
-import { type Room, type RoomState } from "./room";
+import type { ConvexPlayer } from "../../lib/convex-types";
+import type { Room, RoomState } from "./room";
 
 /**
  * Get reset room data for new game

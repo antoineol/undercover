@@ -3,9 +3,9 @@
  * Represents a player with their role and game state
  */
 
-// import { type Id } from "cvx/dataModel";
-import { type Id } from "../../../convex/_generated/dataModel";
-import { type ConvexPlayer } from "../../lib/convex-types";
+// import type { Id } from "cvx/dataModel";
+import type { Id } from "cvx/dataModel";
+import type { ConvexPlayer } from "../../lib/convex-types";
 
 // Base player interface for domain logic
 export interface Player {

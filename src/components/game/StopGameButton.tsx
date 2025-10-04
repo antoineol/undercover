@@ -1,4 +1,4 @@
-import { type RoomWithPlayers } from "@/lib/convex-types";
+import type { RoomWithPlayers } from "@/lib/convex-types";
 import { retryWithBackoff } from "@/lib/utils";
 import { useMutation } from "convex/react";
 import { api } from "cvx/api";

@@ -3,8 +3,8 @@
  * Pure functions for input validation and game state validation
  */
 
-import { type ConvexPlayer, type ConvexRoom } from "../../lib/convex-types";
-import { type GameConfig, type ValidationResult } from "./validation";
+import type { ConvexPlayer, ConvexRoom } from "../../lib/convex-types";
+import type { GameConfig, ValidationResult } from "./validation";
 
 /**
  * Validate player name

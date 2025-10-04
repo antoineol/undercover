@@ -1,4 +1,4 @@
-import { type Doc, type Id } from "cvx/dataModel";
+import type { Doc, Id } from "cvx/dataModel";
 
 // Re-export Convex types with proper naming
 export type ConvexRoom = Doc<"rooms">;

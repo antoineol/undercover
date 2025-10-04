@@ -1,7 +1,7 @@
 import { getWordDisplayText } from "@/domains/ui/ui-helpers.service";
-import { type RoomWithPlayers } from "@/lib/convex-types";
+import type { RoomWithPlayers } from "@/lib/convex-types";
 import { useUIStore } from "@/lib/stores/ui-store";
-import { type GameWords, type Player } from "@/lib/types";
+import type { GameWords, Player } from "@/lib/types";
 import AnimateHeight from "react-animate-height";
 import Button from "../ui/Button";
 

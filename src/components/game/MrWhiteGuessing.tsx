@@ -1,6 +1,6 @@
 import { getMrWhiteGuessingText } from "@/domains/ui/ui-helpers.service";
 import { GAME_CONFIG } from "@/lib/constants";
-import { type RoomWithPlayers } from "@/lib/convex-types";
+import type { RoomWithPlayers } from "@/lib/convex-types";
 import { useUIStore } from "@/lib/stores/ui-store";
 import { useMutation } from "convex/react";
 import { api } from "cvx/api";

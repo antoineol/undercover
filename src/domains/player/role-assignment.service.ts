@@ -3,8 +3,8 @@
  * Pure functions for role assignment and player ordering
  */
 
-import { type Id } from "cvx/dataModel";
-import { type RoleAssignment } from "./player";
+import type { Id } from "cvx/dataModel";
+import type { RoleAssignment } from "./player";
 
 // Generic player interface that works with both domain and Convex players
 interface PlayerWithId {

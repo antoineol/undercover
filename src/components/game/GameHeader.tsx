@@ -1,5 +1,5 @@
 import { UI_MESSAGES } from "@/lib/constants";
-import { type Room } from "@/lib/types";
+import type { Room } from "@/lib/types";
 import Button from "../ui/Button";
 
 interface GameHeaderProps {

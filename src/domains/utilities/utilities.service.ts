@@ -3,7 +3,7 @@
  * Pure utility functions for common operations
  */
 
-import { type GameConfig, type GameError, type RetryConfig } from "./utilities";
+import type { GameConfig, GameError, RetryConfig } from "./utilities";
 
 /**
  * Generate a random room code

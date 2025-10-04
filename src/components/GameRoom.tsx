@@ -9,12 +9,12 @@ import {
   isMyTurn,
   isVotingPhase,
 } from "@/domains/room/room-management.service";
-import { type GameRoomProps, type RoomWithPlayers } from "@/lib/convex-types";
+import type { GameRoomProps, RoomWithPlayers } from "@/lib/convex-types";
 import { useUIStore } from "@/lib/stores/ui-store";
 import { retryWithBackoff } from "@/lib/utils";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "cvx/api";
-import { type Id } from "cvx/dataModel";
+import type { Id } from "cvx/dataModel";
 import AnimateHeight from "react-animate-height";
 import GameConfiguration from "./game/GameConfiguration";
 import GameHeader from "./game/GameHeader";

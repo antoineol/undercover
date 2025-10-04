@@ -1,5 +1,5 @@
-import { type MutationCtx } from "cvx/server";
-import { type ConvexRoom, type RoomId } from "./convex-types";
+import type { MutationCtx } from "cvx/server";
+import type { ConvexRoom, RoomId } from "./convex-types";
 import { GameFlowHelpers } from "./game-helpers";
 import { GameStateService, PlayerService, RoomService } from "./game-services";
 

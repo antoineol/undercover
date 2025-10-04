@@ -1,5 +1,5 @@
 import { getStartGameButtonText } from "@/domains/ui/ui-helpers.service";
-import { type RoomWithPlayers } from "@/lib/convex-types";
+import type { RoomWithPlayers } from "@/lib/convex-types";
 import { retryWithBackoff } from "@/lib/utils";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "cvx/api";

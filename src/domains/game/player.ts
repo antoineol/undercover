@@ -3,7 +3,7 @@
  * Represents a player in the game with their role and state
  */
 
-import { type ConvexPlayer } from "../../lib/convex-types";
+import type { ConvexPlayer } from "../../lib/convex-types";
 
 export type { ConvexPlayer };
 

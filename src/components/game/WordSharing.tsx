@@ -1,10 +1,10 @@
 import { calculateSharingProgress } from "@/domains/ui/ui-helpers.service";
 import { UI_MESSAGES } from "@/lib/constants";
-import { type Player, type Room } from "@/lib/types";
+import type { Player, Room } from "@/lib/types";
 import { validateSharedWord } from "@/lib/validation";
 import { useMutation } from "convex/react";
 import { api } from "cvx/api";
-import { type Id } from "cvx/dataModel";
+import type { Id } from "cvx/dataModel";
 import { useEffect } from "react";
 import AnimateHeight from "react-animate-height";
 import Button from "../ui/Button";

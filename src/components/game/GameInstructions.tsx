@@ -1,5 +1,5 @@
 import { getGameInstructionsText } from "@/domains/ui/ui-helpers.service";
-import { type RoomWithPlayers } from "@/lib/convex-types";
+import type { RoomWithPlayers } from "@/lib/convex-types";
 import AnimateHeight from "react-animate-height";
 import Card from "../ui/Card";
 

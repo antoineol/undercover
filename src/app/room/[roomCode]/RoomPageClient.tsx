@@ -3,7 +3,7 @@
 import GameRoom from "@/components/GameRoom";
 import { usePlayerStore } from "@/lib/stores/player-store";
 import { useUIStore } from "@/lib/stores/ui-store";
-import { type Room } from "@/lib/types";
+import type { Room } from "@/lib/types";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "cvx/api";
 import Image from "next/image";

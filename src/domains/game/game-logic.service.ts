@@ -3,9 +3,9 @@
  * Pure game logic functions for win conditions, voting, and game state
  */
 
-import { type Id } from "../../../convex/_generated/dataModel";
-// import { type Id } from "cvx/dataModel";
-import { type ConvexPlayer } from "../../lib/convex-types";
+import type { Id } from "cvx/dataModel";
+// import type { Id } from "cvx/dataModel";
+import type { ConvexPlayer } from "../../lib/convex-types";
 
 export interface PlayerCounts {
   alive: number;

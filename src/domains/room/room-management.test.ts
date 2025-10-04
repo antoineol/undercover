@@ -1,7 +1,7 @@
 import { describe, expect, it } from "bun:test";
-import { type Id } from "cvx/dataModel";
-import { type ConvexPlayer } from "../../lib/convex-types";
-import { type Player, type Room } from "../../lib/types";
+import type { Id } from "cvx/dataModel";
+import type { ConvexPlayer } from "../../lib/convex-types";
+import type { Player, Room } from "../../lib/types";
 import {
   canStartGame,
   getCurrentTurnPlayerId,

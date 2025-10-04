@@ -1,4 +1,4 @@
-import { type Id } from "cvx/dataModel";
+import type { Id } from "cvx/dataModel";
 import {
   allPlayersCompletedAction as pureAllPlayersCompletedAction,
   determineWinner as pureDetermineWinner,
@@ -13,7 +13,7 @@ import {
   canShareWord as pureCanShareWord,
   canVote as pureCanVote,
 } from "../domains/validation/validation.service";
-import { type ConvexPlayer, type ConvexRoom } from "./convex-types";
+import type { ConvexPlayer, ConvexRoom } from "./convex-types";
 
 /**
  * Game flow helpers - pure functions for game logic

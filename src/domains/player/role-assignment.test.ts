@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
-import { type Id } from "cvx/dataModel";
-import { type Player } from "../../lib/types";
+import type { Id } from "cvx/dataModel";
+import type { Player } from "../../lib/types";
 import {
   assignRoles,
   createPlayerOrder,

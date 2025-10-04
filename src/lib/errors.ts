@@ -1,4 +1,4 @@
-import { type GameError } from "./types";
+import type { GameError } from "./types";
 
 export class RoomNotFoundError extends Error implements GameError {
   code = "ROOM_NOT_FOUND";

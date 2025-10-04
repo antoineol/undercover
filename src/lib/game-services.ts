@@ -1,5 +1,5 @@
-import { type Id } from "cvx/dataModel";
-import { type MutationCtx } from "cvx/server";
+import type { Id } from "cvx/dataModel";
+import type { MutationCtx } from "cvx/server";
 import {
   calculatePlayerCounts as pureCalculatePlayerCounts,
   checkWinConditions as pureCheckWinConditions,
