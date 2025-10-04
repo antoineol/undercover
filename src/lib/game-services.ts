@@ -1,5 +1,5 @@
-import { type Id } from "../../convex/_generated/dataModel";
-import { type MutationCtx } from "../../convex/_generated/server";
+import { type Id } from "cvx/dataModel";
+import { type MutationCtx } from "cvx/server";
 import {
   calculatePlayerCounts as pureCalculatePlayerCounts,
   checkWinConditions as pureCheckWinConditions,

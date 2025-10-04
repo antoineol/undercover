@@ -3,9 +3,9 @@
 import { usePlayerStore } from "@/lib/stores/player-store";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "convex/react";
+import { api } from "cvx/api";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
-import { api } from "../../../convex/_generated/api";
 
 import { z } from "zod";
 

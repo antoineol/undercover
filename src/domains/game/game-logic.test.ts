@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { type Id } from "../../../convex/_generated/dataModel";
+import { type Id } from "cvx/dataModel";
 import { domainPlayerToConvex, type Player } from "../player/player";
 import {
   allPlayersCompletedAction,

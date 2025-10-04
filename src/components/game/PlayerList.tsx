@@ -1,7 +1,7 @@
 import { UI_MESSAGES } from "@/lib/constants";
 import { type ConvexPlayer, type RoomWithPlayers } from "@/lib/convex-types";
+import { type Id } from "cvx/dataModel";
 import AnimateHeight from "react-animate-height";
-import { type Id } from "../../../convex/_generated/dataModel";
 import Button from "../ui/Button";
 import Card from "../ui/Card";
 import ProgressBar from "../ui/ProgressBar";

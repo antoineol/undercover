@@ -4,9 +4,9 @@ import {
 } from "@/domains/room/room-management.service";
 import { type RoomWithPlayers } from "@/lib/convex-types";
 import { useMutation, useQuery } from "convex/react";
+import { api } from "cvx/api";
 import { useEffect, useState } from "react";
 import AnimateHeight from "react-animate-height";
-import { api } from "../../../convex/_generated/api";
 import Card from "../ui/Card";
 
 interface GameConfigurationProps {

@@ -12,9 +12,7 @@
     "start": "next start",
     "test": "bun test",
     "lint": "eslint --fix",
-    "convex:dev": "convex dev",
-    "convex:deploy": "convex deploy",
-    "build:prod": "bunx convex deploy --cmd 'next build'"
+    "build:prod": "bunx convex deploy --cmd 'bun run build'"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",

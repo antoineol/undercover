@@ -5,11 +5,11 @@ import { usePlayerStore } from "@/lib/stores/player-store";
 import { useUIStore } from "@/lib/stores/ui-store";
 import { type Room } from "@/lib/types";
 import { useMutation, useQuery } from "convex/react";
+import { api } from "cvx/api";
 import Image from "next/image";
 import Link from "next/link";
 import QRCode from "qrcode";
 import { useCallback, useEffect, useState } from "react";
-import { api } from "../../../../convex/_generated/api";
 
 interface RoomPageClientProps {
   roomCode: string;

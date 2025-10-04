@@ -1,8 +1,8 @@
 import { type RoomWithPlayers } from "@/lib/convex-types";
 import { retryWithBackoff } from "@/lib/utils";
 import { useMutation } from "convex/react";
+import { api } from "cvx/api";
 import AnimateHeight from "react-animate-height";
-import { api } from "../../../convex/_generated/api";
 import Button from "../ui/Button";
 
 interface StopGameButtonProps {

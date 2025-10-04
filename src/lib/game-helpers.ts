@@ -1,4 +1,4 @@
-import { type Id } from "../../convex/_generated/dataModel";
+import { type Id } from "cvx/dataModel";
 import {
   allPlayersCompletedAction as pureAllPlayersCompletedAction,
   determineWinner as pureDetermineWinner,
