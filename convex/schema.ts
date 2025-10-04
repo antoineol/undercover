@@ -18,6 +18,7 @@ export default defineSchema({
     playerOrder: v.optional(v.array(v.id("players"))), // Order of players for word sharing
     numMrWhites: v.optional(v.number()), // Number of Mr. White players
     numUndercovers: v.optional(v.number()), // Number of undercover players
+    hasMrWhite: v.optional(v.boolean()), // Whether room has Mr. White players
     createdAt: v.number(),
   })
     .index("by_code", ["code"])
