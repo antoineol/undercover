@@ -2,10 +2,10 @@
  * Tests for extended room management functions
  */
 
-import { describe, expect, test } from 'bun:test';
-import { Id } from '../../../convex/_generated/dataModel';
-import { ConvexPlayer } from '../../lib/convex-types';
-import { Player, Room } from '../../lib/types';
+import { describe, expect, test } from "bun:test";
+import { type Id } from "../../../convex/_generated/dataModel";
+import { type ConvexPlayer } from "../../lib/convex-types";
+import { type Player, type Room } from "../../lib/types";
 import {
   calculateMaxUndercovers,
   calculateVoteData,
@@ -18,21 +18,21 @@ import {
   isDiscussionPhase,
   isMyTurn,
   isVotingPhase,
-} from './room-management.service';
+} from "./room-management.service";
 
-describe('Extended Room Management Functions', () => {
+describe("Extended Room Management Functions", () => {
   // Helper function to convert test players to ConvexPlayer format
   const toConvexPlayers = (players: Player[]): ConvexPlayer[] =>
-    players.map(p => ({
-      _id: p._id as Id<'players'>,
+    players.map((p) => ({
+      _id: p._id as Id<"players">,
       _creationTime: Date.now(),
-      roomId: p.roomId as Id<'rooms'>,
+      roomId: p.roomId as Id<"rooms">,
       name: p.name,
       sessionId: p.sessionId,
       isHost: p.isHost,
       isAlive: p.isAlive,
       role: p.role,
-      votes: p.votes as Id<'players'>[],
+      votes: p.votes as Id<"players">[],
       sharedWord: p.sharedWord,
       hasSharedWord: p.hasSharedWord,
       hasVoted: p.votes && p.votes.length > 0,
@@ -41,114 +41,114 @@ describe('Extended Room Management Functions', () => {
 
   const mockPlayers: Player[] = [
     {
-      _id: 'player1',
-      name: 'Alice',
+      _id: "player1",
+      name: "Alice",
       isAlive: true,
-      role: 'civilian',
-      votes: ['player2'],
+      role: "civilian",
+      votes: ["player2"],
       hasSharedWord: true,
-      roomId: 'room1',
+      roomId: "room1",
       isHost: false,
       createdAt: Date.now(),
     },
     {
-      _id: 'player2',
-      name: 'Bob',
+      _id: "player2",
+      name: "Bob",
       isAlive: true,
-      role: 'undercover',
-      votes: ['player1'],
+      role: "undercover",
+      votes: ["player1"],
       hasSharedWord: true,
-      roomId: 'room1',
+      roomId: "room1",
       isHost: false,
       createdAt: Date.now(),
     },
     {
-      _id: 'player3',
-      name: 'Charlie',
+      _id: "player3",
+      name: "Charlie",
       isAlive: false,
-      role: 'civilian',
+      role: "civilian",
       votes: [],
       hasSharedWord: false,
-      roomId: 'room1',
+      roomId: "room1",
       isHost: false,
       createdAt: Date.now(),
     },
   ];
 
   const mockRoom: Room = {
-    _id: 'room1',
-    code: 'ABC123',
-    hostId: 'host1',
-    gameState: 'voting',
+    _id: "room1",
+    code: "ABC123",
+    hostId: "host1",
+    gameState: "voting",
     currentRound: 1,
     maxRounds: 3,
     currentPlayerIndex: 0,
-    playerOrder: ['player1', 'player2', 'player3'],
+    playerOrder: ["player1", "player2", "player3"],
     players: mockPlayers,
     numMrWhites: 0,
     numUndercovers: 1,
     createdAt: Date.now(),
   };
 
-  describe('calculateVotingProgress', () => {
-    test('should calculate voting progress correctly', () => {
+  describe("calculateVotingProgress", () => {
+    test("should calculate voting progress correctly", () => {
       const progress = calculateVotingProgress(toConvexPlayers(mockPlayers));
       expect(progress).toBe(100); // 2 alive players, 2 voted = 100%
     });
 
-    test('should return 0 when no alive players', () => {
-      const deadPlayers = mockPlayers.map(p => ({ ...p, isAlive: false }));
+    test("should return 0 when no alive players", () => {
+      const deadPlayers = mockPlayers.map((p) => ({ ...p, isAlive: false }));
       const progress = calculateVotingProgress(toConvexPlayers(deadPlayers));
       expect(progress).toBe(0);
     });
 
-    test('should calculate partial progress', () => {
+    test("should calculate partial progress", () => {
       const playersWithPartialVoting = [
-        { ...mockPlayers[0], votes: ['player2'] },
+        { ...mockPlayers[0], votes: ["player2"] },
         { ...mockPlayers[1], votes: [] },
       ];
       const progress = calculateVotingProgress(
-        toConvexPlayers(playersWithPartialVoting)
+        toConvexPlayers(playersWithPartialVoting),
       );
       expect(progress).toBe(50); // 1 out of 2 voted
     });
   });
 
-  describe('getCurrentTurnPlayer', () => {
-    test('should return current turn player', () => {
+  describe("getCurrentTurnPlayer", () => {
+    test("should return current turn player", () => {
       const currentPlayer = getCurrentTurnPlayer(
         mockRoom,
-        toConvexPlayers(mockPlayers)
+        toConvexPlayers(mockPlayers),
       );
       expect(currentPlayer).toEqual(toConvexPlayers(mockPlayers)[0]);
     });
 
-    test('should return null when no current turn player', () => {
+    test("should return null when no current turn player", () => {
       const roomWithoutTurn = { ...mockRoom, currentPlayerIndex: undefined };
       const currentPlayer = getCurrentTurnPlayer(
         roomWithoutTurn,
-        toConvexPlayers(mockPlayers)
+        toConvexPlayers(mockPlayers),
       );
       expect(currentPlayer).toBeNull();
     });
   });
 
-  describe('isMyTurn', () => {
-    test('should return true for current turn player', () => {
-      const isTurn = isMyTurn('player1', mockRoom);
+  describe("isMyTurn", () => {
+    test("should return true for current turn player", () => {
+      const isTurn = isMyTurn("player1", mockRoom);
       expect(isTurn).toBe(true);
     });
 
-    test('should return false for non-current turn player', () => {
-      const isTurn = isMyTurn('player2', mockRoom);
+    test("should return false for non-current turn player", () => {
+      const isTurn = isMyTurn("player2", mockRoom);
       expect(isTurn).toBe(false);
     });
   });
 
-  describe('calculateVoteData', () => {
-    test('should calculate vote counts and voter names', () => {
+  describe("calculateVoteData", () => {
+    test("should calculate vote counts and voter names", () => {
       const { voteCounts, voterNames } = calculateVoteData(
-        toConvexPlayers(mockPlayers)
+        toConvexPlayers(mockPlayers),
       );
 
       expect(voteCounts).toEqual({
@@ -157,15 +157,15 @@ describe('Extended Room Management Functions', () => {
       });
 
       expect(voterNames).toEqual({
-        player2: ['Alice'],
-        player1: ['Bob'],
+        player2: ["Alice"],
+        player1: ["Bob"],
       });
     });
 
-    test('should handle players with no votes', () => {
-      const playersWithNoVotes = mockPlayers.map(p => ({ ...p, votes: [] }));
+    test("should handle players with no votes", () => {
+      const playersWithNoVotes = mockPlayers.map((p) => ({ ...p, votes: [] }));
       const { voteCounts, voterNames } = calculateVoteData(
-        toConvexPlayers(playersWithNoVotes)
+        toConvexPlayers(playersWithNoVotes),
       );
 
       expect(voteCounts).toEqual({});
@@ -173,93 +173,93 @@ describe('Extended Room Management Functions', () => {
     });
   });
 
-  describe('getPlayersWhoVoted', () => {
-    test('should return only alive players who voted', () => {
+  describe("getPlayersWhoVoted", () => {
+    test("should return only alive players who voted", () => {
       const playersWhoVoted = getPlayersWhoVoted(toConvexPlayers(mockPlayers));
       expect(playersWhoVoted).toHaveLength(2);
-      expect(playersWhoVoted.every(p => p.isAlive && p.hasVoted === true)).toBe(
-        true
-      );
+      expect(
+        playersWhoVoted.every((p) => p.isAlive && p.hasVoted === true),
+      ).toBe(true);
     });
 
-    test('should exclude dead players even if they voted', () => {
+    test("should exclude dead players even if they voted", () => {
       const playersWhoVoted = getPlayersWhoVoted(toConvexPlayers(mockPlayers));
-      expect(playersWhoVoted.find(p => p._id === 'player3')).toBeUndefined();
+      expect(playersWhoVoted.find((p) => p._id === "player3")).toBeUndefined();
     });
   });
 
-  describe('isVotingPhase', () => {
-    test('should return true for voting phase', () => {
+  describe("isVotingPhase", () => {
+    test("should return true for voting phase", () => {
       expect(isVotingPhase(mockRoom)).toBe(true);
     });
 
-    test('should return false for non-voting phase', () => {
-      const discussionRoom = { ...mockRoom, gameState: 'discussion' as const };
+    test("should return false for non-voting phase", () => {
+      const discussionRoom = { ...mockRoom, gameState: "discussion" as const };
       expect(isVotingPhase(discussionRoom)).toBe(false);
     });
   });
 
-  describe('isDiscussionPhase', () => {
-    test('should return true for discussion phase', () => {
-      const discussionRoom = { ...mockRoom, gameState: 'discussion' as const };
+  describe("isDiscussionPhase", () => {
+    test("should return true for discussion phase", () => {
+      const discussionRoom = { ...mockRoom, gameState: "discussion" as const };
       expect(isDiscussionPhase(discussionRoom)).toBe(true);
     });
 
-    test('should return false for non-discussion phase', () => {
+    test("should return false for non-discussion phase", () => {
       expect(isDiscussionPhase(mockRoom)).toBe(false);
     });
   });
 
-  describe('getCurrentPlayerByName', () => {
-    test('should find player by name', () => {
+  describe("getCurrentPlayerByName", () => {
+    test("should find player by name", () => {
       const player = getCurrentPlayerByName(
         toConvexPlayers(mockPlayers),
-        'Alice'
+        "Alice",
       );
       expect(player).toEqual(toConvexPlayers(mockPlayers)[0]);
     });
 
-    test('should return null for non-existent player', () => {
+    test("should return null for non-existent player", () => {
       const player = getCurrentPlayerByName(
         toConvexPlayers(mockPlayers),
-        'NonExistent'
+        "NonExistent",
       );
       expect(player).toBeNull();
     });
   });
 
-  describe('generateRoomUrl', () => {
-    test('should generate room URL with room code', () => {
-      const url = generateRoomUrl('ABC123', 'https://example.com');
-      expect(url).toBe('https://example.com/room/ABC123');
+  describe("generateRoomUrl", () => {
+    test("should generate room URL with room code", () => {
+      const url = generateRoomUrl("ABC123", "https://example.com");
+      expect(url).toBe("https://example.com/room/ABC123");
     });
 
-    test('should handle undefined base URL', () => {
-      const url = generateRoomUrl('ABC123');
-      expect(url).toBe('/room/ABC123');
+    test("should handle undefined base URL", () => {
+      const url = generateRoomUrl("ABC123");
+      expect(url).toBe("/room/ABC123");
     });
   });
 
-  describe('calculateMaxUndercovers', () => {
-    test('should calculate max undercovers for small groups', () => {
+  describe("calculateMaxUndercovers", () => {
+    test("should calculate max undercovers for small groups", () => {
       expect(calculateMaxUndercovers(4)).toBe(2);
     });
 
-    test('should calculate max undercovers for medium groups', () => {
+    test("should calculate max undercovers for medium groups", () => {
       expect(calculateMaxUndercovers(6)).toBe(3);
     });
 
-    test('should handle edge case of 2 players', () => {
+    test("should handle edge case of 2 players", () => {
       expect(calculateMaxUndercovers(2)).toBe(1);
     });
 
-    test('should handle single player', () => {
+    test("should handle single player", () => {
       expect(calculateMaxUndercovers(1)).toBe(0);
     });
   });
 
-  describe('getGameConfigurationDisplay', () => {
-    test('should display configuration with Mr. White', () => {
+  describe("getGameConfigurationDisplay", () => {
+    test("should display configuration with Mr. White", () => {
       const config = {
         numUndercovers: 2,
         numMrWhites: 1,
@@ -267,12 +267,12 @@ describe('Extended Room Management Functions', () => {
       };
 
       const display = getGameConfigurationDisplay(config);
-      expect(display).toContain('2 Undercovers');
-      expect(display).toContain('1 Mr. White');
-      expect(display).toContain('3 Civils');
+      expect(display).toContain("2 Undercovers");
+      expect(display).toContain("1 Mr. White");
+      expect(display).toContain("3 Civils");
     });
 
-    test('should display configuration without Mr. White', () => {
+    test("should display configuration without Mr. White", () => {
       const config = {
         numUndercovers: 1,
         numMrWhites: 0,
@@ -280,12 +280,12 @@ describe('Extended Room Management Functions', () => {
       };
 
       const display = getGameConfigurationDisplay(config);
-      expect(display).toContain('1 Undercover');
-      expect(display).toContain('Pas de Mr. White');
-      expect(display).toContain('3 Civils');
+      expect(display).toContain("1 Undercover");
+      expect(display).toContain("Pas de Mr. White");
+      expect(display).toContain("3 Civils");
     });
 
-    test('should handle singular forms correctly', () => {
+    test("should handle singular forms correctly", () => {
       const config = {
         numUndercovers: 1,
         numMrWhites: 0,
@@ -293,8 +293,8 @@ describe('Extended Room Management Functions', () => {
       };
 
       const display = getGameConfigurationDisplay(config);
-      expect(display).toContain('1 Undercover');
-      expect(display).toContain('2 Civils');
+      expect(display).toContain("1 Undercover");
+      expect(display).toContain("2 Civils");
     });
   });
 });

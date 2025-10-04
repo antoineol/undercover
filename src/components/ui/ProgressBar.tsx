@@ -8,9 +8,9 @@ export default function ProgressBar({
   duration = 0.3,
 }: ProgressBarProps) {
   return (
-    <div className='w-full bg-gray-200 rounded-full h-2 relative overflow-hidden'>
+    <div className="relative h-2 w-full overflow-hidden rounded-full bg-gray-200">
       <span
-        className='bg-blue-600 h-2 rounded-full block'
+        className="block h-2 rounded-full bg-blue-600"
         style={{
           width: `${progress}%`,
           transition: `width ${duration}s ease-in-out`,

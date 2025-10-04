@@ -3,15 +3,15 @@
  * Pure functions for room state management and game flow
  */
 
-import { ConvexPlayer } from '../../lib/convex-types';
-import { Room, RoomState } from './room';
+import { type ConvexPlayer } from "../../lib/convex-types";
+import { type Room, type RoomState } from "./room";
 
 /**
  * Get reset room data for new game
  */
 export function getResetRoomData(): Partial<RoomState> {
   return {
-    gameState: 'waiting',
+    gameState: "waiting",
     currentRound: 0,
     currentPlayerIndex: 0,
     playerOrder: [],
@@ -22,49 +22,49 @@ export function getResetRoomData(): Partial<RoomState> {
  * Check if room is in waiting state
  */
 export function isRoomWaiting(room: Room): boolean {
-  return room.gameState === 'waiting';
+  return room.gameState === "waiting";
 }
 
 /**
  * Check if room is in discussion state
  */
 export function isRoomDiscussion(room: Room): boolean {
-  return room.gameState === 'discussion';
+  return room.gameState === "discussion";
 }
 
 /**
  * Check if room is in voting state
  */
 export function isRoomVoting(room: Room): boolean {
-  return room.gameState === 'voting';
+  return room.gameState === "voting";
 }
 
 /**
  * Check if room is in results state
  */
 export function isRoomResults(room: Room): boolean {
-  return room.gameState === 'results';
+  return room.gameState === "results";
 }
 
 /**
  * Check if room is in Mr. White guessing state
  */
 export function isRoomMrWhiteGuessing(room: Room): boolean {
-  return room.gameState === 'mr_white_guessing';
+  return room.gameState === "mr_white_guessing";
 }
 
 /**
  * Check if game is active (not waiting or results)
  */
 export function isGameActive(room: Room): boolean {
-  return ['discussion', 'voting', 'mr_white_guessing'].includes(room.gameState);
+  return ["discussion", "voting", "mr_white_guessing"].includes(room.gameState);
 }
 
 /**
  * Check if game is finished
  */
 export function isGameFinished(room: Room): boolean {
-  return room.gameState === 'results';
+  return room.gameState === "results";
 }
 
 /**
@@ -91,7 +91,7 @@ export function isPlayerTurn(playerId: string, room: Room): boolean {
  */
 export function getNextTurnPlayerId(
   room: Room,
-  alivePlayerIds: string[]
+  alivePlayerIds: string[],
 ): string | null {
   if (!room.playerOrder || room.currentPlayerIndex === undefined) {
     return null;
@@ -119,11 +119,11 @@ export function getNextTurnPlayerId(
  */
 export function getRoomStatusText(room: Room): string {
   const statusMap: Record<string, string> = {
-    waiting: 'En attente des joueurs',
-    discussion: 'Phase de discussion',
-    voting: 'Phase de vote',
-    mr_white_guessing: 'Mr. White devine',
-    results: 'Résultats du jeu',
+    waiting: "En attente des joueurs",
+    discussion: "Phase de discussion",
+    voting: "Phase de vote",
+    mr_white_guessing: "Mr. White devine",
+    results: "Résultats du jeu",
   };
 
   return statusMap[room.gameState] || room.gameState;
@@ -157,7 +157,7 @@ export function getGameProgress(room: Room): number {
 export function canStartGame(
   room: Room,
   playerCount: number,
-  minPlayers: number
+  minPlayers: number,
 ): boolean {
   return (
     isRoomWaiting(room) &&
@@ -196,16 +196,16 @@ export function hasMrWhite(room: Room): boolean {
 export function isRoomReadyForNextPhase(
   room: Room,
   players: ConvexPlayer[],
-  phase: 'discussion' | 'voting'
+  phase: "discussion" | "voting",
 ): boolean {
-  if (phase === 'discussion') {
+  if (phase === "discussion") {
     // All alive players should have shared their word
-    const alivePlayers = players.filter(p => p.isAlive);
-    return alivePlayers.every(p => p.hasSharedWord === true);
-  } else if (phase === 'voting') {
+    const alivePlayers = players.filter((p) => p.isAlive);
+    return alivePlayers.every((p) => p.hasSharedWord === true);
+  } else if (phase === "voting") {
     // All alive players should have voted
-    const alivePlayers = players.filter(p => p.isAlive);
-    return alivePlayers.every(p => p.hasVoted === true);
+    const alivePlayers = players.filter((p) => p.isAlive);
+    return alivePlayers.every((p) => p.hasVoted === true);
   }
 
   return false;
@@ -248,7 +248,7 @@ export function needsStateValidation(room: Room): boolean {
  */
 export function getRoomStatistics(
   room: Room,
-  players: ConvexPlayer[]
+  players: ConvexPlayer[],
 ): {
   totalPlayers: number;
   alivePlayers: number;
@@ -256,8 +256,8 @@ export function getRoomStatistics(
   gameProgress: number;
   currentPhase: string;
 } {
-  const alivePlayers = players.filter(p => p.isAlive);
-  const deadPlayers = players.filter(p => !p.isAlive);
+  const alivePlayers = players.filter((p) => p.isAlive);
+  const deadPlayers = players.filter((p) => !p.isAlive);
 
   return {
     totalPlayers: players.length,
@@ -272,10 +272,10 @@ export function getRoomStatistics(
  * Calculate voting progress for alive players
  */
 export function calculateVotingProgress(players: ConvexPlayer[]): number {
-  const alivePlayers = players.filter(p => p.isAlive);
+  const alivePlayers = players.filter((p) => p.isAlive);
   if (alivePlayers.length === 0) return 0;
 
-  const playersWhoVoted = alivePlayers.filter(p => p.hasVoted === true);
+  const playersWhoVoted = alivePlayers.filter((p) => p.hasVoted === true);
   return (playersWhoVoted.length / alivePlayers.length) * 100;
 }
 
@@ -284,12 +284,12 @@ export function calculateVotingProgress(players: ConvexPlayer[]): number {
  */
 export function getCurrentTurnPlayer(
   room: Room,
-  players: ConvexPlayer[]
+  players: ConvexPlayer[],
 ): ConvexPlayer | null {
   const currentTurnPlayerId = getCurrentTurnPlayerId(room);
   if (!currentTurnPlayerId) return null;
 
-  return players.find(p => p._id === currentTurnPlayerId) || null;
+  return players.find((p) => p._id === currentTurnPlayerId) || null;
 }
 
 /**
@@ -307,11 +307,11 @@ export function calculateVoteData(players: ConvexPlayer[]): {
   voteCounts: Record<string, number>;
   voterNames: Record<string, string[]>;
 } {
-  const alivePlayers = players.filter(p => p.isAlive);
+  const alivePlayers = players.filter((p) => p.isAlive);
   const voteCounts: Record<string, number> = {};
   const voterNames: Record<string, string[]> = {};
 
-  alivePlayers.forEach(player => {
+  alivePlayers.forEach((player) => {
     player.votes.forEach((voteId: string) => {
       voteCounts[voteId] = (voteCounts[voteId] || 0) + 1;
       if (!voterNames[voteId]) voterNames[voteId] = [];
@@ -326,22 +326,22 @@ export function calculateVoteData(players: ConvexPlayer[]): {
  * Get players who have voted
  */
 export function getPlayersWhoVoted(players: ConvexPlayer[]): ConvexPlayer[] {
-  const alivePlayers = players.filter(p => p.isAlive);
-  return alivePlayers.filter(p => p.hasVoted === true);
+  const alivePlayers = players.filter((p) => p.isAlive);
+  return alivePlayers.filter((p) => p.hasVoted === true);
 }
 
 /**
  * Check if room is in voting phase
  */
 export function isVotingPhase(room: Room): boolean {
-  return room.gameState === 'voting';
+  return room.gameState === "voting";
 }
 
 /**
  * Check if room is in discussion phase
  */
 export function isDiscussionPhase(room: Room): boolean {
-  return room.gameState === 'discussion';
+  return room.gameState === "discussion";
 }
 
 /**
@@ -349,9 +349,9 @@ export function isDiscussionPhase(room: Room): boolean {
  */
 export function getCurrentPlayerByName(
   players: ConvexPlayer[],
-  playerName: string
+  playerName: string,
 ): ConvexPlayer | null {
-  return players.find(p => p.name === playerName) || null;
+  return players.find((p) => p.name === playerName) || null;
 }
 
 /**
@@ -359,7 +359,7 @@ export function getCurrentPlayerByName(
  */
 export function generateRoomUrl(roomCode: string, baseUrl?: string): string {
   const origin =
-    baseUrl || (typeof window !== 'undefined' ? window.location.origin : '');
+    baseUrl || (typeof window !== "undefined" ? window.location.origin : "");
   return `${origin}/room/${roomCode}`;
 }
 
@@ -381,7 +381,7 @@ export function getGameConfigurationDisplay(config: {
   const { numUndercovers, numMrWhites, totalPlayers } = config;
   const civilians = totalPlayers - numUndercovers - numMrWhites;
 
-  return `• ${numUndercovers} Undercover${numUndercovers > 1 ? 's' : ''}
-• ${numMrWhites} Mr. White${numMrWhites > 1 ? 's' : ''}${numMrWhites === 0 ? ' (Aucun)' : ''}
-• ${civilians} Civil${civilians > 1 ? 's' : ''}`;
+  return `• ${numUndercovers} Undercover${numUndercovers > 1 ? "s" : ""}
+• ${numMrWhites} Mr. White${numMrWhites > 1 ? "s" : ""}${numMrWhites === 0 ? " (Aucun)" : ""}
+• ${civilians} Civil${civilians > 1 ? "s" : ""}`;
 }

@@ -1,23 +1,27 @@
-import { v } from 'convex/values';
-import { ConvexPlayer, ConvexRoom, RoomId } from '../src/lib/convex-types';
-import { InvalidVoteError, VotingNotActiveError } from '../src/lib/errors';
-import { GameValidationHelpers } from '../src/lib/game-helpers';
+import { v } from "convex/values";
+import {
+  type ConvexPlayer,
+  type ConvexRoom,
+  type RoomId,
+} from "../src/lib/convex-types";
+import { InvalidVoteError, VotingNotActiveError } from "../src/lib/errors";
+import { GameValidationHelpers } from "../src/lib/game-helpers";
 import {
   GameStateService,
   PlayerService,
   RoomService,
-} from '../src/lib/game-services';
-import { mutation, MutationCtx } from './_generated/server';
+} from "../src/lib/game-services";
+import { mutation, type MutationCtx } from "./_generated/server";
 
 export const votePlayer = mutation({
   args: {
-    roomId: v.id('rooms'),
-    voterId: v.id('players'),
-    targetId: v.id('players'),
+    roomId: v.id("rooms"),
+    voterId: v.id("players"),
+    targetId: v.id("players"),
   },
   handler: async (ctx, args) => {
     const room = await RoomService.getRoom(ctx, args.roomId);
-    if (!room || room.gameState !== 'voting') {
+    if (!room || room.gameState !== "voting") {
       throw new VotingNotActiveError();
     }
 
@@ -55,12 +59,12 @@ export const votePlayer = mutation({
     // Check if all alive players have voted
     const allAlivePlayers = await PlayerService.getAlivePlayers(
       ctx,
-      args.roomId
+      args.roomId,
     );
 
     // Check if all players have made a voting decision
     const allPlayersMadeDecision = allAlivePlayers.every(
-      (player: ConvexPlayer) => player.hasVoted === true
+      (player: ConvexPlayer) => player.hasVoted === true,
     );
 
     if (allPlayersMadeDecision) {
@@ -69,7 +73,7 @@ export const votePlayer = mutation({
         ctx,
         args.roomId,
         allAlivePlayers,
-        room
+        room,
       );
     }
 
@@ -78,10 +82,10 @@ export const votePlayer = mutation({
 });
 
 export const endVoting = mutation({
-  args: { roomId: v.id('rooms') },
+  args: { roomId: v.id("rooms") },
   handler: async (ctx, args) => {
     const room = await RoomService.getRoom(ctx, args.roomId);
-    if (!room || room.gameState !== 'voting') {
+    if (!room || room.gameState !== "voting") {
       throw new VotingNotActiveError();
     }
 
@@ -91,11 +95,11 @@ export const endVoting = mutation({
 });
 
 export const startVoting = mutation({
-  args: { roomId: v.id('rooms') },
+  args: { roomId: v.id("rooms") },
   handler: async (ctx, args) => {
     const room = await RoomService.getRoom(ctx, args.roomId);
-    if (!room || room.gameState !== 'discussion') {
-      throw new Error('Game is not in discussion phase');
+    if (!room || room.gameState !== "discussion") {
+      throw new Error("Game is not in discussion phase");
     }
 
     // Clear all votes and reset voting status
@@ -108,7 +112,7 @@ export const startVoting = mutation({
     }
 
     await RoomService.updateGameState(ctx, args.roomId, {
-      gameState: 'voting',
+      gameState: "voting",
     });
 
     return { success: true };
@@ -117,23 +121,23 @@ export const startVoting = mutation({
 
 export const mrWhiteGuess = mutation({
   args: {
-    roomId: v.id('rooms'),
+    roomId: v.id("rooms"),
     guess: v.string(),
   },
   handler: async (ctx, args) => {
     const room = await RoomService.getRoom(ctx, args.roomId);
-    if (!room || room.gameState !== 'mr_white_guessing') {
-      throw new Error('Game is not in Mr. White guessing phase');
+    if (!room || room.gameState !== "mr_white_guessing") {
+      throw new Error("Game is not in Mr. White guessing phase");
     }
 
     // Get the game words
     const gameWords = await ctx.db
-      .query('gameWords')
-      .withIndex('by_room', q => q.eq('roomId', args.roomId))
+      .query("gameWords")
+      .withIndex("by_room", (q) => q.eq("roomId", args.roomId))
       .first();
 
     if (!gameWords) {
-      throw new Error('Game words not found');
+      throw new Error("Game words not found");
     }
 
     // Check if the guess is correct (case-insensitive)
@@ -144,34 +148,34 @@ export const mrWhiteGuess = mutation({
     if (isCorrect) {
       // Mr. White wins immediately
       await RoomService.updateGameState(ctx, args.roomId, {
-        gameState: 'results',
+        gameState: "results",
       });
 
       return {
         success: true,
         correct: true,
-        gameResult: 'mr_white_win',
+        gameResult: "mr_white_win",
         civilianWord: gameWords.civilianWord,
       };
     } else {
       // Mr. White is eliminated, continue with normal game flow
       const alivePlayers = await PlayerService.getAlivePlayers(
         ctx,
-        args.roomId
+        args.roomId,
       );
       if (!alivePlayers) {
-        throw new Error('Failed to get alive players');
+        throw new Error("Failed to get alive players");
       }
 
       const gameResult = GameStateService.checkGameEnd(
         alivePlayers,
         room.currentRound,
-        room.maxRounds
+        room.maxRounds,
       );
 
       if (gameResult) {
         await RoomService.updateGameState(ctx, args.roomId, {
-          gameState: 'results',
+          gameState: "results",
         });
       } else {
         // Reset for next round
@@ -193,7 +197,7 @@ export async function processVotingResults(
   ctx: MutationCtx,
   roomId: RoomId,
   alivePlayers: ConvexPlayer[],
-  room: ConvexRoom
+  room: ConvexRoom,
 ) {
   // Process voting results
   const { eliminatedPlayerId, voteCounts, tie } =
@@ -206,12 +210,12 @@ export async function processVotingResults(
     // Check if eliminated player is Mr. White
     if (
       eliminatedPlayer &&
-      'role' in eliminatedPlayer &&
-      eliminatedPlayer.role === 'mr_white'
+      "role" in eliminatedPlayer &&
+      eliminatedPlayer.role === "mr_white"
     ) {
       // Mr. White gets a chance to guess the civilian word
       await RoomService.updateGameState(ctx, roomId, {
-        gameState: 'mr_white_guessing',
+        gameState: "mr_white_guessing",
       });
 
       return {
@@ -233,14 +237,14 @@ export async function processVotingResults(
   const gameResult = GameStateService.checkGameEnd(
     remainingPlayers,
     room.currentRound,
-    room.maxRounds
+    room.maxRounds,
   );
 
   // Update room state
   if (gameResult) {
     // Game ended
     await RoomService.updateGameState(ctx, roomId, {
-      gameState: 'results',
+      gameState: "results",
     });
   } else if (eliminatedPlayerId && !tie) {
     // Someone was eliminated AND game continues: Start next round
@@ -274,7 +278,7 @@ async function resetVotingData(ctx: MutationCtx, roomId: RoomId) {
 
   // Stay in discussion phase for the same round
   await RoomService.updateGameState(ctx, roomId, {
-    gameState: 'discussion',
+    gameState: "discussion",
   });
 }
 
@@ -282,7 +286,7 @@ async function resetVotingData(ctx: MutationCtx, roomId: RoomId) {
 async function resetForNextRound(
   ctx: MutationCtx,
   roomId: RoomId,
-  room: ConvexRoom
+  room: ConvexRoom,
 ) {
   // Reset all players' word sharing status and votes
   await PlayerService.resetAllPlayers(ctx, roomId);
@@ -303,7 +307,7 @@ async function resetForNextRound(
     }
 
     await RoomService.updateGameState(ctx, roomId, {
-      gameState: 'discussion',
+      gameState: "discussion",
       currentRound: room.currentRound + 1,
       currentPlayerIndex: firstAliveIndex,
       playerOrder: shuffledOrder,

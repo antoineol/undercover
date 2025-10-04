@@ -39,18 +39,18 @@ export interface GameWords {
 
 // Enums and union types
 export type GameState =
-  | 'waiting'
-  | 'discussion'
-  | 'voting'
-  | 'mr_white_guessing'
-  | 'results';
-export type PlayerRole = 'civilian' | 'undercover' | 'mr_white';
+  | "waiting"
+  | "discussion"
+  | "voting"
+  | "mr_white_guessing"
+  | "results";
+export type PlayerRole = "civilian" | "undercover" | "mr_white";
 export type GameResult =
-  | 'civilians_win'
-  | 'undercovers_win'
-  | 'mr_white_win'
-  | 'undercovers_mrwhite_win'
-  | 'max_rounds_reached';
+  | "civilians_win"
+  | "undercovers_win"
+  | "mr_white_win"
+  | "undercovers_mrwhite_win"
+  | "max_rounds_reached";
 
 // API response types
 export interface CreateRoomResponse {
@@ -115,13 +115,9 @@ export interface GameConfiguration {
   numMrWhites: number;
 }
 
-export interface VoteCounts {
-  [playerId: string]: number;
-}
+export type VoteCounts = Record<string, number>;
 
-export interface VoterNames {
-  [playerId: string]: string[];
-}
+export type VoterNames = Record<string, string[]>;
 
 export interface PlayerCounts {
   alive: number;

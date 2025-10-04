@@ -1,58 +1,58 @@
-import { v } from 'convex/values';
-import { GameNotFinishedError } from '../src/lib/errors';
-import { GameFlowHelpers } from '../src/lib/game-helpers';
+import { v } from "convex/values";
+import { GameNotFinishedError } from "../src/lib/errors";
+import { GameFlowHelpers } from "../src/lib/game-helpers";
 import {
   GameStateService,
   PlayerService,
   RoomService,
-} from '../src/lib/game-services';
-import { mutation } from './_generated/server';
+} from "../src/lib/game-services";
+import { mutation } from "./_generated/server";
 
 export const validateGameState = mutation({
-  args: { roomId: v.id('rooms') },
+  args: { roomId: v.id("rooms") },
   handler: async (ctx, args) => {
     const room = await RoomService.getRoom(ctx, args.roomId);
     if (!room) {
-      throw new Error('Room not found');
+      throw new Error("Room not found");
     }
 
     // Only validate if game is not in waiting or results state
-    if (room.gameState === 'waiting' || room.gameState === 'results') {
-      return { gameState: room.gameState, action: 'no_action_needed' };
+    if (room.gameState === "waiting" || room.gameState === "results") {
+      return { gameState: room.gameState, action: "no_action_needed" };
     }
 
     const players = await PlayerService.getAlivePlayers(ctx, args.roomId);
     if (!players) {
-      throw new Error('Failed to get players');
+      throw new Error("Failed to get players");
     }
 
     const gameResult = GameStateService.checkGameEnd(
       players,
       room.currentRound,
-      room.maxRounds
+      room.maxRounds,
     );
 
-    let action = 'no_action_needed';
+    let action = "no_action_needed";
 
     if (gameResult) {
       await RoomService.updateGameState(ctx, args.roomId, {
-        gameState: 'results',
+        gameState: "results",
       });
-      action = 'game_ended';
-    } else if (room.gameState === 'discussion') {
+      action = "game_ended";
+    } else if (room.gameState === "discussion") {
       const allAlivePlayersShared = players.every(
-        p => p.hasSharedWord === true
+        (p) => p.hasSharedWord === true,
       );
       if (allAlivePlayersShared) {
         await RoomService.updateGameState(ctx, args.roomId, {
-          gameState: 'voting',
+          gameState: "voting",
         });
-        action = 'move_to_voting';
+        action = "move_to_voting";
       }
-    } else if (room.gameState === 'voting') {
+    } else if (room.gameState === "voting") {
       // Voting is handled by the votePlayer mutation, not by validation
       // This validation is only for recovery purposes
-      action = 'no_action_needed';
+      action = "no_action_needed";
     }
 
     const stats = GameStateService.getGameStats(players);
@@ -70,14 +70,14 @@ export const validateGameState = mutation({
 });
 
 export const restartGame = mutation({
-  args: { roomId: v.id('rooms') },
+  args: { roomId: v.id("rooms") },
   handler: async (ctx, args) => {
     const room = await RoomService.getRoom(ctx, args.roomId);
     if (!room) {
-      throw new Error('Room not found');
+      throw new Error("Room not found");
     }
 
-    if (room.gameState !== 'results') {
+    if (room.gameState !== "results") {
       throw new GameNotFinishedError();
     }
 
@@ -89,7 +89,7 @@ export const restartGame = mutation({
         hasSharedWord: false,
         sharedWord: undefined,
         votes: [],
-        role: 'civilian', // Will be reassigned when game starts
+        role: "civilian", // Will be reassigned when game starts
       });
     }
 
@@ -99,8 +99,8 @@ export const restartGame = mutation({
 
     // Remove old game words
     const oldGameWords = await ctx.db
-      .query('gameWords')
-      .withIndex('by_room', q => q.eq('roomId', args.roomId))
+      .query("gameWords")
+      .withIndex("by_room", (q) => q.eq("roomId", args.roomId))
       .first();
 
     if (oldGameWords) {
@@ -112,16 +112,16 @@ export const restartGame = mutation({
 });
 
 export const stopGame = mutation({
-  args: { roomId: v.id('rooms') },
+  args: { roomId: v.id("rooms") },
   handler: async (ctx, args) => {
     const room = await RoomService.getRoom(ctx, args.roomId);
     if (!room) {
-      throw new Error('Room not found');
+      throw new Error("Room not found");
     }
 
     // Only allow stopping if game is active (not waiting or results)
-    if (room.gameState === 'waiting' || room.gameState === 'results') {
-      throw new Error('Game is not currently active');
+    if (room.gameState === "waiting" || room.gameState === "results") {
+      throw new Error("Game is not currently active");
     }
 
     // Reset all players to alive state and clear game data
@@ -132,7 +132,7 @@ export const stopGame = mutation({
         hasSharedWord: false,
         sharedWord: undefined,
         votes: [],
-        role: 'civilian', // Will be reassigned when game starts
+        role: "civilian", // Will be reassigned when game starts
       });
     }
 
@@ -142,8 +142,8 @@ export const stopGame = mutation({
 
     // Remove old game words
     const oldGameWords = await ctx.db
-      .query('gameWords')
-      .withIndex('by_room', q => q.eq('roomId', args.roomId))
+      .query("gameWords")
+      .withIndex("by_room", (q) => q.eq("roomId", args.roomId))
       .first();
 
     if (oldGameWords) {
@@ -155,28 +155,28 @@ export const stopGame = mutation({
 });
 
 export const checkMaxRoundsReached = mutation({
-  args: { roomId: v.id('rooms') },
+  args: { roomId: v.id("rooms") },
   handler: async (ctx, args) => {
     const room = await RoomService.getRoom(ctx, args.roomId);
     if (!room) {
-      throw new Error('Room not found');
+      throw new Error("Room not found");
     }
 
     if (room.currentRound >= room.maxRounds) {
       // Determine winner when max rounds are reached
       const players = await PlayerService.getAlivePlayers(ctx, args.roomId);
       if (!players) {
-        throw new Error('Failed to get players');
+        throw new Error("Failed to get players");
       }
 
       const gameResult = GameStateService.checkGameEnd(
         players,
         room.currentRound,
-        room.maxRounds
+        room.maxRounds,
       );
 
       await RoomService.updateGameState(ctx, args.roomId, {
-        gameState: 'results',
+        gameState: "results",
       });
 
       return { gameResult, maxRoundsReached: true };
@@ -187,34 +187,34 @@ export const checkMaxRoundsReached = mutation({
 });
 
 export const fixDataInconsistency = mutation({
-  args: { roomId: v.id('rooms') },
+  args: { roomId: v.id("rooms") },
   handler: async (ctx, args) => {
     const room = await RoomService.getRoom(ctx, args.roomId);
     if (!room) {
-      throw new Error('Room not found');
+      throw new Error("Room not found");
     }
 
     // Only fix inconsistencies in discussion phase
-    if (room.gameState !== 'discussion') {
-      return { success: false, reason: 'Not in discussion phase' };
+    if (room.gameState !== "discussion") {
+      return { success: false, reason: "Not in discussion phase" };
     }
 
     const alivePlayers = await PlayerService.getAlivePlayers(ctx, args.roomId);
     if (!alivePlayers) {
-      throw new Error('Failed to get alive players');
+      throw new Error("Failed to get alive players");
     }
 
     // Check if all players have shared their words
     const allAlivePlayersShared = alivePlayers.every(
-      p => p.hasSharedWord === true
+      (p) => p.hasSharedWord === true,
     );
 
     if (allAlivePlayersShared) {
       // All players have shared, move to voting
       await RoomService.updateGameState(ctx, args.roomId, {
-        gameState: 'voting',
+        gameState: "voting",
       });
-      return { success: true, action: 'moved_to_voting' };
+      return { success: true, action: "moved_to_voting" };
     }
 
     // Check if current player has already shared but it's still their turn
@@ -222,24 +222,24 @@ export const fixDataInconsistency = mutation({
       const currentPlayerId = room.playerOrder[room.currentPlayerIndex];
       const currentPlayer = await ctx.db.get(currentPlayerId);
 
-      if (currentPlayer && currentPlayer.hasSharedWord) {
+      if (currentPlayer?.hasSharedWord) {
         // Current player has already shared, move to next player
-        const alivePlayerIds = alivePlayers.map(p => p._id);
+        const alivePlayerIds = alivePlayers.map((p) => p._id);
         const nextAlivePlayerIndex = GameFlowHelpers.findNextPlayer(
           room.playerOrder,
           room.currentPlayerIndex,
-          alivePlayerIds
+          alivePlayerIds,
         );
 
         if (nextAlivePlayerIndex !== -1) {
           await RoomService.updateGameState(ctx, args.roomId, {
             currentPlayerIndex: nextAlivePlayerIndex,
           });
-          return { success: true, action: 'moved_to_next_player' };
+          return { success: true, action: "moved_to_next_player" };
         }
       }
     }
 
-    return { success: true, action: 'no_fix_needed' };
+    return { success: true, action: "no_fix_needed" };
   },
 });

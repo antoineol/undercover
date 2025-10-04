@@ -1,7 +1,7 @@
-import { getGameInstructionsText } from '@/domains/ui/ui-helpers.service';
-import { RoomWithPlayers } from '@/lib/convex-types';
-import AnimateHeight from 'react-animate-height';
-import Card from '../ui/Card';
+import { getGameInstructionsText } from "@/domains/ui/ui-helpers.service";
+import { type RoomWithPlayers } from "@/lib/convex-types";
+import AnimateHeight from "react-animate-height";
+import Card from "../ui/Card";
 
 interface GameInstructionsProps {
   room: RoomWithPlayers;
@@ -10,14 +10,14 @@ interface GameInstructionsProps {
 export default function GameInstructions({ room }: GameInstructionsProps) {
   return (
     <AnimateHeight
-      height={room.gameState === 'waiting' ? 'auto' : 0}
+      height={room.gameState === "waiting" ? "auto" : 0}
       duration={300}
-      easing='ease-in-out'
+      easing="ease-in-out"
       animateOpacity
     >
-      <Card className='bg-blue-50 mt-6'>
-        <h3 className='text-lg font-semibold mb-2'>Comment Jouer</h3>
-        <ul className='text-sm text-gray-700 space-y-1'>
+      <Card className="mt-6 bg-blue-50">
+        <h3 className="mb-2 text-lg font-semibold">Comment Jouer</h3>
+        <ul className="space-y-1 text-sm text-gray-700">
           {getGameInstructionsText().map((instruction, index) => (
             <li key={index}>{instruction}</li>
           ))}

@@ -3,14 +3,14 @@
  * Represents a player in the game with their role and state
  */
 
-import { ConvexPlayer } from '../../lib/convex-types';
+import { type ConvexPlayer } from "../../lib/convex-types";
 
 export type { ConvexPlayer };
 
 export interface Player {
   _id: string;
   name: string;
-  role: 'undercover' | 'civilian' | 'mr_white';
+  role: "undercover" | "civilian" | "mr_white";
   isAlive: boolean;
   hasSharedWord?: boolean;
   sharedWord?: string;
@@ -26,9 +26,7 @@ export interface PlayerCounts {
   mrWhite: number;
 }
 
-export interface VoteCounts {
-  [playerId: string]: number;
-}
+export type VoteCounts = Record<string, number>;
 
 export interface VoteResult {
   eliminatedPlayerId: string | null;

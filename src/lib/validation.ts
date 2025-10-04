@@ -1,15 +1,15 @@
 import {
   sanitizeHtml as pureSanitizeHtml,
   sanitizeInput as pureSanitizeInput,
-} from '../domains/utilities/utilities.service';
+} from "../domains/utilities/utilities.service";
 import {
   validateGameConfig as pureValidateGameConfig,
   validatePlayerName as pureValidatePlayerName,
   validateRoomCode as pureValidateRoomCode,
   validateSessionId as pureValidateSessionId,
   validateSharedWord as pureValidateSharedWord,
-} from '../domains/validation/validation.service';
-import { GAME_CONFIG } from './constants';
+} from "../domains/validation/validation.service";
+import { GAME_CONFIG } from "./constants";
 
 export interface ValidationResult {
   isValid: boolean;
@@ -43,13 +43,13 @@ export function validateSharedWord(word: string): ValidationResult {
 export function validateGameConfig(
   playerCount: number,
   numUndercovers: number,
-  numMrWhites: number
+  numMrWhites: number,
 ): ValidationResult {
   return pureValidateGameConfig(
     playerCount,
     numUndercovers,
     numMrWhites,
-    GAME_CONFIG
+    GAME_CONFIG,
   );
 }
 
@@ -58,7 +58,7 @@ export function validateGameConfig(
  */
 export function sanitizeInput(
   input: string,
-  maxLength: number = GAME_CONFIG.MAX_PLAYER_NAME_LENGTH
+  maxLength: number = GAME_CONFIG.MAX_PLAYER_NAME_LENGTH,
 ): string {
   return pureSanitizeInput(input, maxLength);
 }

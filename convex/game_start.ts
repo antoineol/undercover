@@ -1,29 +1,29 @@
-import { v } from 'convex/values';
+import { v } from "convex/values";
 import {
   InsufficientPlayersError,
   TooManyPlayersError,
-} from '../src/lib/errors';
-import { GameFlowHelpers } from '../src/lib/game-helpers';
-import { GameConfigService } from '../src/lib/game-services';
-import { getRandomWordPair } from '../src/lib/word-pairs';
+} from "../src/lib/errors";
+import { GameFlowHelpers } from "../src/lib/game-helpers";
+import { GameConfigService } from "../src/lib/game-services";
+import { getRandomWordPair } from "../src/lib/word-pairs";
 // Removed unused imports - types are now properly handled
-import { mutation } from './_generated/server';
+import { mutation } from "./_generated/server";
 
 export const startGame = mutation({
   args: {
-    roomId: v.id('rooms'),
+    roomId: v.id("rooms"),
     numUndercovers: v.number(),
     numMrWhites: v.number(),
   },
   handler: async (ctx, args) => {
     const room = await ctx.db.get(args.roomId);
     if (!room) {
-      throw new Error('Room not found');
+      throw new Error("Room not found");
     }
 
     const players = await ctx.db
-      .query('players')
-      .withIndex('by_room', q => q.eq('roomId', args.roomId))
+      .query("players")
+      .withIndex("by_room", (q) => q.eq("roomId", args.roomId))
       .collect();
 
     // Validate player count
@@ -39,7 +39,7 @@ export const startGame = mutation({
     GameConfigService.validateConfig(
       players.length,
       args.numUndercovers,
-      args.numMrWhites
+      args.numMrWhites,
     );
 
     // Select random word pair
@@ -49,7 +49,7 @@ export const startGame = mutation({
     const roleAssignments = GameFlowHelpers.assignRoles(
       players,
       args.numUndercovers,
-      args.numMrWhites
+      args.numMrWhites,
     );
 
     for (const assignment of roleAssignments) {
@@ -57,11 +57,11 @@ export const startGame = mutation({
     }
 
     // Create game words
-    await ctx.db.insert('gameWords', {
+    await ctx.db.insert("gameWords", {
       roomId: args.roomId,
       civilianWord: wordPair.civilian,
       undercoverWord: wordPair.undercover,
-      mrWhiteWord: args.numMrWhites > 0 ? 'Unknown' : undefined,
+      mrWhiteWord: args.numMrWhites > 0 ? "Unknown" : undefined,
       createdAt: Date.now(),
     });
 
@@ -79,7 +79,7 @@ export const startGame = mutation({
 
     // Update room state to word sharing phase
     await ctx.db.patch(args.roomId, {
-      gameState: 'discussion',
+      gameState: "discussion",
       currentRound: 1,
       currentPlayerIndex: 0,
       playerOrder: playerOrder,

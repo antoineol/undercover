@@ -1,10 +1,10 @@
-import { UI_MESSAGES } from '@/lib/constants';
-import { ConvexPlayer, RoomWithPlayers } from '@/lib/convex-types';
-import AnimateHeight from 'react-animate-height';
-import { Id } from '../../../convex/_generated/dataModel';
-import Button from '../ui/Button';
-import Card from '../ui/Card';
-import ProgressBar from '../ui/ProgressBar';
+import { UI_MESSAGES } from "@/lib/constants";
+import { type ConvexPlayer, type RoomWithPlayers } from "@/lib/convex-types";
+import AnimateHeight from "react-animate-height";
+import { type Id } from "../../../convex/_generated/dataModel";
+import Button from "../ui/Button";
+import Card from "../ui/Card";
+import ProgressBar from "../ui/ProgressBar";
 
 interface PlayerListProps {
   room: RoomWithPlayers;
@@ -15,7 +15,7 @@ interface PlayerListProps {
   currentTurnPlayerId?: string;
   voteCounts: Record<string, number>;
   voterNames: Record<string, string[]>;
-  onVote: (playerId: Id<'players'>) => void;
+  onVote: (playerId: Id<"players">) => void;
   votingProgress: number;
 }
 
@@ -33,12 +33,12 @@ export default function PlayerList({
 }: PlayerListProps) {
   const getRoleDisplayName = (role: string) => {
     switch (role) {
-      case 'undercover':
-        return 'Undercover';
-      case 'mr_white':
-        return 'Mr. White';
-      case 'civilian':
-        return 'Civil';
+      case "undercover":
+        return "Undercover";
+      case "mr_white":
+        return "Mr. White";
+      case "civilian":
+        return "Civil";
       default:
         return role;
     }
@@ -46,22 +46,22 @@ export default function PlayerList({
 
   const getRoleBadgeColor = (role: string) => {
     switch (role) {
-      case 'undercover':
-        return 'bg-red-100 text-red-800';
-      case 'mr_white':
-        return 'bg-gray-100 text-gray-800';
-      case 'civilian':
-        return 'bg-blue-100 text-blue-800';
+      case "undercover":
+        return "bg-red-100 text-red-800";
+      case "mr_white":
+        return "bg-gray-100 text-gray-800";
+      case "civilian":
+        return "bg-blue-100 text-blue-800";
       default:
-        return 'bg-gray-100 text-gray-800';
+        return "bg-gray-100 text-gray-800";
     }
   };
 
   return (
-    <Card className='flex flex-col gap-6 mt-6'>
+    <Card className="mt-6 flex flex-col gap-6">
       <ProgressBar progress={votingProgress} />
-      <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3'>
-        {room.players.map(player => {
+      <div className="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3">
+        {room.players.map((player) => {
           const isCurrentTurn = player._id === currentTurnPlayerId;
           const isMe = player.name === playerName;
 
@@ -79,19 +79,19 @@ export default function PlayerList({
           return (
             <div
               key={player._id}
-              className={`p-3 rounded-lg border ${
+              className={`rounded-lg border p-3 ${
                 player.isAlive
-                  ? 'bg-green-50 border-green-200'
-                  : 'bg-red-50 border-red-200'
-              } ${isMe ? 'ring-2 ring-blue-500' : ''} ${
+                  ? "border-green-200 bg-green-50"
+                  : "border-red-200 bg-red-50"
+              } ${isMe ? "ring-2 ring-blue-500" : ""} ${
                 shouldShowAsCurrentTurn && (isDiscussionPhase || isVotingPhase)
-                  ? 'ring-2 ring-yellow-500 bg-yellow-50'
-                  : ''
+                  ? "bg-yellow-50 ring-2 ring-yellow-500"
+                  : ""
               }`}
             >
-              <div className='flex justify-between items-center'>
-                <span className='font-medium'>
-                  {shouldShowAsCurrentTurn && ' →'} {!player.isAlive && '💀'}{' '}
+              <div className="flex items-center justify-between">
+                <span className="font-medium">
+                  {shouldShowAsCurrentTurn && " →"} {!player.isAlive && "💀"}{" "}
                   {player.name}
                 </span>
                 <div>
@@ -100,14 +100,14 @@ export default function PlayerList({
                       isDiscussionPhase &&
                       player.hasSharedWord &&
                       player.sharedWord
-                        ? 'auto'
+                        ? "auto"
                         : 0
                     }
                     duration={300}
-                    easing='ease-in-out'
+                    easing="ease-in-out"
                     animateOpacity
                   >
-                    <div className='text-sm text-blue-600'>
+                    <div className="text-sm text-blue-600">
                       &quot;{player.sharedWord}&quot;
                     </div>
                   </AnimateHeight>
@@ -115,17 +115,17 @@ export default function PlayerList({
                   {/* Show role for dead players */}
                   <AnimateHeight
                     height={
-                      !player.isAlive && room.gameState !== 'waiting'
-                        ? 'auto'
+                      !player.isAlive && room.gameState !== "waiting"
+                        ? "auto"
                         : 0
                     }
                     duration={300}
-                    easing='ease-in-out'
+                    easing="ease-in-out"
                     animateOpacity
                   >
-                    <div className='text-sm'>
+                    <div className="text-sm">
                       <span
-                        className={`px-2 py-1 rounded text-xs ${getRoleBadgeColor(player.role)}`}
+                        className={`rounded px-2 py-1 text-xs ${getRoleBadgeColor(player.role)}`}
                       >
                         {getRoleDisplayName(player.role)}
                       </span>
@@ -136,20 +136,20 @@ export default function PlayerList({
 
               {/* Show vote counts during voting */}
               <AnimateHeight
-                height={isVotingPhase ? 'auto' : 0}
+                height={isVotingPhase ? "auto" : 0}
                 duration={300}
-                easing='ease-in-out'
+                easing="ease-in-out"
                 animateOpacity
               >
-                <div className='text-sm text-red-600 mt-1'>
-                  Votes :{' '}
+                <div className="mt-1 text-sm text-red-600">
+                  Votes :{" "}
                   {voteCounts[player._id] > 0 ? (
                     <>
                       {voteCounts[player._id]} (
-                      {voterNames[player._id]?.join(', ')})
+                      {voterNames[player._id]?.join(", ")})
                     </>
                   ) : (
-                    'aucun'
+                    "aucun"
                   )}
                 </div>
 
@@ -160,29 +160,29 @@ export default function PlayerList({
                     player.name !== playerName &&
                     currentPlayer &&
                     currentPlayer.isAlive
-                      ? 'auto'
+                      ? "auto"
                       : 0
                   }
                   duration={300}
-                  easing='ease-in-out'
+                  easing="ease-in-out"
                   animateOpacity
                 >
-                  <div className='mt-2'>
+                  <div className="mt-2">
                     {currentPlayer?.votes.includes(player._id) ? (
                       <Button
                         onClick={() => onVote(player._id)}
-                        variant='success'
-                        size='sm'
-                        className='w-full'
+                        variant="success"
+                        size="sm"
+                        className="w-full"
                       >
                         {UI_MESSAGES.BUTTONS.VOTED}
                       </Button>
                     ) : (
                       <Button
                         onClick={() => onVote(player._id)}
-                        variant='danger'
-                        size='sm'
-                        className='w-full'
+                        variant="danger"
+                        size="sm"
+                        className="w-full"
                       >
                         {UI_MESSAGES.BUTTONS.VOTE_AGAINST}
                       </Button>

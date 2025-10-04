@@ -3,7 +3,11 @@
  * Pure functions for game configuration validation and setup
  */
 
-import { GameConfig, GameConfigValidation, GameSetup } from './game-config';
+import {
+  type GameConfig,
+  type GameConfigValidation,
+  type GameSetup,
+} from "./game-config";
 
 /**
  * Validate game configuration
@@ -12,7 +16,7 @@ export function validateGameConfiguration(
   playerCount: number,
   numUndercovers: number,
   numMrWhites: number,
-  config: GameConfig
+  config: GameConfig,
 ): GameConfigValidation {
   if (playerCount < config.MIN_PLAYERS) {
     return {
@@ -48,7 +52,7 @@ export function validateGameConfiguration(
     return {
       isValid: false,
       error:
-        'Need at least 1 civilian player. Reduce undercovers or Mr. Whites.',
+        "Need at least 1 civilian player. Reduce undercovers or Mr. Whites.",
     };
   }
 
@@ -78,7 +82,7 @@ export function getDefaultGameSetup(config: GameConfig): GameSetup {
  */
 export function calculateOptimalUndercovers(
   playerCount: number,
-  config: GameConfig
+  config: GameConfig,
 ): number {
   const maxUndercovers = Math.floor(playerCount * config.MAX_UNDERCOVERS_RATIO);
   // const minUndercovers = config.MIN_UNDERCOVERS;
@@ -96,7 +100,7 @@ export function calculateOptimalUndercovers(
  */
 export function shouldEnableMrWhite(
   playerCount: number,
-  config: GameConfig
+  config: GameConfig,
 ): boolean {
   return playerCount >= config.MR_WHITE_MIN_PLAYERS;
 }
@@ -106,7 +110,7 @@ export function shouldEnableMrWhite(
  */
 export function getMaxUndercovers(
   playerCount: number,
-  config: GameConfig
+  config: GameConfig,
 ): number {
   return Math.floor(playerCount * config.MAX_UNDERCOVERS_RATIO);
 }
@@ -125,13 +129,13 @@ export function canStartGame(
   playerCount: number,
   numUndercovers: number,
   numMrWhites: number,
-  config: GameConfig
+  config: GameConfig,
 ): boolean {
   const validation = validateGameConfiguration(
     playerCount,
     numUndercovers,
     numMrWhites,
-    config
+    config,
   );
   return validation.isValid;
 }
@@ -141,7 +145,7 @@ export function canStartGame(
  */
 export function getGameConfigurationSuggestions(
   playerCount: number,
-  config: GameConfig
+  config: GameConfig,
 ): {
   suggestedUndercovers: number;
   suggestedMrWhite: boolean;
@@ -161,12 +165,12 @@ export function getGameConfigurationSuggestions(
  */
 export function validateRoomCapacity(
   currentPlayers: number,
-  maxPlayers: number
+  maxPlayers: number,
 ): GameConfigValidation {
   if (currentPlayers >= maxPlayers) {
     return {
       isValid: false,
-      error: 'Room is full',
+      error: "Room is full",
     };
   }
 
@@ -178,7 +182,7 @@ export function validateRoomCapacity(
  */
 export function hasEnoughPlayersToStart(
   playerCount: number,
-  config: GameConfig
+  config: GameConfig,
 ): boolean {
   return playerCount >= config.MIN_PLAYERS;
 }
@@ -188,7 +192,7 @@ export function hasEnoughPlayersToStart(
  */
 export function getPlayerCountStatus(
   playerCount: number,
-  config: GameConfig
+  config: GameConfig,
 ): {
   canStart: boolean;
   needsMorePlayers: boolean;
@@ -199,13 +203,13 @@ export function getPlayerCountStatus(
   const needsMorePlayers = playerCount < config.MIN_PLAYERS;
   const isFull = playerCount >= config.MAX_PLAYERS;
 
-  let statusText = '';
+  let statusText = "";
   if (needsMorePlayers) {
     statusText = `Need ${config.MIN_PLAYERS - playerCount} more players to start`;
   } else if (isFull) {
-    statusText = 'Room is full';
+    statusText = "Room is full";
   } else if (canStart) {
-    statusText = 'Ready to start';
+    statusText = "Ready to start";
   }
 
   return {

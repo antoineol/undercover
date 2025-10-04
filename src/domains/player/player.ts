@@ -3,14 +3,14 @@
  * Represents a player with their role and game state
  */
 
-import { ConvexPlayer } from '../../lib/convex-types';
-import { Id } from '../../../convex/_generated/dataModel';
+import { type ConvexPlayer } from "../../lib/convex-types";
+import { type Id } from "../../../convex/_generated/dataModel";
 
 // Base player interface for domain logic
 export interface Player {
   _id: string;
   name: string;
-  role: 'undercover' | 'civilian' | 'mr_white';
+  role: "undercover" | "civilian" | "mr_white";
   isAlive: boolean;
   hasSharedWord?: boolean;
   sharedWord?: string;
@@ -25,9 +25,9 @@ export type ConvexPlayerWithDomain = ConvexPlayer;
 
 // Type guard to check if a player is a Convex player
 export function isConvexPlayer(
-  player: Player | ConvexPlayer
+  player: Player | ConvexPlayer,
 ): player is ConvexPlayer {
-  return '_creationTime' in player;
+  return "_creationTime" in player;
 }
 
 // Convert ConvexPlayer to domain Player
@@ -48,15 +48,15 @@ export function convexPlayerToDomain(convexPlayer: ConvexPlayer): Player {
 // Convert domain Player to ConvexPlayer (for testing)
 export function domainPlayerToConvex(player: Player): ConvexPlayer {
   return {
-    _id: player._id as ConvexPlayer['_id'], // Type assertion for testing
+    _id: player._id as ConvexPlayer["_id"], // Type assertion for testing
     _creationTime: Date.now(),
-    roomId: player.roomId as ConvexPlayer['roomId'], // Type assertion for testing
+    roomId: player.roomId as ConvexPlayer["roomId"], // Type assertion for testing
     name: player.name,
     sessionId: undefined,
     isHost: false,
     isAlive: player.isAlive,
     role: player.role,
-    votes: player.votes as ConvexPlayer['votes'], // Type assertion for testing
+    votes: player.votes as ConvexPlayer["votes"], // Type assertion for testing
     sharedWord: player.sharedWord,
     hasSharedWord: player.hasSharedWord,
     hasVoted: player.hasVoted,
@@ -65,6 +65,6 @@ export function domainPlayerToConvex(player: Player): ConvexPlayer {
 }
 
 export interface RoleAssignment {
-  playerId: Id<'players'>;
-  role: 'undercover' | 'civilian' | 'mr_white';
+  playerId: Id<"players">;
+  role: "undercover" | "civilian" | "mr_white";
 }

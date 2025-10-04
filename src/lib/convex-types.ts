@@ -1,13 +1,13 @@
-import { Doc, Id } from '../../convex/_generated/dataModel';
+import { type Doc, type Id } from "../../convex/_generated/dataModel";
 
 // Re-export Convex types with proper naming
-export type ConvexRoom = Doc<'rooms'>;
-export type ConvexPlayer = Doc<'players'>;
-export type ConvexGameWords = Doc<'gameWords'>;
+export type ConvexRoom = Doc<"rooms">;
+export type ConvexPlayer = Doc<"players">;
+export type ConvexGameWords = Doc<"gameWords">;
 
-export type RoomId = Id<'rooms'>;
-export type PlayerId = Id<'players'>;
-export type GameWordsId = Id<'gameWords'>;
+export type RoomId = Id<"rooms">;
+export type PlayerId = Id<"players">;
+export type GameWordsId = Id<"gameWords">;
 
 // Extended types that include computed properties
 export interface RoomWithPlayers extends ConvexRoom {
@@ -21,63 +21,63 @@ export interface PlayerWithRoom extends ConvexPlayer {
 // Type guards for runtime type checking
 export function isConvexRoom(obj: unknown): obj is ConvexRoom {
   return (
-    typeof obj === 'object' &&
+    typeof obj === "object" &&
     obj !== null &&
-    '_id' in obj &&
-    'code' in obj &&
-    'hostId' in obj &&
-    'gameState' in obj &&
-    'currentRound' in obj &&
-    'maxRounds' in obj &&
-    'createdAt' in obj
+    "_id" in obj &&
+    "code" in obj &&
+    "hostId" in obj &&
+    "gameState" in obj &&
+    "currentRound" in obj &&
+    "maxRounds" in obj &&
+    "createdAt" in obj
   );
 }
 
 export function isConvexPlayer(obj: unknown): obj is ConvexPlayer {
   return (
-    typeof obj === 'object' &&
+    typeof obj === "object" &&
     obj !== null &&
-    '_id' in obj &&
-    'roomId' in obj &&
-    'name' in obj &&
-    'isHost' in obj &&
-    'isAlive' in obj &&
-    'role' in obj &&
-    'votes' in obj &&
-    'createdAt' in obj
+    "_id" in obj &&
+    "roomId" in obj &&
+    "name" in obj &&
+    "isHost" in obj &&
+    "isAlive" in obj &&
+    "role" in obj &&
+    "votes" in obj &&
+    "createdAt" in obj
   );
 }
 
 // Utility types for working with Convex data
-export type GameState = ConvexRoom['gameState'];
-export type PlayerRole = ConvexPlayer['role'];
+export type GameState = ConvexRoom["gameState"];
+export type PlayerRole = ConvexPlayer["role"];
 
 // Type-safe ID conversion utilities
 // These functions should only be used when you have validated that the string is a valid Convex ID
-export function toPlayerId(id: string): Id<'players'> {
-  if (typeof id !== 'string' || id.length === 0) {
-    throw new Error('Invalid player ID');
+export function toPlayerId(id: string): Id<"players"> {
+  if (typeof id !== "string" || id.length === 0) {
+    throw new Error("Invalid player ID");
   }
-  return id as Id<'players'>;
+  return id as Id<"players">;
 }
 
-export function toRoomId(id: string): Id<'rooms'> {
-  if (typeof id !== 'string' || id.length === 0) {
-    throw new Error('Invalid room ID');
+export function toRoomId(id: string): Id<"rooms"> {
+  if (typeof id !== "string" || id.length === 0) {
+    throw new Error("Invalid room ID");
   }
-  return id as Id<'rooms'>;
+  return id as Id<"rooms">;
 }
 
-export function toGameWordsId(id: string): Id<'gameWords'> {
-  if (typeof id !== 'string' || id.length === 0) {
-    throw new Error('Invalid game words ID');
+export function toGameWordsId(id: string): Id<"gameWords"> {
+  if (typeof id !== "string" || id.length === 0) {
+    throw new Error("Invalid game words ID");
   }
-  return id as Id<'gameWords'>;
+  return id as Id<"gameWords">;
 }
 
 // Convert string array to Convex ID array
-export function toPlayerIdArray(ids: string[]): Id<'players'>[] {
-  return ids.map(id => toPlayerId(id));
+export function toPlayerIdArray(ids: string[]): Id<"players">[] {
+  return ids.map((id) => toPlayerId(id));
 }
 
 // API response types that use Convex types
@@ -119,11 +119,11 @@ export interface GameValidationResponse {
 }
 
 export type GameResult =
-  | 'civilians_win'
-  | 'undercovers_win'
-  | 'mr_white_win'
-  | 'undercovers_mrwhite_win'
-  | 'max_rounds_reached';
+  | "civilians_win"
+  | "undercovers_win"
+  | "mr_white_win"
+  | "undercovers_mrwhite_win"
+  | "max_rounds_reached";
 
 // Component prop types
 export interface GameRoomProps {
@@ -150,13 +150,9 @@ export interface GameConfiguration {
   numMrWhites: number;
 }
 
-export interface VoteCounts {
-  [playerId: string]: number;
-}
+export type VoteCounts = Record<string, number>;
 
-export interface VoterNames {
-  [playerId: string]: string[];
-}
+export type VoterNames = Record<string, string[]>;
 
 export interface PlayerCounts {
   alive: number;

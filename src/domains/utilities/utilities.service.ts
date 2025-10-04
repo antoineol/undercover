@@ -3,14 +3,14 @@
  * Pure utility functions for common operations
  */
 
-import { GameConfig, RetryConfig, GameError } from './utilities';
+import { type GameConfig, type RetryConfig, type GameError } from "./utilities";
 
 /**
  * Generate a random room code
  */
 export function generateRoomCode(config: GameConfig): string {
-  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-  let result = '';
+  const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+  let result = "";
   for (let i = 0; i < config.ROOM_CODE_LENGTH; i++) {
     result += chars.charAt(Math.floor(Math.random() * chars.length));
   }
@@ -22,8 +22,8 @@ export function generateRoomCode(config: GameConfig): string {
  */
 export function generateSessionId(config: GameConfig): string {
   const chars =
-    'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-  let result = '';
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+  let result = "";
   for (let i = 0; i < config.SESSION_ID_LENGTH; i++) {
     result += chars.charAt(Math.floor(Math.random() * chars.length));
   }
@@ -33,11 +33,11 @@ export function generateSessionId(config: GameConfig): string {
 /**
  * Sanitize input string
  */
-export function sanitizeInput(input: string, maxLength: number = 50): string {
+export function sanitizeInput(input: string, maxLength = 50): string {
   return input
     .trim()
     .slice(0, maxLength)
-    .replace(/[<>\"'&]/g, ''); // Remove potentially dangerous characters
+    .replace(/[<>\"'&]/g, ""); // Remove potentially dangerous characters
 }
 
 /**
@@ -45,11 +45,11 @@ export function sanitizeInput(input: string, maxLength: number = 50): string {
  */
 export function sanitizeHtml(input: string): string {
   return input
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#x27;');
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#x27;");
 }
 
 /**
@@ -58,7 +58,7 @@ export function sanitizeHtml(input: string): string {
 export function createGameError(
   message: string,
   code: string,
-  details?: Record<string, unknown>
+  details?: Record<string, unknown>,
 ): GameError {
   const error = new Error(message) as GameError;
   error.code = code;
@@ -71,11 +71,11 @@ export function createGameError(
  */
 export function calculateRetryDelay(
   attempt: number,
-  config: RetryConfig
+  config: RetryConfig,
 ): number {
   return Math.min(
     config.baseDelay * Math.pow(2, attempt) + Math.random() * 1000,
-    config.maxDelay
+    config.maxDelay,
   );
 }
 
@@ -83,11 +83,11 @@ export function calculateRetryDelay(
  * Check if error is retryable (concurrent access error)
  */
 export function isRetryableError(error: unknown): boolean {
-  if (!error || typeof error !== 'object' || !('message' in error)) {
+  if (!error || typeof error !== "object" || !("message" in error)) {
     return false;
   }
   const errorMessage = (error as { message: string }).message;
-  return errorMessage.includes('Documents read from or written to');
+  return errorMessage.includes("Documents read from or written to");
 }
 
 /**
@@ -102,13 +102,13 @@ export function formatPlayerCounts(counts: {
   const parts = [];
   if (counts.undercovers > 0)
     parts.push(
-      `${counts.undercovers} undercover${counts.undercovers > 1 ? 's' : ''}`
+      `${counts.undercovers} undercover${counts.undercovers > 1 ? "s" : ""}`,
     );
   if (counts.civilians > 0)
-    parts.push(`${counts.civilians} civil${counts.civilians > 1 ? 's' : ''}`);
+    parts.push(`${counts.civilians} civil${counts.civilians > 1 ? "s" : ""}`);
   if (counts.mrWhite > 0) parts.push(`${counts.mrWhite} Mr. White`);
 
-  return parts.join(', ');
+  return parts.join(", ");
 }
 
 /**
@@ -116,10 +116,10 @@ export function formatPlayerCounts(counts: {
  */
 export function getGameStateDisplay(gameState: string): string {
   const stateMap: Record<string, string> = {
-    waiting: 'En attente',
-    discussion: 'Discussion',
-    voting: 'Vote',
-    results: 'Résultats',
+    waiting: "En attente",
+    discussion: "Discussion",
+    voting: "Vote",
+    results: "Résultats",
   };
 
   return stateMap[gameState] || gameState;
@@ -129,14 +129,14 @@ export function getGameStateDisplay(gameState: string): string {
  * Check if game is in active state
  */
 export function isGameActive(gameState: string): boolean {
-  return ['discussion', 'voting'].includes(gameState);
+  return ["discussion", "voting"].includes(gameState);
 }
 
 /**
  * Check if game is finished
  */
 export function isGameFinished(gameState: string): boolean {
-  return gameState === 'results';
+  return gameState === "results";
 }
 
 /**
@@ -144,7 +144,7 @@ export function isGameFinished(gameState: string): boolean {
  */
 export function getRoundDisplay(
   currentRound: number,
-  maxRounds: number
+  maxRounds: number,
 ): string {
   return `Round ${currentRound}/${maxRounds}`;
 }
@@ -154,7 +154,7 @@ export function getRoundDisplay(
  */
 export function isMaxRoundsReached(
   currentRound: number,
-  maxRounds: number
+  maxRounds: number,
 ): boolean {
   return currentRound >= maxRounds;
 }

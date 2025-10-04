@@ -1,13 +1,17 @@
-import { Id } from '../../convex/_generated/dataModel';
-import { MutationCtx } from '../../convex/_generated/server';
+import { type Id } from "../../convex/_generated/dataModel";
+import { type MutationCtx } from "../../convex/_generated/server";
 import {
   calculatePlayerCounts as pureCalculatePlayerCounts,
   checkWinConditions as pureCheckWinConditions,
   countVotes as pureCountVotes,
   findEliminatedPlayer as pureFindEliminatedPlayer,
-} from '../domains/game/game-logic.service';
-import { GAME_CONFIG } from './constants';
-import { ConvexPlayer, ConvexRoom, RoomId } from './convex-types';
+} from "../domains/game/game-logic.service";
+import { GAME_CONFIG } from "./constants";
+import {
+  type ConvexPlayer,
+  type ConvexRoom,
+  type RoomId,
+} from "./convex-types";
 
 /**
  * Game state management service
@@ -19,14 +23,14 @@ export class GameStateService {
   static checkGameEnd(
     players: ConvexPlayer[],
     currentRound: number,
-    maxRounds: number
+    maxRounds: number,
   ): string | null {
     const counts = pureCalculatePlayerCounts(players);
     let gameResult = pureCheckWinConditions(counts);
 
     // Check maximum rounds limit
     if (currentRound >= maxRounds) {
-      gameResult = 'max_rounds_reached';
+      gameResult = "max_rounds_reached";
     }
 
     return gameResult;
@@ -36,7 +40,7 @@ export class GameStateService {
    * Process voting results and determine elimination
    */
   static processVotingResults(alivePlayers: ConvexPlayer[]): {
-    eliminatedPlayerId: Id<'players'> | null;
+    eliminatedPlayerId: Id<"players"> | null;
     voteCounts: Record<string, number>;
     tie: boolean;
   } {
@@ -86,17 +90,17 @@ export class PlayerService {
    */
   static async getAlivePlayers(
     ctx: MutationCtx,
-    roomId: RoomId
+    roomId: RoomId,
   ): Promise<ConvexPlayer[]> {
     const players = await ctx.db
-      .query('players')
-      .withIndex('by_room_alive', q =>
-        q.eq('roomId', roomId).eq('isAlive', true)
+      .query("players")
+      .withIndex("by_room_alive", (q) =>
+        q.eq("roomId", roomId).eq("isAlive", true),
       )
       .collect();
 
     if (!players) {
-      throw new Error('Failed to get alive players');
+      throw new Error("Failed to get alive players");
     }
 
     return players;
@@ -107,15 +111,15 @@ export class PlayerService {
    */
   static async getAllPlayers(
     ctx: MutationCtx,
-    roomId: RoomId
+    roomId: RoomId,
   ): Promise<ConvexPlayer[]> {
     const players = await ctx.db
-      .query('players')
-      .withIndex('by_room', q => q.eq('roomId', roomId))
+      .query("players")
+      .withIndex("by_room", (q) => q.eq("roomId", roomId))
       .collect();
 
     if (!players) {
-      throw new Error('Failed to get all players');
+      throw new Error("Failed to get all players");
     }
 
     return players;
@@ -144,7 +148,7 @@ export class RoomService {
   static async updateGameState(
     ctx: MutationCtx,
     roomId: RoomId,
-    updates: Record<string, unknown>
+    updates: Record<string, unknown>,
   ) {
     return await ctx.db.patch(roomId, updates);
   }
@@ -155,7 +159,7 @@ export class RoomService {
   static async getRoom(ctx: MutationCtx, roomId: RoomId): Promise<ConvexRoom> {
     const room = await ctx.db.get(roomId);
     if (!room) {
-      throw new Error('Room not found');
+      throw new Error("Room not found");
     }
     return room;
   }
@@ -165,7 +169,7 @@ export class RoomService {
    */
   static getResetRoomData() {
     return {
-      gameState: 'waiting',
+      gameState: "waiting",
       currentRound: 0,
       currentPlayerIndex: 0,
       playerOrder: [],
@@ -183,28 +187,28 @@ export class GameConfigService {
   static validateConfig(
     playerCount: number,
     numUndercovers: number,
-    numMrWhites: number
+    numMrWhites: number,
   ) {
     if (playerCount < GAME_CONFIG.MIN_PLAYERS) {
       throw new Error(
-        `Need at least ${GAME_CONFIG.MIN_PLAYERS} players to start`
+        `Need at least ${GAME_CONFIG.MIN_PLAYERS} players to start`,
       );
     }
 
     if (playerCount > GAME_CONFIG.MAX_PLAYERS) {
       throw new Error(
-        `Too many players. Maximum is ${GAME_CONFIG.MAX_PLAYERS}`
+        `Too many players. Maximum is ${GAME_CONFIG.MAX_PLAYERS}`,
       );
     }
 
     if (numUndercovers < GAME_CONFIG.MIN_UNDERCOVERS) {
       throw new Error(
-        `Need at least ${GAME_CONFIG.MIN_UNDERCOVERS} undercover`
+        `Need at least ${GAME_CONFIG.MIN_UNDERCOVERS} undercover`,
       );
     }
 
     const maxUndercovers = Math.floor(
-      playerCount * GAME_CONFIG.MAX_UNDERCOVERS_RATIO
+      playerCount * GAME_CONFIG.MAX_UNDERCOVERS_RATIO,
     );
     if (numUndercovers > maxUndercovers) {
       throw new Error(`Too many undercovers. Maximum is ${maxUndercovers}`);
@@ -213,13 +217,13 @@ export class GameConfigService {
     const totalSpecialRoles = numUndercovers + numMrWhites;
     if (totalSpecialRoles >= playerCount) {
       throw new Error(
-        'Need at least 1 civilian player. Reduce undercovers or Mr. Whites.'
+        "Need at least 1 civilian player. Reduce undercovers or Mr. Whites.",
       );
     }
 
     if (numMrWhites > 0 && playerCount < GAME_CONFIG.MR_WHITE_MIN_PLAYERS) {
       throw new Error(
-        `Mr. White requires at least ${GAME_CONFIG.MR_WHITE_MIN_PLAYERS} players`
+        `Mr. White requires at least ${GAME_CONFIG.MR_WHITE_MIN_PLAYERS} players`,
       );
     }
   }

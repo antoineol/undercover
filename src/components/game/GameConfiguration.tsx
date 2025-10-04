@@ -1,13 +1,13 @@
 import {
   calculateMaxUndercovers,
   getGameConfigurationDisplay,
-} from '@/domains/room/room-management.service';
-import { RoomWithPlayers } from '@/lib/convex-types';
-import { useMutation, useQuery } from 'convex/react';
-import { useEffect, useState } from 'react';
-import AnimateHeight from 'react-animate-height';
-import { api } from '../../../convex/_generated/api';
-import Card from '../ui/Card';
+} from "@/domains/room/room-management.service";
+import { type RoomWithPlayers } from "@/lib/convex-types";
+import { useMutation, useQuery } from "convex/react";
+import { useEffect, useState } from "react";
+import AnimateHeight from "react-animate-height";
+import { api } from "../../../convex/_generated/api";
+import Card from "../ui/Card";
 
 interface GameConfigurationProps {
   room: RoomWithPlayers;
@@ -36,7 +36,7 @@ export default function GameConfiguration({
 
   const handleConfigChange = async (
     newUndercovers: number,
-    newMrWhites: number
+    newMrWhites: number,
   ) => {
     setNumUndercovers(newUndercovers);
     setNumMrWhites(newMrWhites);
@@ -48,37 +48,37 @@ export default function GameConfiguration({
         numMrWhites: newMrWhites,
       });
     } catch (error) {
-      console.error('Failed to update game config:', error);
+      console.error("Failed to update game config:", error);
     }
   };
 
   return (
     <AnimateHeight
-      height={showConfig ? 'auto' : 0}
+      height={showConfig ? "auto" : 0}
       duration={300}
-      easing='ease-in-out'
+      easing="ease-in-out"
       animateOpacity
     >
-      <Card className='bg-yellow-50 mt-6'>
-        <h3 className='text-lg font-semibold mb-4'>⚙️ Configuration du Jeu</h3>
+      <Card className="mt-6 bg-yellow-50">
+        <h3 className="mb-4 text-lg font-semibold">⚙️ Configuration du Jeu</h3>
 
-        <div className='space-y-4'>
+        <div className="space-y-4">
           {/* Number of Undercovers */}
           <div>
-            <label className='block text-sm font-medium text-gray-700 mb-2'>
+            <label className="mb-2 block text-sm font-medium text-gray-700">
               Nombre d&apos;Undercovers: {numUndercovers}
             </label>
             <input
-              type='range'
-              min='1'
+              type="range"
+              min="1"
               max={calculateMaxUndercovers(room.players.length)}
               value={numUndercovers}
-              onChange={e =>
+              onChange={(e) =>
                 handleConfigChange(parseInt(e.target.value), numMrWhites)
               }
-              className='w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer'
+              className="h-2 w-full cursor-pointer appearance-none rounded-lg bg-gray-200"
             />
-            <div className='flex justify-between text-xs text-gray-500 mt-1'>
+            <div className="mt-1 flex justify-between text-xs text-gray-500">
               <span>1</span>
               <span>Max: {calculateMaxUndercovers(room.players.length)}</span>
             </div>
@@ -86,34 +86,34 @@ export default function GameConfiguration({
 
           {/* Number of Mr. Whites */}
           <div>
-            <label className='block text-sm font-medium text-gray-700 mb-2'>
+            <label className="mb-2 block text-sm font-medium text-gray-700">
               Nombre de Mr. White: {numMrWhites}
             </label>
             <input
-              type='range'
-              min='0'
+              type="range"
+              min="0"
               max={Math.max(0, room.players.length - numUndercovers - 1)}
               value={numMrWhites}
-              onChange={e =>
+              onChange={(e) =>
                 handleConfigChange(numUndercovers, parseInt(e.target.value))
               }
-              className='w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer'
+              className="h-2 w-full cursor-pointer appearance-none rounded-lg bg-gray-200"
             />
-            <div className='flex justify-between text-xs text-gray-500 mt-1'>
+            <div className="mt-1 flex justify-between text-xs text-gray-500">
               <span>0</span>
               <span>
                 Max: {Math.max(0, room.players.length - numUndercovers - 1)}
               </span>
             </div>
-            <p className='text-xs text-gray-600 mt-1'>
+            <p className="mt-1 text-xs text-gray-600">
               Mr. White ne connaît aucun mot
             </p>
           </div>
 
           {/* Validation Info */}
-          <div className='bg-gray-100 rounded p-3 text-sm'>
-            <div className='font-medium mb-1'>Configuration actuelle:</div>
-            <div className='whitespace-pre-line'>
+          <div className="rounded bg-gray-100 p-3 text-sm">
+            <div className="mb-1 font-medium">Configuration actuelle:</div>
+            <div className="whitespace-pre-line">
               {getGameConfigurationDisplay({
                 numUndercovers,
                 numMrWhites,

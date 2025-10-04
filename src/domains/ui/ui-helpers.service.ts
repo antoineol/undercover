@@ -10,9 +10,9 @@
  */
 export function getRoleDisplayName(role: string): string {
   const roleMap = {
-    undercover: 'Undercover',
-    mr_white: 'Mr. White',
-    civilian: 'Civil',
+    undercover: "Undercover",
+    mr_white: "Mr. White",
+    civilian: "Civil",
   };
 
   return roleMap[role as keyof typeof roleMap] || role;
@@ -23,20 +23,20 @@ export function getRoleDisplayName(role: string): string {
  */
 export function getRoleBadgeColor(role: string): string {
   const colorMap = {
-    undercover: 'bg-red-100 text-red-800',
-    mr_white: 'bg-gray-100 text-gray-800',
-    civilian: 'bg-blue-100 text-blue-800',
+    undercover: "bg-red-100 text-red-800",
+    mr_white: "bg-gray-100 text-gray-800",
+    civilian: "bg-blue-100 text-blue-800",
   };
 
-  return colorMap[role as keyof typeof colorMap] || 'bg-gray-100 text-gray-800';
+  return colorMap[role as keyof typeof colorMap] || "bg-gray-100 text-gray-800";
 }
 
 /**
  * Format winner text with proper grammar
  */
 export function formatWinnerText(winner: string): string {
-  const isSingular = winner === 'Mr. White' || winner === 'Personne';
-  return isSingular ? 'gagne' : 'gagnent';
+  const isSingular = winner === "Mr. White" || winner === "Personne";
+  return isSingular ? "gagne" : "gagnent";
 }
 
 /**
@@ -44,7 +44,7 @@ export function formatWinnerText(winner: string): string {
  */
 export function calculateSharingProgress(
   playersWhoShared: number,
-  totalAlivePlayers: number
+  totalAlivePlayers: number,
 ): number {
   return totalAlivePlayers > 0
     ? (playersWhoShared / totalAlivePlayers) * 100
@@ -56,7 +56,7 @@ export function calculateSharingProgress(
  */
 export function calculateVotingProgress(
   playersWhoVoted: number,
-  totalAlivePlayers: number
+  totalAlivePlayers: number,
 ): number {
   return totalAlivePlayers > 0
     ? (playersWhoVoted / totalAlivePlayers) * 100
@@ -69,10 +69,10 @@ export function calculateVotingProgress(
 export function generateShareButtonText(
   isSuccess: boolean,
   isError: boolean,
-  baseText: string = '📋 Partager le Lien'
+  baseText = "📋 Partager le Lien",
 ): string {
-  if (isSuccess) return '✅ Lien copié !';
-  if (isError) return '❌ Erreur de copie';
+  if (isSuccess) return "✅ Lien copié !";
+  if (isError) return "❌ Erreur de copie";
   return baseText;
 }
 
@@ -81,11 +81,11 @@ export function generateShareButtonText(
  */
 export function getGameStateDisplayText(gameState: string): string {
   const stateMap: Record<string, string> = {
-    waiting: 'En attente des joueurs',
-    discussion: 'Phase de discussion',
-    voting: 'Phase de vote',
-    mr_white_guessing: 'Mr. White devine',
-    results: 'Résultats du jeu',
+    waiting: "En attente des joueurs",
+    discussion: "Phase de discussion",
+    voting: "Phase de vote",
+    mr_white_guessing: "Mr. White devine",
+    results: "Résultats du jeu",
   };
 
   return stateMap[gameState] || gameState;
@@ -96,7 +96,7 @@ export function getGameStateDisplayText(gameState: string): string {
  */
 export function getRoundDisplayText(
   currentRound: number,
-  maxRounds: number
+  maxRounds: number,
 ): string {
   return `Round ${currentRound}/${maxRounds}`;
 }
@@ -105,35 +105,35 @@ export function getRoundDisplayText(
  * Check if game is in waiting state
  */
 export function isGameWaiting(gameState: string): boolean {
-  return gameState === 'waiting';
+  return gameState === "waiting";
 }
 
 /**
  * Check if game is in discussion state
  */
 export function isGameDiscussion(gameState: string): boolean {
-  return gameState === 'discussion';
+  return gameState === "discussion";
 }
 
 /**
  * Check if game is in voting state
  */
 export function isGameVoting(gameState: string): boolean {
-  return gameState === 'voting';
+  return gameState === "voting";
 }
 
 /**
  * Check if game is in results state
  */
 export function isGameResults(gameState: string): boolean {
-  return gameState === 'results';
+  return gameState === "results";
 }
 
 /**
  * Check if game is in Mr. White guessing state
  */
 export function isGameMrWhiteGuessing(gameState: string): boolean {
-  return gameState === 'mr_white_guessing';
+  return gameState === "mr_white_guessing";
 }
 
 /**
@@ -141,7 +141,7 @@ export function isGameMrWhiteGuessing(gameState: string): boolean {
  */
 export function getPlayerCountDisplay(
   playerCount: number,
-  maxPlayers: number
+  maxPlayers: number,
 ): string {
   return `${playerCount}/${maxPlayers} joueurs`;
 }
@@ -158,7 +158,7 @@ export function isRoomFull(playerCount: number, maxPlayers: number): boolean {
  */
 export function hasMinimumPlayers(
   playerCount: number,
-  minPlayers: number
+  minPlayers: number,
 ): boolean {
   return playerCount >= minPlayers;
 }
@@ -169,14 +169,14 @@ export function hasMinimumPlayers(
 export function getValidationErrorMessage(error: string): string {
   // Map technical error messages to user-friendly ones
   const errorMap: Record<string, string> = {
-    'Player not found or not alive': 'Joueur introuvable ou éliminé',
-    'Game is not in discussion phase':
+    "Player not found or not alive": "Joueur introuvable ou éliminé",
+    "Game is not in discussion phase":
       "Le jeu n'est pas en phase de discussion",
     "It's not your turn to share a word":
       "Ce n'est pas votre tour de partager un mot",
-    'You have already shared your word': 'Vous avez déjà partagé votre mot',
-    'Voting is not active': "Le vote n'est pas actif",
-    'Players not in same room': 'Les joueurs ne sont pas dans la même salle',
+    "You have already shared your word": "Vous avez déjà partagé votre mot",
+    "Voting is not active": "Le vote n'est pas actif",
+    "Players not in same room": "Les joueurs ne sont pas dans la même salle",
   };
 
   return errorMap[error] || error;
@@ -186,7 +186,7 @@ export function getValidationErrorMessage(error: string): string {
  * Format time remaining for display
  */
 export function formatTimeRemaining(seconds: number): string {
-  if (seconds <= 0) return 'Temps écoulé';
+  if (seconds <= 0) return "Temps écoulé";
 
   const minutes = Math.floor(seconds / 60);
   const remainingSeconds = seconds % 60;
@@ -212,7 +212,7 @@ export function generateQRCodeDataUrl(roomUrl: string): Promise<string> {
  */
 export function isCurrentTurnPlayer(
   playerId: string,
-  currentTurnPlayerId: string | undefined
+  currentTurnPlayerId: string | undefined,
 ): boolean {
   return playerId === currentTurnPlayerId;
 }
@@ -222,7 +222,7 @@ export function isCurrentTurnPlayer(
  */
 export function getTurnOrderDisplay(
   currentIndex: number,
-  totalPlayers: number
+  totalPlayers: number,
 ): string {
   return `Tour ${currentIndex + 1}/${totalPlayers}`;
 }
@@ -233,10 +233,10 @@ export function getTurnOrderDisplay(
 export function generateShareButtonTextWithTimeout(
   isSuccess: boolean,
   isError: boolean,
-  baseText: string = '📋 Partager le Lien'
+  baseText = "📋 Partager le Lien",
 ): string {
-  if (isSuccess) return '✅ Lien copié !';
-  if (isError) return '❌ Erreur de copie';
+  if (isSuccess) return "✅ Lien copié !";
+  if (isError) return "❌ Erreur de copie";
   return baseText;
 }
 
@@ -245,14 +245,14 @@ export function generateShareButtonTextWithTimeout(
  */
 export function getGameStateMessage(gameState: string): string {
   const stateMap: Record<string, string> = {
-    waiting: 'En attente des joueurs',
-    discussion: 'Phase de discussion',
-    voting: 'Phase de vote',
-    mr_white_guessing: 'Mr. White devine',
-    results: 'Résultats du jeu',
+    waiting: "En attente des joueurs",
+    discussion: "Phase de discussion",
+    voting: "Phase de vote",
+    mr_white_guessing: "Mr. White devine",
+    results: "Résultats du jeu",
   };
 
-  return stateMap[gameState] || '';
+  return stateMap[gameState] || "";
 }
 
 /**
@@ -260,7 +260,7 @@ export function getGameStateMessage(gameState: string): string {
  */
 export function getStartGameButtonText(
   playerCount: number,
-  minPlayers: number = 3
+  minPlayers = 3,
 ): string {
   return `Commencer le Jeu (${playerCount}/${minPlayers}+)`;
 }
@@ -277,9 +277,9 @@ export function getConfigurationDisplayText(config: {
   const civilians = totalPlayers - numUndercovers - numMrWhites;
 
   return `Configuration actuelle:
-• ${numUndercovers} Undercover${numUndercovers > 1 ? 's' : ''}
-• ${numMrWhites} Mr. White${numMrWhites > 1 ? 's' : ''}${numMrWhites === 0 ? ' (Aucun)' : ''}
-• ${civilians} Civil${civilians > 1 ? 's' : ''}`;
+• ${numUndercovers} Undercover${numUndercovers > 1 ? "s" : ""}
+• ${numMrWhites} Mr. White${numMrWhites > 1 ? "s" : ""}${numMrWhites === 0 ? " (Aucun)" : ""}
+• ${civilians} Civil${civilians > 1 ? "s" : ""}`;
 }
 
 /**
@@ -287,16 +287,16 @@ export function getConfigurationDisplayText(config: {
  */
 export function getWordDisplayText(
   playerRole: string,
-  gameWords: { civilianWord: string; undercoverWord: string } | null
+  gameWords: { civilianWord: string; undercoverWord: string } | null,
 ): string {
-  if (!gameWords) return '';
+  if (!gameWords) return "";
 
   switch (playerRole) {
-    case 'undercover':
+    case "undercover":
       return gameWords.undercoverWord;
-    case 'mr_white':
-      return 'Vous êtes Mr. White.';
-    case 'civilian':
+    case "mr_white":
+      return "Vous êtes Mr. White.";
+    case "civilian":
     default:
       return gameWords.civilianWord;
   }
@@ -307,8 +307,8 @@ export function getWordDisplayText(
  */
 export function getValidationResultMessage(action: string): string {
   const messageMap: Record<string, string> = {
-    skipped_dead_player: 'Joueur mort ignoré - passage au joueur suivant',
-    no_action_needed: 'Game state is valid - no action needed',
+    skipped_dead_player: "Joueur mort ignoré - passage au joueur suivant",
+    no_action_needed: "Game state is valid - no action needed",
   };
 
   return messageMap[action] || `Game state fixed: ${action}`;
@@ -319,13 +319,13 @@ export function getValidationResultMessage(action: string): string {
  */
 export function getGameInstructionsText(): string[] {
   return [
-    '• 3-10 joueurs peuvent rejoindre cette salle',
-    '• La plupart des joueurs sont des Civils avec un mot',
-    '• 1-3 joueurs sont Undercovers avec un mot différent',
-    '• Mr. White (4+ joueurs) ne connaît aucun mot',
-    '• Discutez et votez contre les joueurs suspects',
-    '• Les Civils gagnent en éliminant tous les Undercovers',
-    '• Les Undercovers gagnent en survivant ou en surpassant les Civils',
+    "• 3-10 joueurs peuvent rejoindre cette salle",
+    "• La plupart des joueurs sont des Civils avec un mot",
+    "• 1-3 joueurs sont Undercovers avec un mot différent",
+    "• Mr. White (4+ joueurs) ne connaît aucun mot",
+    "• Discutez et votez contre les joueurs suspects",
+    "• Les Civils gagnent en éliminant tous les Undercovers",
+    "• Les Undercovers gagnent en survivant ou en surpassant les Civils",
   ];
 }
 
@@ -339,11 +339,11 @@ export function getMrWhiteGuessingText(): {
   buttonText: string;
 } {
   return {
-    title: 'Mr. White a été éliminé !',
+    title: "Mr. White a été éliminé !",
     description:
-      'Mr. White a une dernière chance de deviner le mot des Civils.',
-    placeholder: 'Devinez le mot des Civils...',
-    buttonText: 'Deviner le Mot',
+      "Mr. White a une dernière chance de deviner le mot des Civils.",
+    placeholder: "Devinez le mot des Civils...",
+    buttonText: "Deviner le Mot",
   };
 }
 
@@ -357,20 +357,20 @@ export function validatePlayerNameInput(name: string): {
   const trimmedName = name.trim();
 
   if (!trimmedName) {
-    return { isValid: false, error: 'Le nom est requis' };
+    return { isValid: false, error: "Le nom est requis" };
   }
 
   if (trimmedName.length < 2) {
     return {
       isValid: false,
-      error: 'Le nom doit contenir au moins 2 caractères',
+      error: "Le nom doit contenir au moins 2 caractères",
     };
   }
 
   if (trimmedName.length > 20) {
     return {
       isValid: false,
-      error: 'Le nom ne peut pas dépasser 20 caractères',
+      error: "Le nom ne peut pas dépasser 20 caractères",
     };
   }
 
@@ -387,13 +387,13 @@ export function validateRoomCodeInput(roomCode: string): {
   const trimmedCode = roomCode.trim().toUpperCase();
 
   if (!trimmedCode) {
-    return { isValid: false, error: 'Le code de la salle est requis' };
+    return { isValid: false, error: "Le code de la salle est requis" };
   }
 
   if (trimmedCode.length !== 6) {
     return {
       isValid: false,
-      error: 'Le code de la salle doit contenir 6 caractères',
+      error: "Le code de la salle doit contenir 6 caractères",
     };
   }
 
@@ -401,7 +401,7 @@ export function validateRoomCodeInput(roomCode: string): {
     return {
       isValid: false,
       error:
-        'Le code de la salle ne peut contenir que des lettres et des chiffres',
+        "Le code de la salle ne peut contenir que des lettres et des chiffres",
     };
   }
 
@@ -420,7 +420,7 @@ export function formatRoomCodeInput(input: string): string {
  */
 export function getFormValidationState(
   playerName: string,
-  roomCode?: string
+  roomCode?: string,
 ): {
   isCreateFormValid: boolean;
   isJoinFormValid: boolean;
@@ -435,8 +435,8 @@ export function getFormValidationState(
   return {
     isCreateFormValid: playerNameValidation.isValid,
     isJoinFormValid: playerNameValidation.isValid && roomCodeValidation.isValid,
-    createButtonText: 'Créer une Salle',
-    joinButtonText: 'Rejoindre la Salle',
+    createButtonText: "Créer une Salle",
+    joinButtonText: "Rejoindre la Salle",
   };
 }
 
@@ -445,14 +445,14 @@ export function getFormValidationState(
  */
 export function getLoadingStateText(
   isCreating: boolean,
-  isJoining: boolean
+  isJoining: boolean,
 ): {
   createButtonText: string;
   joinButtonText: string;
 } {
   return {
-    createButtonText: isCreating ? 'Création...' : 'Créer une Salle',
-    joinButtonText: isJoining ? 'Rejoindre...' : 'Rejoindre la Salle',
+    createButtonText: isCreating ? "Création..." : "Créer une Salle",
+    joinButtonText: isJoining ? "Rejoindre..." : "Rejoindre la Salle",
   };
 }
 
@@ -465,8 +465,8 @@ export function getLobbySectionText(): {
   joinDescription: string;
 } {
   return {
-    createTitle: 'Créer une Salle',
-    joinTitle: 'Rejoindre une Salle',
-    joinDescription: 'Demandez le lien de la salle ou entrez le code :',
+    createTitle: "Créer une Salle",
+    joinTitle: "Rejoindre une Salle",
+    joinDescription: "Demandez le lien de la salle ou entrez le code :",
   };
 }

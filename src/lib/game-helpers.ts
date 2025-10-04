@@ -1,19 +1,19 @@
-import { Id } from '../../convex/_generated/dataModel';
+import { type Id } from "../../convex/_generated/dataModel";
 import {
   allPlayersCompletedAction as pureAllPlayersCompletedAction,
   determineWinner as pureDetermineWinner,
   getRoleDisplay as pureGetRoleDisplay,
-} from '../domains/game/game-logic.service';
+} from "../domains/game/game-logic.service";
 import {
   assignRoles as pureAssignRoles,
   createPlayerOrder as pureCreatePlayerOrder,
   findNextAlivePlayer as pureFindNextAlivePlayer,
-} from '../domains/player/role-assignment.service';
+} from "../domains/player/role-assignment.service";
 import {
   canShareWord as pureCanShareWord,
   canVote as pureCanVote,
-} from '../domains/validation/validation.service';
-import { ConvexPlayer, ConvexRoom } from './convex-types';
+} from "../domains/validation/validation.service";
+import { type ConvexPlayer, type ConvexRoom } from "./convex-types";
 
 /**
  * Game flow helpers - pure functions for game logic
@@ -25,10 +25,10 @@ export class GameFlowHelpers {
   static assignRoles(
     players: ConvexPlayer[],
     numUndercovers: number,
-    numMrWhites: number
+    numMrWhites: number,
   ) {
     // Convert ConvexPlayer to the format expected by pureAssignRoles
-    const domainPlayers = players.map(p => ({
+    const domainPlayers = players.map((p) => ({
       _id: p._id,
       role: p.role,
     }));
@@ -40,7 +40,7 @@ export class GameFlowHelpers {
    */
   static createPlayerOrder(players: ConvexPlayer[]) {
     // Convert ConvexPlayer to the format expected by pureCreatePlayerOrder
-    const domainPlayers = players.map(p => ({
+    const domainPlayers = players.map((p) => ({
       _id: p._id,
       role: p.role,
     }));
@@ -51,9 +51,9 @@ export class GameFlowHelpers {
    * Find next player in turn order
    */
   static findNextPlayer(
-    playerOrder: Id<'players'>[],
+    playerOrder: Id<"players">[],
     currentIndex: number,
-    alivePlayerIds: Id<'players'>[]
+    alivePlayerIds: Id<"players">[],
   ) {
     return pureFindNextAlivePlayer(playerOrder, currentIndex, alivePlayerIds);
   }
@@ -63,7 +63,7 @@ export class GameFlowHelpers {
    */
   static allPlayersCompletedAction(
     players: ConvexPlayer[],
-    action: 'sharedWord' | 'voted'
+    action: "sharedWord" | "voted",
   ): boolean {
     return pureAllPlayersCompletedAction(players, action);
   }
@@ -79,7 +79,7 @@ export class GameValidationHelpers {
   static canShareWord(
     player: ConvexPlayer,
     room: ConvexRoom,
-    playerId: string
+    playerId: string,
   ): { canShare: boolean; error?: string } {
     return pureCanShareWord(player, room, playerId);
   }
@@ -90,7 +90,7 @@ export class GameValidationHelpers {
   static canVote(
     voter: ConvexPlayer,
     target: ConvexPlayer,
-    room: ConvexRoom
+    room: ConvexRoom,
   ): { canVote: boolean; error?: string } {
     return pureCanVote(voter, target, room);
   }

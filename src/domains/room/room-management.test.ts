@@ -1,7 +1,7 @@
-import { describe, expect, it } from 'bun:test';
-import { Id } from '../../../convex/_generated/dataModel';
-import { ConvexPlayer } from '../../lib/convex-types';
-import { Player, Room } from '../../lib/types';
+import { describe, expect, it } from "bun:test";
+import { type Id } from "../../../convex/_generated/dataModel";
+import { type ConvexPlayer } from "../../lib/convex-types";
+import { type Player, type Room } from "../../lib/types";
 import {
   canStartGame,
   getCurrentTurnPlayerId,
@@ -25,20 +25,20 @@ import {
   isRoomVoting,
   isRoomWaiting,
   needsStateValidation,
-} from './room-management.service';
+} from "./room-management.service";
 
 // Helper function to convert test players to ConvexPlayer format
 const toConvexPlayers = (players: Player[]): ConvexPlayer[] =>
-  players.map(p => ({
-    _id: p._id as Id<'players'>,
+  players.map((p) => ({
+    _id: p._id as Id<"players">,
     _creationTime: Date.now(),
-    roomId: p.roomId as Id<'rooms'>,
+    roomId: p.roomId as Id<"rooms">,
     name: p.name,
     sessionId: p.sessionId,
     isHost: p.isHost,
     isAlive: p.isAlive,
     role: p.role,
-    votes: p.votes as Id<'players'>[],
+    votes: p.votes as Id<"players">[],
     sharedWord: p.sharedWord,
     hasSharedWord: p.hasSharedWord,
     hasVoted: false,
@@ -46,14 +46,14 @@ const toConvexPlayers = (players: Player[]): ConvexPlayer[] =>
   }));
 
 const mockRoom: Room = {
-  _id: 'room1',
-  code: 'ABC123',
-  hostId: 'host1',
-  gameState: 'waiting',
+  _id: "room1",
+  code: "ABC123",
+  hostId: "host1",
+  gameState: "waiting",
   currentRound: 1,
   maxRounds: 5,
   currentPlayerIndex: 0,
-  playerOrder: ['player1', 'player2', 'player3'],
+  playerOrder: ["player1", "player2", "player3"],
   numMrWhites: 0,
   numUndercovers: 1,
   createdAt: Date.now(),
@@ -62,53 +62,53 @@ const mockRoom: Room = {
 
 const mockPlayers: Player[] = [
   {
-    _id: 'player1',
-    name: 'Player 1',
-    role: 'civilian',
+    _id: "player1",
+    name: "Player 1",
+    role: "civilian",
     isAlive: true,
     hasSharedWord: true,
     votes: [],
-    roomId: 'room1',
+    roomId: "room1",
     isHost: true,
     createdAt: Date.now(),
   },
   {
-    _id: 'player2',
-    name: 'Player 2',
-    role: 'undercover',
+    _id: "player2",
+    name: "Player 2",
+    role: "undercover",
     isAlive: true,
     hasSharedWord: true,
-    votes: ['player1'],
-    roomId: 'room1',
+    votes: ["player1"],
+    roomId: "room1",
     isHost: false,
     createdAt: Date.now(),
   },
   {
-    _id: 'player3',
-    name: 'Player 3',
-    role: 'civilian',
+    _id: "player3",
+    name: "Player 3",
+    role: "civilian",
     isAlive: false,
     hasSharedWord: false,
     votes: [],
-    roomId: 'room1',
+    roomId: "room1",
     isHost: false,
     createdAt: Date.now(),
   },
 ];
 
-describe('Room Management Functions', () => {
-  describe('getResetRoomData', () => {
-    it('should return reset room data', () => {
+describe("Room Management Functions", () => {
+  describe("getResetRoomData", () => {
+    it("should return reset room data", () => {
       const resetData = getResetRoomData();
-      expect(resetData.gameState).toBe('waiting');
+      expect(resetData.gameState).toBe("waiting");
       expect(resetData.currentRound).toBe(0);
       expect(resetData.currentPlayerIndex).toBe(0);
       expect(resetData.playerOrder).toEqual([]);
     });
   });
 
-  describe('Room state checks', () => {
-    it('should correctly identify room states', () => {
+  describe("Room state checks", () => {
+    it("should correctly identify room states", () => {
       expect(isRoomWaiting(mockRoom)).toBe(true);
       expect(isRoomDiscussion(mockRoom)).toBe(false);
       expect(isRoomVoting(mockRoom)).toBe(false);
@@ -116,32 +116,32 @@ describe('Room Management Functions', () => {
       expect(isRoomMrWhiteGuessing(mockRoom)).toBe(false);
     });
 
-    it('should identify discussion state', () => {
-      const discussionRoom = { ...mockRoom, gameState: 'discussion' as const };
+    it("should identify discussion state", () => {
+      const discussionRoom = { ...mockRoom, gameState: "discussion" as const };
       expect(isRoomDiscussion(discussionRoom)).toBe(true);
       expect(isRoomWaiting(discussionRoom)).toBe(false);
     });
 
-    it('should identify voting state', () => {
-      const votingRoom = { ...mockRoom, gameState: 'voting' as const };
+    it("should identify voting state", () => {
+      const votingRoom = { ...mockRoom, gameState: "voting" as const };
       expect(isRoomVoting(votingRoom)).toBe(true);
       expect(isRoomDiscussion(votingRoom)).toBe(false);
     });
 
-    it('should identify results state', () => {
-      const resultsRoom = { ...mockRoom, gameState: 'results' as const };
+    it("should identify results state", () => {
+      const resultsRoom = { ...mockRoom, gameState: "results" as const };
       expect(isRoomResults(resultsRoom)).toBe(true);
       expect(isRoomVoting(resultsRoom)).toBe(false);
     });
   });
 
-  describe('Game state checks', () => {
-    it('should identify active games', () => {
-      const discussionRoom = { ...mockRoom, gameState: 'discussion' as const };
-      const votingRoom = { ...mockRoom, gameState: 'voting' as const };
+  describe("Game state checks", () => {
+    it("should identify active games", () => {
+      const discussionRoom = { ...mockRoom, gameState: "discussion" as const };
+      const votingRoom = { ...mockRoom, gameState: "voting" as const };
       const mrWhiteRoom = {
         ...mockRoom,
-        gameState: 'mr_white_guessing' as const,
+        gameState: "mr_white_guessing" as const,
       };
 
       expect(isGameActive(discussionRoom)).toBe(true);
@@ -150,79 +150,79 @@ describe('Room Management Functions', () => {
       expect(isGameActive(mockRoom)).toBe(false);
     });
 
-    it('should identify finished games', () => {
-      const resultsRoom = { ...mockRoom, gameState: 'results' as const };
+    it("should identify finished games", () => {
+      const resultsRoom = { ...mockRoom, gameState: "results" as const };
       expect(isGameFinished(resultsRoom)).toBe(true);
       expect(isGameFinished(mockRoom)).toBe(false);
     });
   });
 
-  describe('getCurrentTurnPlayerId', () => {
-    it('should return current turn player ID', () => {
-      expect(getCurrentTurnPlayerId(mockRoom)).toBe('player1');
+  describe("getCurrentTurnPlayerId", () => {
+    it("should return current turn player ID", () => {
+      expect(getCurrentTurnPlayerId(mockRoom)).toBe("player1");
     });
 
-    it('should return null for room without player order', () => {
+    it("should return null for room without player order", () => {
       const roomWithoutOrder = { ...mockRoom, playerOrder: undefined };
       expect(getCurrentTurnPlayerId(roomWithoutOrder)).toBe(null);
     });
 
-    it('should return null for room without current player index', () => {
+    it("should return null for room without current player index", () => {
       const roomWithoutIndex = { ...mockRoom, currentPlayerIndex: undefined };
       expect(getCurrentTurnPlayerId(roomWithoutIndex)).toBe(null);
     });
   });
 
-  describe('isPlayerTurn', () => {
-    it('should correctly identify player turn', () => {
-      expect(isPlayerTurn('player1', mockRoom)).toBe(true);
-      expect(isPlayerTurn('player2', mockRoom)).toBe(false);
+  describe("isPlayerTurn", () => {
+    it("should correctly identify player turn", () => {
+      expect(isPlayerTurn("player1", mockRoom)).toBe(true);
+      expect(isPlayerTurn("player2", mockRoom)).toBe(false);
     });
   });
 
-  describe('getNextTurnPlayerId', () => {
-    it('should find next alive player', () => {
-      const alivePlayerIds = ['player1', 'player2'];
-      expect(getNextTurnPlayerId(mockRoom, alivePlayerIds)).toBe('player2');
+  describe("getNextTurnPlayerId", () => {
+    it("should find next alive player", () => {
+      const alivePlayerIds = ["player1", "player2"];
+      expect(getNextTurnPlayerId(mockRoom, alivePlayerIds)).toBe("player2");
     });
 
-    it('should wrap around to beginning', () => {
+    it("should wrap around to beginning", () => {
       const roomAtEnd = { ...mockRoom, currentPlayerIndex: 2 };
-      const alivePlayerIds = ['player1', 'player2'];
-      expect(getNextTurnPlayerId(roomAtEnd, alivePlayerIds)).toBe('player1');
+      const alivePlayerIds = ["player1", "player2"];
+      expect(getNextTurnPlayerId(roomAtEnd, alivePlayerIds)).toBe("player1");
     });
 
-    it('should return null when no next alive player', () => {
-      const alivePlayerIds = ['player1'];
+    it("should return null when no next alive player", () => {
+      const alivePlayerIds = ["player1"];
       expect(getNextTurnPlayerId(mockRoom, alivePlayerIds)).toBe(null);
     });
   });
 
-  describe('getRoomStatusText', () => {
-    it('should return correct status text for known states', () => {
-      expect(getRoomStatusText(mockRoom)).toBe('En attente des joueurs');
+  describe("getRoomStatusText", () => {
+    it("should return correct status text for known states", () => {
+      expect(getRoomStatusText(mockRoom)).toBe("En attente des joueurs");
 
-      const discussionRoom = { ...mockRoom, gameState: 'discussion' as const };
-      expect(getRoomStatusText(discussionRoom)).toBe('Phase de discussion');
+      const discussionRoom = { ...mockRoom, gameState: "discussion" as const };
+      expect(getRoomStatusText(discussionRoom)).toBe("Phase de discussion");
 
-      const votingRoom = { ...mockRoom, gameState: 'voting' as const };
-      expect(getRoomStatusText(votingRoom)).toBe('Phase de vote');
+      const votingRoom = { ...mockRoom, gameState: "voting" as const };
+      expect(getRoomStatusText(votingRoom)).toBe("Phase de vote");
     });
 
-    it('should return state as-is for unknown states', () => {
-      const unknownRoom = { ...mockRoom, gameState: 'waiting' as const };
-      expect(getRoomStatusText(unknownRoom)).toBe('unknown');
-    });
-  });
-
-  describe('getRoundDisplayText', () => {
-    it('should format round display correctly', () => {
-      expect(getRoundDisplayText(mockRoom)).toBe('Round 1/5');
+    it("should return state as-is for unknown states", () => {
+      const unknownRoom = { ...mockRoom, gameState: "waiting" as const };
+      expect(getRoomStatusText(unknownRoom)).toBe("unknown");
     });
   });
 
-  describe('isMaxRoundsReached', () => {
-    it('should check if max rounds reached', () => {
+  describe("getRoundDisplayText", () => {
+    it("should format round display correctly", () => {
+      expect(getRoundDisplayText(mockRoom)).toBe("Round 1/5");
+    });
+  });
+
+  describe("isMaxRoundsReached", () => {
+    it("should check if max rounds reached", () => {
       expect(isMaxRoundsReached(mockRoom)).toBe(false);
 
       const maxRoundsRoom = { ...mockRoom, currentRound: 5 };
@@ -233,8 +233,8 @@ describe('Room Management Functions', () => {
     });
   });
 
-  describe('getGameProgress', () => {
-    it('should calculate game progress correctly', () => {
+  describe("getGameProgress", () => {
+    it("should calculate game progress correctly", () => {
       expect(getGameProgress(mockRoom)).toBe(20); // 1/5 * 100
 
       const halfwayRoom = { ...mockRoom, currentRound: 2.5, maxRounds: 5 };
@@ -244,34 +244,34 @@ describe('Room Management Functions', () => {
       expect(getGameProgress(completedRoom)).toBe(100);
     });
 
-    it('should handle zero max rounds', () => {
+    it("should handle zero max rounds", () => {
       const zeroRoundsRoom = { ...mockRoom, maxRounds: 0 };
       expect(getGameProgress(zeroRoundsRoom)).toBe(0);
     });
   });
 
-  describe('canStartGame', () => {
-    it('should allow starting game with valid conditions', () => {
+  describe("canStartGame", () => {
+    it("should allow starting game with valid conditions", () => {
       expect(canStartGame(mockRoom, 5, 3)).toBe(true);
     });
 
-    it('should prevent starting game with insufficient players', () => {
+    it("should prevent starting game with insufficient players", () => {
       expect(canStartGame(mockRoom, 2, 3)).toBe(false);
     });
 
-    it('should prevent starting game when not waiting', () => {
-      const discussionRoom = { ...mockRoom, gameState: 'discussion' as const };
+    it("should prevent starting game when not waiting", () => {
+      const discussionRoom = { ...mockRoom, gameState: "discussion" as const };
       expect(canStartGame(discussionRoom, 5, 3)).toBe(false);
     });
 
-    it('should prevent starting game without player order', () => {
+    it("should prevent starting game without player order", () => {
       const roomWithoutOrder = { ...mockRoom, playerOrder: undefined };
       expect(canStartGame(roomWithoutOrder, 5, 3)).toBe(false);
     });
   });
 
-  describe('getRoomConfigurationSummary', () => {
-    it('should return room configuration summary', () => {
+  describe("getRoomConfigurationSummary", () => {
+    it("should return room configuration summary", () => {
       const summary = getRoomConfigurationSummary(mockRoom);
       expect(hasMrWhite(mockRoom)).toBe(false);
       expect(summary.numUndercovers).toBe(1);
@@ -280,77 +280,77 @@ describe('Room Management Functions', () => {
     });
   });
 
-  describe('isRoomReadyForNextPhase', () => {
-    it('should check if room is ready for discussion phase', () => {
+  describe("isRoomReadyForNextPhase", () => {
+    it("should check if room is ready for discussion phase", () => {
       expect(
         isRoomReadyForNextPhase(
           mockRoom,
           toConvexPlayers(mockPlayers),
-          'discussion'
-        )
+          "discussion",
+        ),
       ).toBe(true);
     });
 
-    it('should check if room is ready for voting phase', () => {
+    it("should check if room is ready for voting phase", () => {
       expect(
         isRoomReadyForNextPhase(
           mockRoom,
           toConvexPlayers(mockPlayers),
-          'voting'
-        )
+          "voting",
+        ),
       ).toBe(false);
     });
 
-    it('should return false for unknown phase', () => {
+    it("should return false for unknown phase", () => {
       expect(
         isRoomReadyForNextPhase(
           mockRoom,
           toConvexPlayers(mockPlayers),
-          'unknown' as never
-        )
+          "unknown" as never,
+        ),
       ).toBe(false);
     });
   });
 
-  describe('getTurnOrderInfo', () => {
-    it('should return turn order information', () => {
+  describe("getTurnOrderInfo", () => {
+    it("should return turn order information", () => {
       const info = getTurnOrderInfo(mockRoom);
       expect(info.currentIndex).toBe(0);
       expect(info.totalPlayers).toBe(3);
       expect(info.isLastTurn).toBe(false);
-      expect(info.turnText).toBe('Tour 1/3');
+      expect(info.turnText).toBe("Tour 1/3");
     });
 
-    it('should identify last turn', () => {
+    it("should identify last turn", () => {
       const lastTurnRoom = { ...mockRoom, currentPlayerIndex: 2 };
       const info = getTurnOrderInfo(lastTurnRoom);
       expect(info.isLastTurn).toBe(true);
     });
   });
 
-  describe('needsStateValidation', () => {
-    it('should identify rooms needing validation', () => {
+  describe("needsStateValidation", () => {
+    it("should identify rooms needing validation", () => {
       const invalidRoom = {
         ...mockRoom,
-        gameState: 'discussion' as const,
+        gameState: "discussion" as const,
         playerOrder: undefined,
       };
       expect(needsStateValidation(invalidRoom)).toBe(true);
     });
 
-    it('should not flag valid rooms', () => {
+    it("should not flag valid rooms", () => {
       expect(needsStateValidation(mockRoom)).toBe(false);
     });
   });
 
-  describe('getRoomStatistics', () => {
-    it('should return room statistics', () => {
+  describe("getRoomStatistics", () => {
+    it("should return room statistics", () => {
       const stats = getRoomStatistics(mockRoom, toConvexPlayers(mockPlayers));
       expect(stats.totalPlayers).toBe(3);
       expect(stats.alivePlayers).toBe(2);
       expect(stats.deadPlayers).toBe(1);
       expect(stats.gameProgress).toBe(20);
-      expect(stats.currentPhase).toBe('En attente des joueurs');
+      expect(stats.currentPhase).toBe("En attente des joueurs");
     });
   });
 });

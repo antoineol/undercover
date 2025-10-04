@@ -57,7 +57,6 @@ The project recommends these VS Code/Cursor extensions (see `.vscode/extensions.
 - `esbenp.prettier-vscode` - Prettier formatter
 - `dbaeumer.vscode-eslint` - ESLint integration
 - `bradlc.vscode-tailwindcss` - Tailwind CSS support
-- `ms-vscode.vscode-typescript-next` - TypeScript support
 
 ### Workflow
 

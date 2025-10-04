@@ -3,18 +3,18 @@
  * Pure functions for input validation and game state validation
  */
 
-import { ConvexPlayer, ConvexRoom } from '../../lib/convex-types';
-import { GameConfig, ValidationResult } from './validation';
+import { type ConvexPlayer, type ConvexRoom } from "../../lib/convex-types";
+import { type GameConfig, type ValidationResult } from "./validation";
 
 /**
  * Validate player name
  */
 export function validatePlayerName(
   name: string,
-  config: GameConfig
+  config: GameConfig,
 ): ValidationResult {
   if (!name || name.trim().length === 0) {
-    return { isValid: false, error: 'Le nom du joueur est requis' };
+    return { isValid: false, error: "Le nom du joueur est requis" };
   }
 
   const trimmedName = name.trim();
@@ -22,7 +22,7 @@ export function validatePlayerName(
   if (trimmedName.length < 2) {
     return {
       isValid: false,
-      error: 'Le nom doit contenir au moins 2 caractères',
+      error: "Le nom doit contenir au moins 2 caractères",
     };
   }
 
@@ -38,7 +38,7 @@ export function validatePlayerName(
   if (invalidChars.test(trimmedName)) {
     return {
       isValid: false,
-      error: 'Le nom contient des caractères non autorisés',
+      error: "Le nom contient des caractères non autorisés",
     };
   }
 
@@ -50,10 +50,10 @@ export function validatePlayerName(
  */
 export function validateRoomCode(
   code: string,
-  config: GameConfig
+  config: GameConfig,
 ): ValidationResult {
   if (!code || code.trim().length === 0) {
-    return { isValid: false, error: 'Le code de la salle est requis' };
+    return { isValid: false, error: "Le code de la salle est requis" };
   }
 
   const trimmedCode = code.trim().toUpperCase();
@@ -64,7 +64,7 @@ export function validateRoomCode(
     return {
       isValid: false,
       error:
-        'Le code de la salle ne peut contenir que des lettres majuscules et des chiffres',
+        "Le code de la salle ne peut contenir que des lettres majuscules et des chiffres",
     };
   }
 
@@ -83,10 +83,10 @@ export function validateRoomCode(
  */
 export function validateSharedWord(
   word: string,
-  config: GameConfig
+  config: GameConfig,
 ): ValidationResult {
   if (!word || word.trim().length === 0) {
-    return { isValid: false, error: 'Le mot est requis' };
+    return { isValid: false, error: "Le mot est requis" };
   }
 
   const trimmedWord = word.trim();
@@ -94,7 +94,7 @@ export function validateSharedWord(
   if (trimmedWord.length < 2) {
     return {
       isValid: false,
-      error: 'Le mot doit contenir au moins 2 caractères',
+      error: "Le mot doit contenir au moins 2 caractères",
     };
   }
 
@@ -110,13 +110,13 @@ export function validateSharedWord(
   if (invalidChars.test(trimmedWord)) {
     return {
       isValid: false,
-      error: 'Le mot contient des caractères non autorisés',
+      error: "Le mot contient des caractères non autorisés",
     };
   }
 
   // Check for multiple words (should be single word)
-  if (trimmedWord.includes(' ')) {
-    return { isValid: false, error: 'Veuillez entrer un seul mot' };
+  if (trimmedWord.includes(" ")) {
+    return { isValid: false, error: "Veuillez entrer un seul mot" };
   }
 
   return { isValid: true };
@@ -129,7 +129,7 @@ export function validateGameConfig(
   playerCount: number,
   numUndercovers: number,
   numMrWhites: number,
-  config: GameConfig
+  config: GameConfig,
 ): ValidationResult {
   if (playerCount < config.MIN_PLAYERS) {
     return {
@@ -184,22 +184,22 @@ export function validateGameConfig(
  */
 export function validateSessionId(
   sessionId: string,
-  config: GameConfig
+  config: GameConfig,
 ): ValidationResult {
   if (!sessionId) {
-    return { isValid: false, error: 'Session ID invalide' };
+    return { isValid: false, error: "Session ID invalide" };
   }
 
   const validChars = /^[A-Za-z0-9]+$/;
   if (!validChars.test(sessionId)) {
     return {
       isValid: false,
-      error: 'Session ID contient des caractères invalides',
+      error: "Session ID contient des caractères invalides",
     };
   }
 
   if (sessionId.length !== config.SESSION_ID_LENGTH) {
-    return { isValid: false, error: 'Session ID invalide' };
+    return { isValid: false, error: "Session ID invalide" };
   }
 
   return { isValid: true };
@@ -211,18 +211,18 @@ export function validateSessionId(
 export function canShareWord(
   player: ConvexPlayer,
   room: ConvexRoom,
-  playerId: string
+  playerId: string,
 ): { canShare: boolean; error?: string } {
-  if (!player || !player.isAlive) {
-    return { canShare: false, error: 'Player not found or not alive' };
+  if (!player?.isAlive) {
+    return { canShare: false, error: "Player not found or not alive" };
   }
 
-  if (room.gameState !== 'discussion') {
-    return { canShare: false, error: 'Game is not in discussion phase' };
+  if (room.gameState !== "discussion") {
+    return { canShare: false, error: "Game is not in discussion phase" };
   }
 
   if (!room.playerOrder || room.currentPlayerIndex === undefined) {
-    return { canShare: false, error: 'Game not properly initialized' };
+    return { canShare: false, error: "Game not properly initialized" };
   }
 
   const currentPlayerId = room.playerOrder[room.currentPlayerIndex];
@@ -231,7 +231,7 @@ export function canShareWord(
   }
 
   if (player.hasSharedWord === true) {
-    return { canShare: false, error: 'You have already shared your word' };
+    return { canShare: false, error: "You have already shared your word" };
   }
 
   return { canShare: true };
@@ -243,18 +243,18 @@ export function canShareWord(
 export function canVote(
   voter: ConvexPlayer,
   target: ConvexPlayer,
-  room: ConvexRoom
+  room: ConvexRoom,
 ): { canVote: boolean; error?: string } {
   if (!voter || !target || !voter.isAlive || !target.isAlive) {
-    return { canVote: false, error: 'Invalid vote' };
+    return { canVote: false, error: "Invalid vote" };
   }
 
-  if (room.gameState !== 'voting') {
-    return { canVote: false, error: 'Voting is not active' };
+  if (room.gameState !== "voting") {
+    return { canVote: false, error: "Voting is not active" };
   }
 
   if (voter.roomId !== target.roomId) {
-    return { canVote: false, error: 'Players not in same room' };
+    return { canVote: false, error: "Players not in same room" };
   }
 
   return { canVote: true };

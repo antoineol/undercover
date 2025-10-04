@@ -6,9 +6,14 @@ import {
   generateRoomCode as pureGenerateRoomCode,
   generateSessionId as pureGenerateSessionId,
   sanitizeInput as pureSanitizeInput,
-} from '../domains/utilities/utilities.service';
-import { GAME_CONFIG, RETRY_CONFIG } from './constants';
-import { GameError, Player, RetryConfig, RetryFunction } from './types';
+} from "../domains/utilities/utilities.service";
+import { GAME_CONFIG, RETRY_CONFIG } from "./constants";
+import {
+  type GameError,
+  type Player,
+  type RetryConfig,
+  type RetryFunction,
+} from "./types";
 
 /**
  * Generate a random room code
@@ -33,7 +38,7 @@ export async function retryWithBackoff<T>(
     maxRetries: RETRY_CONFIG.MAX_RETRIES,
     baseDelay: RETRY_CONFIG.BASE_DELAY,
     maxDelay: RETRY_CONFIG.MAX_DELAY,
-  }
+  },
 ): Promise<T> {
   for (let attempt = 0; attempt <= config.maxRetries; attempt++) {
     try {
@@ -47,13 +52,13 @@ export async function retryWithBackoff<T>(
       if (isRetryableError(error)) {
         const delay = calculateRetryDelay(attempt, config);
         console.log(`Retry attempt ${attempt + 1} after ${delay}ms delay`);
-        await new Promise(resolve => setTimeout(resolve, delay));
+        await new Promise((resolve) => setTimeout(resolve, delay));
       } else {
         throw error;
       }
     }
   }
-  throw new Error('Max retries exceeded');
+  throw new Error("Max retries exceeded");
 }
 
 /**
@@ -62,18 +67,18 @@ export async function retryWithBackoff<T>(
 export function validateGameConfiguration(
   playerCount: number,
   numUndercovers: number,
-  numMrWhites: number
+  numMrWhites: number,
 ): { isValid: boolean; error?: string } {
   if (playerCount < GAME_CONFIG.MIN_PLAYERS) {
-    return { isValid: false, error: 'Need at least 3 players to start' };
+    return { isValid: false, error: "Need at least 3 players to start" };
   }
 
   if (playerCount > GAME_CONFIG.MAX_PLAYERS) {
-    return { isValid: false, error: 'Too many players' };
+    return { isValid: false, error: "Too many players" };
   }
 
   if (numUndercovers < GAME_CONFIG.MIN_UNDERCOVERS) {
-    return { isValid: false, error: 'Need at least 1 undercover' };
+    return { isValid: false, error: "Need at least 1 undercover" };
   }
 
   if (
@@ -81,7 +86,7 @@ export function validateGameConfiguration(
   ) {
     return {
       isValid: false,
-      error: 'Too many undercovers. Maximum is half the total players.',
+      error: "Too many undercovers. Maximum is half the total players.",
     };
   }
 
@@ -90,7 +95,7 @@ export function validateGameConfiguration(
     return {
       isValid: false,
       error:
-        'Need at least 1 civilian player. Reduce undercovers or Mr. Whites.',
+        "Need at least 1 civilian player. Reduce undercovers or Mr. Whites.",
     };
   }
 
@@ -113,12 +118,12 @@ export function calculatePlayerCounts(players: Player[]): {
   civilians: number;
   mrWhite: number;
 } {
-  const alive = players.filter(p => p.isAlive);
+  const alive = players.filter((p) => p.isAlive);
   return {
     alive: alive.length,
-    undercovers: alive.filter(p => p.role === 'undercover').length,
-    civilians: alive.filter(p => p.role === 'civilian').length,
-    mrWhite: alive.filter(p => p.role === 'mr_white').length,
+    undercovers: alive.filter((p) => p.role === "undercover").length,
+    civilians: alive.filter((p) => p.role === "civilian").length,
+    mrWhite: alive.filter((p) => p.role === "mr_white").length,
   };
 }
 
@@ -126,28 +131,28 @@ export function calculatePlayerCounts(players: Player[]): {
  * Check win conditions
  */
 export function checkWinConditions(
-  counts: ReturnType<typeof calculatePlayerCounts>
+  counts: ReturnType<typeof calculatePlayerCounts>,
 ): string | null {
   const { undercovers, civilians, mrWhite } = counts;
 
   // Civilians win if all undercovers AND all Mr. White are eliminated
   if (undercovers === 0 && mrWhite === 0) {
-    return 'civilians_win';
+    return "civilians_win";
   }
 
   // Undercovers win if only 1 civilian remains (or less)
   if (civilians <= 1 && undercovers > 0) {
-    return 'undercovers_win';
+    return "undercovers_win";
   }
 
   // Mr. White wins if only 1 civilian remains (or less) and Mr. White is alive
   if (civilians <= 1 && mrWhite > 0) {
-    return 'mr_white_win';
+    return "mr_white_win";
   }
 
   // Joint victory: Undercovers + Mr. White win if all civilians eliminated
   if (civilians === 0 && undercovers > 0 && mrWhite > 0) {
-    return 'undercovers_mrwhite_win';
+    return "undercovers_mrwhite_win";
   }
 
   return null;
@@ -158,7 +163,7 @@ export function checkWinConditions(
  */
 export function countVotes(players: Player[]): Record<string, number> {
   const voteCounts: Record<string, number> = {};
-  players.forEach(player => {
+  players.forEach((player) => {
     player.votes.forEach((voteId: string) => {
       voteCounts[voteId] = (voteCounts[voteId] || 0) + 1;
     });
@@ -197,7 +202,7 @@ export function findEliminatedPlayer(voteCounts: Record<string, number>): {
 export function getVoterNames(players: Player[]): Record<string, string[]> {
   const voterNames: Record<string, string[]> = {};
 
-  players.forEach(player => {
+  players.forEach((player) => {
     player.votes.forEach((voteId: string) => {
       if (!voterNames[voteId]) voterNames[voteId] = [];
       voterNames[voteId].push(player.name);
@@ -213,7 +218,7 @@ export function getVoterNames(players: Player[]): Record<string, string[]> {
 export function findNextAlivePlayer(
   playerOrder: string[],
   currentIndex: number,
-  alivePlayerIds: string[]
+  alivePlayerIds: string[],
 ): number {
   // Look for next alive player in the order
   for (let i = currentIndex + 1; i < playerOrder.length; i++) {
@@ -248,7 +253,7 @@ export function shuffleArray<T>(array: T[]): T[] {
  * Ensure Mr. White is not first in player order
  */
 export function ensureMrWhiteNotFirst(playerOrder: Player[]): Player[] {
-  const mrWhiteIndex = playerOrder.findIndex(p => p.role === 'mr_white');
+  const mrWhiteIndex = playerOrder.findIndex((p) => p.role === "mr_white");
   if (mrWhiteIndex === 0) {
     // Move Mr. White to a random position (not first)
     const mrWhite = playerOrder.splice(0, 1)[0];
@@ -269,15 +274,15 @@ export async function copyToClipboard(text: string): Promise<boolean> {
   } catch {
     // Fallback for older browsers
     try {
-      const textArea = document.createElement('textarea');
+      const textArea = document.createElement("textarea");
       textArea.value = text;
       document.body.appendChild(textArea);
       textArea.select();
-      document.execCommand('copy');
+      document.execCommand("copy");
       document.body.removeChild(textArea);
       return true;
     } catch (fallbackError) {
-      console.error('Failed to copy to clipboard:', fallbackError);
+      console.error("Failed to copy to clipboard:", fallbackError);
       return false;
     }
   }
@@ -288,7 +293,7 @@ export async function copyToClipboard(text: string): Promise<boolean> {
  */
 export function sanitizeInput(
   input: string,
-  maxLength: number = GAME_CONFIG.MAX_PLAYER_NAME_LENGTH
+  maxLength: number = GAME_CONFIG.MAX_PLAYER_NAME_LENGTH,
 ): string {
   return pureSanitizeInput(input, maxLength);
 }
@@ -299,7 +304,7 @@ export function sanitizeInput(
 export function createGameError(
   message: string,
   code: string,
-  details?: Record<string, unknown>
+  details?: Record<string, unknown>,
 ): GameError {
   return pureCreateGameError(message, code, details);
 }

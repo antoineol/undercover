@@ -8,11 +8,11 @@ export interface Room {
   code: string;
   hostId: string;
   gameState:
-    | 'waiting'
-    | 'discussion'
-    | 'voting'
-    | 'mr_white_guessing'
-    | 'results';
+    | "waiting"
+    | "discussion"
+    | "voting"
+    | "mr_white_guessing"
+    | "results";
   currentRound: number;
   maxRounds: number;
   currentPlayerIndex?: number;

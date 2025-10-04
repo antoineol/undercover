@@ -1,9 +1,9 @@
-import { getStartGameButtonText } from '@/domains/ui/ui-helpers.service';
-import { RoomWithPlayers } from '@/lib/convex-types';
-import { retryWithBackoff } from '@/lib/utils';
-import { useMutation, useQuery } from 'convex/react';
-import { api } from '../../../convex/_generated/api';
-import Button from '../ui/Button';
+import { getStartGameButtonText } from "@/domains/ui/ui-helpers.service";
+import { type RoomWithPlayers } from "@/lib/convex-types";
+import { retryWithBackoff } from "@/lib/utils";
+import { useMutation, useQuery } from "convex/react";
+import { api } from "../../../convex/_generated/api";
+import Button from "../ui/Button";
 
 interface GameStartButtonProps {
   room: RoomWithPlayers;
@@ -27,18 +27,18 @@ export default function GameStartButton({
             roomId: room._id,
             numUndercovers: gameConfig.numUndercovers,
             numMrWhites: gameConfig.numMrWhites,
-          })
+          }),
         );
       } catch (error: unknown) {
-        console.error('Failed to start game:', error);
+        console.error("Failed to start game:", error);
         const errorMessage =
-          error instanceof Error ? error.message : 'Unknown error';
+          error instanceof Error ? error.message : "Unknown error";
         alert(`Erreur: ${errorMessage}`);
       }
     }
   };
 
-  if (!isHost || room.gameState !== 'waiting') {
+  if (!isHost || room.gameState !== "waiting") {
     return null;
   }
 
@@ -46,9 +46,9 @@ export default function GameStartButton({
     <Button
       onClick={handleStartGame}
       disabled={room.players.length < 3}
-      variant='success'
-      size='lg'
-      className='w-full min-h-[56px] text-lg font-semibold'
+      variant="success"
+      size="lg"
+      className="min-h-[56px] w-full text-lg font-semibold"
     >
       {getStartGameButtonText(room.players.length)}
     </Button>

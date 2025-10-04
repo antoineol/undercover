@@ -2,11 +2,12 @@
   "name": "undercover",
   "version": "0.1.0",
   "private": true,
+  "type": "module",
   "scripts": {
     "firsttimelogin": "convex dev",
     "dev": "npm-run-all2 --parallel dev:backend dev:frontend",
     "dev:backend": "convex dev",
-    "dev:frontend": "next dev --turbo",
+    "dev:frontend": "next dev --turbopack",
     "build": "next build --turbopack",
     "start": "next start",
     "test": "bun test",
@@ -27,20 +28,23 @@
   "devDependencies": {
     "@eslint/eslintrc": "^3",
     "@tailwindcss/postcss": "^4",
-    "@types/node": "^20",
+    "@trivago/prettier-plugin-sort-imports": "^5.2.2",
+    "@types/node": "^24.6.2",
     "@types/qrcode": "^1.5.5",
-    "@types/react": "^19",
-    "@types/react-dom": "^19",
+    "@types/react": "^19.1.0",
+    "@types/react-dom": "^19.1.0",
     "bun-types": "^1.2.23",
-    "eslint": "^9",
+    "eslint": "^9.36.0",
     "eslint-config-flat-gitignore": "^2.1.0",
     "eslint-config-next": "15.5.4",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-prettier": "^5.5.4",
     "npm-run-all2": "^8.0.4",
     "prettier": "^3.6.2",
+    "prettier-plugin-tailwindcss": "^0.6.14",
     "tailwindcss": "^4",
-    "typescript": "^5"
+    "typescript": "^5",
+    "typescript-eslint": "^8.45.0"
   },
   "packageManager": "bun@1.0.0"
 }

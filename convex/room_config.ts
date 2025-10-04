@@ -1,12 +1,12 @@
-import { mutation, query } from './_generated/server';
-import { v } from 'convex/values';
+import { mutation, query } from "./_generated/server";
+import { v } from "convex/values";
 
 /**
  * Update room game configuration
  */
 export const updateGameConfig = mutation({
   args: {
-    roomId: v.id('rooms'),
+    roomId: v.id("rooms"),
     numUndercovers: v.number(),
     numMrWhites: v.number(),
   },
@@ -22,11 +22,11 @@ export const updateGameConfig = mutation({
  * Get room game configuration
  */
 export const getGameConfig = query({
-  args: { roomId: v.id('rooms') },
+  args: { roomId: v.id("rooms") },
   handler: async (ctx, { roomId }) => {
     const room = await ctx.db.get(roomId);
     if (!room) {
-      throw new Error('Room not found');
+      throw new Error("Room not found");
     }
     return {
       numUndercovers: room.numUndercovers || 1,

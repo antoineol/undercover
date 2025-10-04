@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
+import { useState } from "react";
 import {
   validatePlayerNameInput,
   validateRoomCodeInput,
@@ -8,7 +8,7 @@ import {
   getFormValidationState,
   getLoadingStateText,
   getLobbySectionText,
-} from '@/domains/ui/ui-helpers.service';
+} from "@/domains/ui/ui-helpers.service";
 
 interface RoomLobbyProps {
   onCreateRoom: (name: string) => void;
@@ -19,9 +19,9 @@ export default function RoomLobby({
   onCreateRoom,
   onJoinRoom,
 }: RoomLobbyProps) {
-  const [createPlayerName, setCreatePlayerName] = useState('');
-  const [joinPlayerName, setJoinPlayerName] = useState('');
-  const [roomCode, setRoomCode] = useState('');
+  const [createPlayerName, setCreatePlayerName] = useState("");
+  const [joinPlayerName, setJoinPlayerName] = useState("");
+  const [roomCode, setRoomCode] = useState("");
   const [isCreating, setIsCreating] = useState(false);
   const [isJoining, setIsJoining] = useState(false);
 
@@ -54,32 +54,32 @@ export default function RoomLobby({
   return (
     <>
       {/* Create Room */}
-      <div className='bg-blue-50 p-6 rounded-lg'>
-        <h2 className='text-xl font-semibold text-gray-800 mb-4'>
+      <div className="rounded-lg bg-blue-50 p-6">
+        <h2 className="mb-4 text-xl font-semibold text-gray-800">
           {sectionText.createTitle}
         </h2>
-        <form onSubmit={handleCreateRoom} className='space-y-4'>
+        <form onSubmit={handleCreateRoom} className="space-y-4">
           <div>
             <label
-              htmlFor='create-name'
-              className='block text-sm font-medium text-gray-700 mb-1'
+              htmlFor="create-name"
+              className="mb-1 block text-sm font-medium text-gray-700"
             >
               Votre Nom
             </label>
             <input
-              id='create-name'
-              type='text'
+              id="create-name"
+              type="text"
               value={createPlayerName}
-              onChange={e => setCreatePlayerName(e.target.value)}
-              className='w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500'
-              placeholder='Entrez votre nom'
+              onChange={(e) => setCreatePlayerName(e.target.value)}
+              className="w-full rounded-md border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+              placeholder="Entrez votre nom"
               required
             />
           </div>
           <button
-            type='submit'
+            type="submit"
             disabled={isCreating || !formValidation.isCreateFormValid}
-            className='w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed'
+            className="w-full rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
           >
             {loadingText.createButtonText}
           </button>
@@ -87,51 +87,51 @@ export default function RoomLobby({
       </div>
 
       {/* Join Room */}
-      <div className='bg-green-50 p-6 rounded-lg flex flex-col gap-4'>
-        <h2 className='text-xl font-semibold text-gray-800'>
+      <div className="flex flex-col gap-4 rounded-lg bg-green-50 p-6">
+        <h2 className="text-xl font-semibold text-gray-800">
           {sectionText.joinTitle}
         </h2>
         <p>{sectionText.joinDescription}</p>
-        <form onSubmit={handleJoinRoom} className='space-y-4'>
+        <form onSubmit={handleJoinRoom} className="space-y-4">
           <div>
             <label
-              htmlFor='join-name'
-              className='block text-sm font-medium text-gray-700 mb-1'
+              htmlFor="join-name"
+              className="mb-1 block text-sm font-medium text-gray-700"
             >
               Votre Nom
             </label>
             <input
-              id='join-name'
-              type='text'
+              id="join-name"
+              type="text"
               value={joinPlayerName}
-              onChange={e => setJoinPlayerName(e.target.value)}
-              className='w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500'
-              placeholder='Entrez votre nom'
+              onChange={(e) => setJoinPlayerName(e.target.value)}
+              className="w-full rounded-md border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-green-500 focus:outline-none"
+              placeholder="Entrez votre nom"
               required
             />
           </div>
           <div>
             <label
-              htmlFor='room-code'
-              className='block text-sm font-medium text-gray-700 mb-1'
+              htmlFor="room-code"
+              className="mb-1 block text-sm font-medium text-gray-700"
             >
               Code de la Salle
             </label>
             <input
-              id='room-code'
-              type='text'
+              id="room-code"
+              type="text"
               value={roomCode}
-              onChange={e => setRoomCode(formatRoomCodeInput(e.target.value))}
-              className='w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500'
-              placeholder='Entrez le code de la salle'
+              onChange={(e) => setRoomCode(formatRoomCodeInput(e.target.value))}
+              className="w-full rounded-md border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-green-500 focus:outline-none"
+              placeholder="Entrez le code de la salle"
               maxLength={6}
               required
             />
           </div>
           <button
-            type='submit'
+            type="submit"
             disabled={isJoining || !joinFormValidation.isJoinFormValid}
-            className='w-full bg-green-600 text-white py-2 px-4 rounded-md hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed'
+            className="w-full rounded-md bg-green-600 px-4 py-2 text-white hover:bg-green-700 disabled:cursor-not-allowed disabled:opacity-50"
           >
             {loadingText.joinButtonText}
           </button>

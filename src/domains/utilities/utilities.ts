@@ -15,9 +15,7 @@ export interface RetryConfig {
   maxDelay: number;
 }
 
-export interface RetryFunction<T> {
-  (): Promise<T>;
-}
+export type RetryFunction<T> = () => Promise<T>;
 
 export interface GameError extends Error {
   code: string;

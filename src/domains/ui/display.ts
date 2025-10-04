@@ -6,7 +6,7 @@
 export interface Player {
   _id: string;
   name: string;
-  role: 'undercover' | 'civilian' | 'mr_white';
+  role: "undercover" | "civilian" | "mr_white";
   isAlive: boolean;
 }
 
