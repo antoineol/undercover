@@ -5,7 +5,7 @@ import Image from "next/image";
 import QRCode from "qrcode";
 import { useEffect } from "react";
 
-export function JoinRoomQRCode() {
+export function RoomQRCode() {
   const { qrCodeDataUrl, setQrCodeDataUrl } = useUIStore();
 
   useEffect(() => {
