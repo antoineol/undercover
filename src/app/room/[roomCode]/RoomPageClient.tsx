@@ -16,13 +16,7 @@ interface RoomPageClientProps {
 }
 
 export function RoomPageClient({ roomCode }: RoomPageClientProps) {
-  const {
-    sessionId,
-    setSession,
-    clearSession,
-    loadFromSessionStorage,
-    saveToSessionStorage,
-  } = useSessionStore();
+  const { sessionId, setSession, clearSession } = useSessionStore();
   const { qrCodeDataUrl, setQrCodeDataUrl } = useUIStore();
   const [isLoading, setIsLoading] = useState(true);
   const [joinError, setJoinError] = useState("");
@@ -45,7 +39,6 @@ export function RoomPageClient({ roomCode }: RoomPageClientProps) {
         if (result.sessionId) {
           setSession(result.sessionId);
         }
-        saveToSessionStorage();
 
         // Log if this is a rejoin (for debugging)
         if (result.isExisting) {
@@ -80,14 +73,12 @@ export function RoomPageClient({ roomCode }: RoomPageClientProps) {
         }
       }
     },
-    [roomCode, joinRoom, setSession, saveToSessionStorage],
+    [roomCode, joinRoom, setSession],
   );
 
   // Check for existing session data on mount and generate QR code
   useEffect(() => {
-    // Load from sessionStorage first
-    loadFromSessionStorage();
-
+    // Session data is automatically loaded from sessionStorage on store initialization
     // Auto-join if we have saved session data
     if (sessionId && roomCode) {
       // Try to rejoin with the existing sessionId
@@ -114,18 +105,11 @@ export function RoomPageClient({ roomCode }: RoomPageClientProps) {
     };
 
     void generateQRCode();
-  }, [
-    roomCode,
-    handleJoinRoom,
-    sessionId,
-    setQrCodeDataUrl,
-    loadFromSessionStorage,
-  ]);
+  }, [roomCode, handleJoinRoom, sessionId, setQrCodeDataUrl]);
 
   const handleLeave = () => {
     // Clear saved session data
     clearSession();
-    sessionStorage.removeItem("player_session");
     setJoinError("");
   };
 

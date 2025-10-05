@@ -28,7 +28,7 @@ export default function CreateRoomForm({}: CreateRoomFormProps) {
   const router = useRouter();
 
   const createRoom = useMutation(api.rooms.createRoom);
-  const { setSession, saveToSessionStorage } = useSessionStore();
+  const { setSession } = useSessionStore();
 
   const {
     register,
@@ -49,7 +49,6 @@ export default function CreateRoomForm({}: CreateRoomFormProps) {
 
       // Store session data for rejoining
       setSession(result.sessionId);
-      saveToSessionStorage();
 
       // Redirect to room URL
       router.push(`/room/${result.roomCode}`);
