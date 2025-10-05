@@ -23,7 +23,7 @@ export type JoinRoomFormData = z.infer<typeof joinRoomFormSchema>;
 
 interface JoinRoomFormProps {
   roomCode: string;
-  room: Room;
+  room: Room | undefined;
 }
 
 export default function JoinRoomForm({ roomCode, room }: JoinRoomFormProps) {
@@ -123,7 +123,7 @@ export default function JoinRoomForm({ roomCode, room }: JoinRoomFormProps) {
         )}
       </div>
 
-      {room.players.length === 0 && (
+      {room?.players.length === 0 && (
         <div className="flex items-center">
           <input
             type="checkbox"

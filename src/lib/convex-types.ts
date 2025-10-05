@@ -125,14 +125,6 @@ export type GameResult =
   | "undercovers_mrwhite_win"
   | "max_rounds_reached";
 
-// Component prop types
-export interface GameRoomProps {
-  roomCode: string;
-  playerName: string;
-  isHost: boolean;
-  onLeave: () => void;
-}
-
 export interface RoomLobbyProps {
   onCreateRoom: (name: string) => void;
   onJoinRoom: (roomCode: string, name: string) => void;

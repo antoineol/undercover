@@ -9,7 +9,6 @@ import {
   isMyTurn,
   isVotingPhase,
 } from "@/domains/room/room-management.service";
-import type { GameRoomProps, RoomWithPlayers } from "@/lib/convex-types";
 import { useUIStore } from "@/lib/stores/ui-store";
 import { retryWithBackoff } from "@/lib/utils";
 import { useMutation, useQuery } from "convex/react";
@@ -28,20 +27,25 @@ import ShareButtons from "~/components/game/ShareButtons";
 import StopGameButton from "~/components/game/StopGameButton";
 import WordDisplay from "~/components/game/WordDisplay";
 import WordSharing from "~/components/game/WordSharing";
+import { useSessionStore } from "~/lib/stores/session-store";
+
+export interface GameRoomProps {
+  roomCode: string;
+  playerName: string;
+  isHost: boolean;
+}
 
 export default function GameRoom({
   roomCode,
   playerName,
   isHost,
-  onLeave,
 }: GameRoomProps) {
   const { showConfig, setShowConfig } = useUIStore();
   const { wordToShare, setWordToShare, isSharingWord, setIsSharingWord } =
     useUIStore();
+  const { clearSession } = useSessionStore();
 
-  const room = useQuery(api.rooms.getRoom, {
-    roomCode,
-  }) as RoomWithPlayers | null;
+  const room = useQuery(api.rooms.getRoom, { roomCode });
   const gameWords = useQuery(
     api.game.getGameWords,
     room ? { roomId: room._id } : "skip",
@@ -127,6 +131,10 @@ export default function GameRoom({
     );
   }
 
+  const handleLeave = () => {
+    clearSession();
+  };
+
   // Use pure functions for business logic calculations
   const currentPlayer = getCurrentPlayerByName(room.players, playerName);
   const alivePlayers = room.players.filter((p) => p.isAlive);
@@ -149,7 +157,7 @@ export default function GameRoom({
     <div className="min-h-screen bg-gray-100">
       <GameHeader
         room={room}
-        onLeave={onLeave}
+        onLeave={handleLeave}
         onToggleConfig={handleToggleConfig}
         showConfig={showConfig}
       />
