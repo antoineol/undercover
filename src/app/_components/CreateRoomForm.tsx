@@ -7,7 +7,6 @@ import { api } from "cvx/api";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
-
 import { z } from "zod";
 
 export const createRoomSchema = z.object({
@@ -20,10 +19,7 @@ export const createRoomSchema = z.object({
 
 export type CreateRoomFormData = z.infer<typeof createRoomSchema>;
 
-// eslint-disable-next-line @typescript-eslint/no-empty-object-type
-interface CreateRoomFormProps {}
-
-export default function CreateRoomForm({}: CreateRoomFormProps) {
+export default function CreateRoomForm() {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
 
@@ -44,16 +40,13 @@ export default function CreateRoomForm({}: CreateRoomFormProps) {
 
     try {
       const result = await createRoom({ hostName: data.playerName });
-      // Add a small delay to ensure room is fully created
-      await new Promise((resolve) => setTimeout(resolve, 500));
-
-      // Store session data for rejoining
       setSession(result.sessionId);
-
-      // Redirect to room URL
       router.push(`/room/${result.roomCode}`);
     } catch (error) {
       console.error("Failed to create room:", error);
+      const errorMessage =
+        error instanceof Error ? error.message : "Unknown error";
+      alert(`Erreur: ${errorMessage}`);
       setLoading(false);
     }
   };

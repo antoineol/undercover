@@ -34,7 +34,6 @@ export default function RoomLobby({ onJoinRoom }: RoomLobbyProps) {
 
   return (
     <>
-      {/* Create Room */}
       <div className="rounded-lg bg-blue-50 p-6">
         <h2 className="mb-4 text-xl font-semibold text-gray-800">
           Créer une Salle
