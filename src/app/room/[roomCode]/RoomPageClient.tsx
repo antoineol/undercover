@@ -1,6 +1,5 @@
 "use client";
 
-import GameRoom from "@/components/GameRoom";
 import { useSessionStore } from "@/lib/stores/session-store";
 import { useUIStore } from "@/lib/stores/ui-store";
 import type { Room } from "@/lib/types";
@@ -10,6 +9,7 @@ import Image from "next/image";
 import Link from "next/link";
 import QRCode from "qrcode";
 import { useCallback, useEffect, useState } from "react";
+import GameRoom from "~/app/room/[roomCode]/GameRoom";
 
 interface RoomPageClientProps {
   roomCode: string;

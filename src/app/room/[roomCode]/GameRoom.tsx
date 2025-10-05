@@ -16,18 +16,18 @@ import { useMutation, useQuery } from "convex/react";
 import { api } from "cvx/api";
 import type { Id } from "cvx/dataModel";
 import AnimateHeight from "react-animate-height";
-import GameConfiguration from "./game/GameConfiguration";
-import GameHeader from "./game/GameHeader";
-import GameInstructions from "./game/GameInstructions";
-import GameResults from "./game/GameResults";
-import GameStartButton from "./game/GameStartButton";
-import MrWhiteGuessing from "./game/MrWhiteGuessing";
-import PlayerList from "./game/PlayerList";
-import QRCodeModal from "./game/QRCodeModal";
-import ShareButtons from "./game/ShareButtons";
-import StopGameButton from "./game/StopGameButton";
-import WordDisplay from "./game/WordDisplay";
-import WordSharing from "./game/WordSharing";
+import GameConfiguration from "../../../components/game/GameConfiguration";
+import GameHeader from "../../../components/game/GameHeader";
+import GameInstructions from "../../../components/game/GameInstructions";
+import GameResults from "../../../components/game/GameResults";
+import GameStartButton from "../../../components/game/GameStartButton";
+import MrWhiteGuessing from "../../../components/game/MrWhiteGuessing";
+import PlayerList from "../../../components/game/PlayerList";
+import QRCodeModal from "../../../components/game/QRCodeModal";
+import ShareButtons from "../../../components/game/ShareButtons";
+import StopGameButton from "../../../components/game/StopGameButton";
+import WordDisplay from "../../../components/game/WordDisplay";
+import WordSharing from "../../../components/game/WordSharing";
 
 export default function GameRoom({
   roomCode,
