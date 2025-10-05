@@ -4,6 +4,7 @@ import { usePlayerStore } from "@/lib/stores/player-store";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "convex/react";
 import { api } from "cvx/api";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 
@@ -24,6 +25,7 @@ interface CreateRoomFormProps {}
 
 export default function CreateRoomForm({}: CreateRoomFormProps) {
   const [loading, setLoading] = useState(false);
+  const router = useRouter();
 
   const createRoom = useMutation(api.rooms.createRoom);
   const { setPlayer, saveToSessionStorage } = usePlayerStore();
@@ -55,7 +57,7 @@ export default function CreateRoomForm({}: CreateRoomFormProps) {
       saveToSessionStorage(result.roomCode);
 
       // Redirect to room URL
-      window.location.href = `/room/${result.roomCode}`;
+      router.push(`/room/${result.roomCode}`);
     } catch (error) {
       console.error("Failed to create room:", error);
       setLoading(false);

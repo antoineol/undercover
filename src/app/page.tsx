@@ -1,6 +1,6 @@
 "use client";
 
-import RoomLobby from "@/components/RoomLobby";
+import RoomLobby from "~/app/_components/RoomLobby";
 
 export default function Home() {
   const handleJoinRoom = async (roomCode: string) => {

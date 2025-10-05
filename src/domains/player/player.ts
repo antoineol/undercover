@@ -3,7 +3,6 @@
  * Represents a player with their role and game state
  */
 
-// import type { Id } from "cvx/dataModel";
 import type { Id } from "cvx/dataModel";
 import type { ConvexPlayer } from "../../lib/convex-types";
 
