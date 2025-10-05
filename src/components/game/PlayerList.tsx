@@ -1,14 +1,15 @@
 import { UI_MESSAGES } from "@/lib/constants";
-import type { ConvexPlayer, RoomWithPlayers } from "@/lib/convex-types";
+import type { RoomWithPlayers } from "@/lib/convex-types";
 import type { Id } from "cvx/dataModel";
 import AnimateHeight from "react-animate-height";
+import type { Player } from "~/lib/types";
 import Button from "../ui/Button";
 import Card from "../ui/Card";
 import ProgressBar from "../ui/ProgressBar";
 
 interface PlayerListProps {
   room: RoomWithPlayers;
-  currentPlayer: ConvexPlayer | null;
+  currentPlayer: Player | undefined;
   playerName: string;
   isVotingPhase: boolean;
   isDiscussionPhase: boolean;

@@ -1,27 +1,29 @@
+import type { Id } from "cvx/dataModel";
+
 // Core game types
 export interface Player {
-  _id: string;
-  roomId: string;
+  _id: Id<"players">;
+  roomId: Id<"rooms">;
   name: string;
   sessionId?: string;
   isHost: boolean;
   isAlive: boolean;
   role: PlayerRole;
-  votes: string[];
+  votes: Id<"players">[];
   sharedWord?: string;
   hasSharedWord?: boolean;
   createdAt: number;
 }
 
 export interface Room {
-  _id: string;
+  _id: Id<"rooms">;
   code: string;
   hostId: string;
   gameState: GameState;
   currentRound: number;
   maxRounds: number;
   currentPlayerIndex?: number;
-  playerOrder?: string[];
+  playerOrder?: Id<"players">[];
   numMrWhites?: number;
   numUndercovers?: number;
   createdAt: number;
@@ -29,8 +31,8 @@ export interface Room {
 }
 
 export interface GameWords {
-  _id: string;
-  roomId: string;
+  _id: Id<"gameWords">;
+  roomId: Id<"rooms">;
   civilianWord: string;
   undercoverWord: string;
   mrWhiteWord?: string;
@@ -54,14 +56,14 @@ export type GameResult =
 
 // API response types
 export interface CreateRoomResponse {
-  roomId: string;
+  roomId: Id<"rooms">;
   roomCode: string;
   sessionId: string;
 }
 
 export interface JoinRoomResponse {
-  roomId: string;
-  playerId: string;
+  roomId: Id<"rooms">;
+  playerId: Id<"players">;
   sessionId: string;
   isExisting: boolean;
 }
@@ -69,13 +71,13 @@ export interface JoinRoomResponse {
 export interface ShareWordResponse {
   success: boolean;
   allShared: boolean;
-  nextPlayer: string | null;
+  nextPlayer: Id<"players"> | null;
 }
 
 export interface VoteResponse {
   success: boolean;
   allVoted: boolean;
-  eliminatedPlayer?: string;
+  eliminatedPlayer?: Id<"players">;
   gameResult?: GameResult;
   voteCounts?: Record<string, number>;
 }
@@ -92,7 +94,7 @@ export interface GameValidationResponse {
 
 // Component prop types
 export interface GameRoomProps {
-  roomCode: string;
+  roomCode: Id<"rooms">;
   playerName: string;
   isHost: boolean;
   onLeave: () => void;

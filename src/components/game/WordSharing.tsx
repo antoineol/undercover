@@ -14,7 +14,7 @@ import ProgressBar from "../ui/ProgressBar";
 
 interface WordSharingProps {
   room: Room;
-  currentPlayer: Player | null;
+  currentPlayer: Player | undefined;
   wordToShare: string;
   setWordToShare: (word: string) => void;
   onShareWord: () => void;

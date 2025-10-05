@@ -17,6 +17,7 @@
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
     "convex": "^1.27.3",
+    "memoize-one": "^6.0.0",
     "next": "15.5.4",
     "qrcode": "^1.5.4",
     "react": "19.1.0",
@@ -30,6 +31,7 @@
     "@eslint/eslintrc": "^3.3.1",
     "@tailwindcss/postcss": "^4.1.13",
     "@trivago/prettier-plugin-sort-imports": "^5.2.2",
+    "@types/memoize-one": "^5.1.2",
     "@types/node": "^24.6.2",
     "@types/qrcode": "^1.5.5",
     "@types/react": "^19.1.0",

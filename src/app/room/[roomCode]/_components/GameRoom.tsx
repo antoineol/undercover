@@ -3,7 +3,6 @@
 import {
   calculateVoteData,
   calculateVotingProgress,
-  getCurrentPlayerByName,
   getCurrentTurnPlayer,
   isDiscussionPhase,
   isMyTurn,
@@ -28,6 +27,7 @@ import StopGameButton from "~/components/game/StopGameButton";
 import WordDisplay from "~/components/game/WordDisplay";
 import WordSharing from "~/components/game/WordSharing";
 import { useSessionStore } from "~/lib/stores/session-store";
+import { useCurrentPlayer } from "../_utils/utils";
 
 export interface GameRoomProps {
   roomCode: string;
@@ -50,6 +50,7 @@ export default function GameRoom({
     api.game.getGameWords,
     room ? { roomId: room._id } : "skip",
   );
+  const currentPlayer = useCurrentPlayer();
 
   const shareWord = useMutation(api.game.shareWord);
   const votePlayer = useMutation(api.game.votePlayer);
@@ -57,9 +58,6 @@ export default function GameRoom({
 
   const handleShareWord = async () => {
     if (room && wordToShare.trim() && !isSharingWord) {
-      const currentPlayer = room.players.find(
-        (p: { name: string }) => p.name === playerName,
-      );
       if (currentPlayer) {
         setIsSharingWord(true);
         try {
@@ -82,9 +80,6 @@ export default function GameRoom({
 
   const handleVote = async (targetId: Id<"players">) => {
     if (room) {
-      const currentPlayer = room.players.find(
-        (p: { name: string }) => p.name === playerName,
-      );
       if (currentPlayer) {
         try {
           await retryWithBackoff(() =>
@@ -136,7 +131,6 @@ export default function GameRoom({
   };
 
   // Use pure functions for business logic calculations
-  const currentPlayer = getCurrentPlayerByName(room.players, playerName);
   const alivePlayers = room.players.filter((p) => p.isAlive);
   const isVotingPhaseState = isVotingPhase(room);
   const isDiscussionPhaseState = isDiscussionPhase(room);

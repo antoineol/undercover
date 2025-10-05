@@ -7,7 +7,7 @@ import Button from "../ui/Button";
 
 interface WordDisplayProps {
   room: RoomWithPlayers;
-  currentPlayer: Player | null;
+  currentPlayer: Player | undefined;
   gameWords: GameWords | null;
 }
 
