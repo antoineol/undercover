@@ -9,7 +9,7 @@ import Image from "next/image";
 import Link from "next/link";
 import QRCode from "qrcode";
 import { useCallback, useEffect, useState } from "react";
-import GameRoom from "~/app/room/[roomCode]/GameRoom";
+import GameRoom from "~/app/room/[roomCode]/_components/GameRoom";
 
 interface RoomPageClientProps {
   roomCode: string;
