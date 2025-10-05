@@ -1,7 +1,7 @@
 "use client";
 
 import GameRoom from "@/components/GameRoom";
-import { usePlayerStore } from "@/lib/stores/player-store";
+import { useSessionStore } from "@/lib/stores/session-store";
 import { useUIStore } from "@/lib/stores/ui-store";
 import type { Room } from "@/lib/types";
 import { useMutation, useQuery } from "convex/react";
@@ -17,13 +17,12 @@ interface RoomPageClientProps {
 
 export function RoomPageClient({ roomCode }: RoomPageClientProps) {
   const {
-    playerName,
-    isHost,
-    setPlayer,
-    clearPlayer,
+    sessionId,
+    setSession,
+    clearSession,
     loadFromSessionStorage,
     saveToSessionStorage,
-  } = usePlayerStore();
+  } = useSessionStore();
   const { qrCodeDataUrl, setQrCodeDataUrl } = useUIStore();
   const [isLoading, setIsLoading] = useState(true);
   const [joinError, setJoinError] = useState("");
@@ -42,14 +41,11 @@ export function RoomPageClient({ roomCode }: RoomPageClientProps) {
           isHost: isHostPlayer,
         });
 
-        // Save player data to Zustand store and sessionStorage
-        setPlayer({
-          playerName: name,
-          isHost: isHostPlayer,
-          sessionId: result.sessionId,
-          roomCode,
-        });
-        saveToSessionStorage(roomCode);
+        // Save session data for rejoining
+        if (result.sessionId) {
+          setSession(result.sessionId);
+        }
+        saveToSessionStorage();
 
         // Log if this is a rejoin (for debugging)
         if (result.isExisting) {
@@ -84,17 +80,18 @@ export function RoomPageClient({ roomCode }: RoomPageClientProps) {
         }
       }
     },
-    [roomCode, joinRoom, setPlayer, saveToSessionStorage],
+    [roomCode, joinRoom, setSession, saveToSessionStorage],
   );
 
-  // Check for existing player data on mount and generate QR code
+  // Check for existing session data on mount and generate QR code
   useEffect(() => {
     // Load from sessionStorage first
-    loadFromSessionStorage(roomCode);
+    loadFromSessionStorage();
 
-    // Auto-join if we have saved data
-    if (playerName && roomCode) {
-      void handleJoinRoom(playerName, isHost, undefined);
+    // Auto-join if we have saved session data
+    if (sessionId && roomCode) {
+      // Try to rejoin with the existing sessionId
+      // The room query will handle finding the player
     }
     setIsLoading(false);
 
@@ -120,16 +117,15 @@ export function RoomPageClient({ roomCode }: RoomPageClientProps) {
   }, [
     roomCode,
     handleJoinRoom,
-    isHost,
-    playerName,
+    sessionId,
     setQrCodeDataUrl,
     loadFromSessionStorage,
   ]);
 
   const handleLeave = () => {
-    // Clear saved player data from both Zustand and sessionStorage
-    clearPlayer();
-    sessionStorage.removeItem(`player_${roomCode}`);
+    // Clear saved session data
+    clearSession();
+    sessionStorage.removeItem("player_session");
     setJoinError("");
   };
 
@@ -167,12 +163,15 @@ export function RoomPageClient({ roomCode }: RoomPageClientProps) {
     );
   }
 
-  if (playerName) {
+  // Get current player from room data using sessionId
+  const currentPlayer = room?.players.find((p) => p.sessionId === sessionId);
+
+  if (currentPlayer) {
     return (
       <GameRoom
         roomCode={roomCode}
-        playerName={playerName}
-        isHost={isHost}
+        playerName={currentPlayer.name}
+        isHost={currentPlayer.isHost}
         onLeave={handleLeave}
       />
     );

@@ -1,6 +1,6 @@
 "use client";
 
-import { usePlayerStore } from "@/lib/stores/player-store";
+import { useSessionStore } from "@/lib/stores/session-store";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "convex/react";
 import { api } from "cvx/api";
@@ -28,7 +28,7 @@ export default function CreateRoomForm({}: CreateRoomFormProps) {
   const router = useRouter();
 
   const createRoom = useMutation(api.rooms.createRoom);
-  const { setPlayer, saveToSessionStorage } = usePlayerStore();
+  const { setSession, saveToSessionStorage } = useSessionStore();
 
   const {
     register,
@@ -47,14 +47,9 @@ export default function CreateRoomForm({}: CreateRoomFormProps) {
       // Add a small delay to ensure room is fully created
       await new Promise((resolve) => setTimeout(resolve, 500));
 
-      // Store host data in Zustand store and sessionStorage
-      setPlayer({
-        playerName: data.playerName,
-        isHost: true,
-        sessionId: result.sessionId,
-        roomCode: result.roomCode,
-      });
-      saveToSessionStorage(result.roomCode);
+      // Store session data for rejoining
+      setSession(result.sessionId);
+      saveToSessionStorage();
 
       // Redirect to room URL
       router.push(`/room/${result.roomCode}`);
