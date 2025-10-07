@@ -1,11 +1,11 @@
 import { calculateSharingProgress } from "@/domains/ui/ui-helpers.service";
 import { UI_MESSAGES } from "@/lib/constants";
 import type { Player, Room } from "@/lib/types";
+import { retryWithBackoff } from "@/lib/utils";
 import { validateSharedWord } from "@/lib/validation";
 import { useMutation } from "convex/react";
 import { api } from "cvx/api";
-import type { Id } from "cvx/dataModel";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import AnimateHeight from "react-animate-height";
 import Button from "../ui/Button";
 import Card from "../ui/Card";
@@ -15,27 +15,23 @@ import ProgressBar from "../ui/ProgressBar";
 interface WordSharingProps {
   room: Room;
   currentPlayer: Player | undefined;
-  wordToShare: string;
-  setWordToShare: (word: string) => void;
-  onShareWord: () => void;
   isMyTurn: boolean;
   currentTurnPlayer?: Player;
   alivePlayers: Player[];
-  isSubmitting?: boolean;
 }
 
 // Internal component that handles the word sharing logic
 function WordSharingContent({
   room,
   currentPlayer,
-  wordToShare,
-  setWordToShare,
-  onShareWord,
   isMyTurn,
   currentTurnPlayer,
   alivePlayers,
-  isSubmitting = false,
 }: WordSharingProps) {
+  const [wordToShare, setWordToShare] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const shareWord = useMutation(api.game.shareWord);
   const hasSharedWord = currentPlayer?.hasSharedWord ?? false;
   const playersWhoShared = room.players.filter(
     (p) => p.isAlive && p.hasSharedWord,
@@ -57,11 +53,31 @@ function WordSharingContent({
   useEffect(() => {
     if (isDataInconsistent && room._id) {
       // Automatically try to fix the inconsistency
-      fixDataInconsistency({ roomId: room._id as Id<"rooms"> }).catch(
-        console.error,
-      );
+      fixDataInconsistency({ roomId: room._id }).catch(console.error);
     }
   }, [isDataInconsistent, room._id, fixDataInconsistency]);
+
+  const handleShareWord = async () => {
+    if (room && wordToShare.trim() && !isSubmitting) {
+      if (currentPlayer) {
+        setIsSubmitting(true);
+        try {
+          await retryWithBackoff(() =>
+            shareWord({
+              playerId: currentPlayer._id,
+              word: wordToShare.trim(),
+            }),
+          );
+          setWordToShare("");
+        } catch (error) {
+          console.error("Échec du partage du mot:", error);
+          alert("Erreur: " + ((error as Error).message || "Erreur inconnue"));
+        } finally {
+          setIsSubmitting(false);
+        }
+      }
+    }
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -73,7 +89,7 @@ function WordSharingContent({
       return;
     }
 
-    onShareWord();
+    void handleShareWord();
   };
 
   return (

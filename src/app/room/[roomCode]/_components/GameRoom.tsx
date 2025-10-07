@@ -8,11 +8,11 @@ import {
   isMyTurn,
   isVotingPhase,
 } from "@/domains/room/room-management.service";
-import { useUIStore } from "@/lib/stores/ui-store";
 import { retryWithBackoff } from "@/lib/utils";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "cvx/api";
 import type { Id } from "cvx/dataModel";
+import { useState } from "react";
 import AnimateHeight from "react-animate-height";
 import GameConfiguration from "~/components/game/GameConfiguration";
 import GameHeader from "~/components/game/GameHeader";
@@ -40,9 +40,7 @@ export default function GameRoom({
   playerName,
   isHost,
 }: GameRoomProps) {
-  const { showConfig, setShowConfig } = useUIStore();
-  const { wordToShare, setWordToShare, isSharingWord, setIsSharingWord } =
-    useUIStore();
+  const [showConfig, setShowConfig] = useState(false);
   const { clearSession } = useSessionStore();
 
   const room = useQuery(api.rooms.getRoom, { roomCode });
@@ -52,31 +50,8 @@ export default function GameRoom({
   );
   const currentPlayer = useCurrentPlayer();
 
-  const shareWord = useMutation(api.game.shareWord);
   const votePlayer = useMutation(api.game.votePlayer);
   const restartGame = useMutation(api.game.restartGame);
-
-  const handleShareWord = async () => {
-    if (room && wordToShare.trim() && !isSharingWord) {
-      if (currentPlayer) {
-        setIsSharingWord(true);
-        try {
-          await retryWithBackoff(() =>
-            shareWord({
-              playerId: currentPlayer._id,
-              word: wordToShare.trim(),
-            }),
-          );
-          setWordToShare("");
-        } catch (error) {
-          console.error("Échec du partage du mot:", error);
-          alert("Erreur: " + ((error as Error).message || "Erreur inconnue"));
-        } finally {
-          setIsSharingWord(false);
-        }
-      }
-    }
-  };
 
   const handleVote = async (targetId: Id<"players">) => {
     if (room) {
@@ -185,13 +160,9 @@ export default function GameRoom({
         <WordSharing
           room={room}
           currentPlayer={currentPlayer}
-          wordToShare={wordToShare}
-          setWordToShare={setWordToShare}
-          onShareWord={handleShareWord}
           isMyTurn={isMyTurnState}
           currentTurnPlayer={currentTurnPlayer ?? undefined}
           alivePlayers={alivePlayers}
-          isSubmitting={isSharingWord}
         />
 
         <MrWhiteGuessing room={room} />
