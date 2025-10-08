@@ -1,4 +1,3 @@
-import { getStartGameButtonText } from "@/domains/ui/ui-helpers.service";
 import type { RoomWithPlayers } from "@/lib/convex-types";
 import { retryWithBackoff } from "@/lib/utils";
 import { useMutation, useQuery } from "convex/react";
@@ -38,10 +37,6 @@ export default function GameStartButton({
     }
   };
 
-  if (!isHost || room.gameState !== "waiting") {
-    return null;
-  }
-
   return (
     <Button
       onClick={handleStartGame}
@@ -50,7 +45,7 @@ export default function GameStartButton({
       size="lg"
       className="min-h-[56px] w-full text-lg font-semibold"
     >
-      {getStartGameButtonText(room.players.length)}
+      Commencer le Jeu ({room.players.length}/3+)
     </Button>
   );
 }

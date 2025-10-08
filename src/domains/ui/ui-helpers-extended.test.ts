@@ -9,7 +9,6 @@ import {
   getGameInstructionsText,
   getGameStateMessage,
   getMrWhiteGuessingText,
-  getStartGameButtonText,
   getValidationResultMessage,
   getWordDisplayText,
 } from "./ui-helpers.service";
@@ -70,18 +69,6 @@ describe("Extended UI Helper Functions", () => {
     test("should return empty string for unknown state", () => {
       const message = getGameStateMessage("unknown");
       expect(message).toBe("");
-    });
-  });
-
-  describe("getStartGameButtonText", () => {
-    test("should return button text with player count", () => {
-      const text = getStartGameButtonText(5);
-      expect(text).toBe("Commencer le Jeu (5/3+)");
-    });
-
-    test("should use custom min players", () => {
-      const text = getStartGameButtonText(4, 4);
-      expect(text).toBe("Commencer le Jeu (4/4+)");
     });
   });
 

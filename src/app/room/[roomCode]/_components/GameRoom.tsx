@@ -1,17 +1,13 @@
 "use client";
 
 import {
-  calculateVoteData,
   calculateVotingProgress,
   getCurrentTurnPlayer,
-  isDiscussionPhase,
   isMyTurn,
   isVotingPhase,
 } from "@/domains/room/room-management.service";
-import { retryWithBackoff } from "@/lib/utils";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "cvx/api";
-import type { Id } from "cvx/dataModel";
 import { useState } from "react";
 import AnimateHeight from "react-animate-height";
 import GameConfiguration from "~/components/game/GameConfiguration";
@@ -20,60 +16,35 @@ import GameInstructions from "~/components/game/GameInstructions";
 import GameResults from "~/components/game/GameResults";
 import GameStartButton from "~/components/game/GameStartButton";
 import MrWhiteGuessing from "~/components/game/MrWhiteGuessing";
-import PlayerList from "~/components/game/PlayerList";
+import PlayerList from "~/components/game/player-list/PlayerList";
 import QRCodeModal from "~/components/game/QRCodeModal";
 import ShareButtons from "~/components/game/ShareButtons";
 import StopGameButton from "~/components/game/StopGameButton";
 import WordDisplay from "~/components/game/WordDisplay";
 import WordSharing from "~/components/game/WordSharing";
 import { useSessionStore } from "~/lib/stores/session-store";
-import { useCurrentPlayer } from "../_utils/utils";
+import {
+  useCurrentPlayerSafe,
+  useIsDiscussionPhase,
+  useRoomSafe,
+} from "../_utils/utils";
 
-export interface GameRoomProps {
-  roomCode: string;
-  playerName: string;
-  isHost: boolean;
-}
-
-export default function GameRoom({
-  roomCode,
-  playerName,
-  isHost,
-}: GameRoomProps) {
+export default function GameRoom() {
   const [showConfig, setShowConfig] = useState(false);
   const { clearSession } = useSessionStore();
 
-  const room = useQuery(api.rooms.getRoom, { roomCode });
+  const room = useRoomSafe();
+  const currentPlayer = useCurrentPlayerSafe();
+  const playerName = currentPlayer.name;
+  const isHost = currentPlayer.isHost;
+  const isDiscussionPhaseState = useIsDiscussionPhase();
+
   const gameWords = useQuery(
     api.game.getGameWords,
     room ? { roomId: room._id } : "skip",
   );
-  const currentPlayer = useCurrentPlayer();
 
-  const votePlayer = useMutation(api.game.votePlayer);
   const restartGame = useMutation(api.game.restartGame);
-
-  const handleVote = async (targetId: Id<"players">) => {
-    if (room) {
-      if (currentPlayer) {
-        try {
-          await retryWithBackoff(() =>
-            votePlayer({
-              roomId: room._id,
-              voterId: currentPlayer._id,
-              targetId: targetId,
-            }),
-          );
-        } catch (error) {
-          console.error("Échec du vote:", error);
-          alert(
-            "Erreur lors du vote: " +
-              ((error as Error).message || "Erreur inconnue"),
-          );
-        }
-      }
-    }
-  };
 
   const handleRestartGame = async () => {
     if (room && isHost) {
@@ -108,19 +79,13 @@ export default function GameRoom({
   // Use pure functions for business logic calculations
   const alivePlayers = room.players.filter((p) => p.isAlive);
   const isVotingPhaseState = isVotingPhase(room);
-  const isDiscussionPhaseState = isDiscussionPhase(room);
 
   // Calculate voting progress using pure function
   const votingProgress = calculateVotingProgress(room.players);
 
   // Get current turn player using pure function
   const currentTurnPlayer = getCurrentTurnPlayer(room, room.players);
-  const isMyTurnState = currentPlayer
-    ? isMyTurn(currentPlayer._id, room)
-    : false;
-
-  // Calculate vote data using pure function
-  const { voteCounts, voterNames } = calculateVoteData(room.players);
+  const isMyTurnState = isMyTurn(currentPlayer._id, room);
 
   return (
     <div className="min-h-screen bg-gray-100">
@@ -145,6 +110,16 @@ export default function GameRoom({
           </div>
         </AnimateHeight>
 
+        <PlayerList
+          room={room}
+          currentPlayer={currentPlayer}
+          playerName={playerName}
+          isVotingPhase={isVotingPhaseState}
+          isDiscussionPhase={isDiscussionPhaseState}
+          currentTurnPlayerId={currentTurnPlayer?._id}
+          votingProgress={votingProgress}
+        />
+
         <GameResults
           room={room}
           isHost={isHost}
@@ -166,26 +141,6 @@ export default function GameRoom({
         />
 
         <MrWhiteGuessing room={room} />
-
-        <AnimateHeight
-          height={currentPlayer ? "auto" : 0}
-          duration={300}
-          easing="ease-in-out"
-          animateOpacity
-        >
-          <PlayerList
-            room={room}
-            currentPlayer={currentPlayer}
-            playerName={playerName}
-            isVotingPhase={isVotingPhaseState}
-            isDiscussionPhase={isDiscussionPhaseState}
-            currentTurnPlayerId={currentTurnPlayer?._id}
-            voteCounts={voteCounts}
-            voterNames={voterNames}
-            onVote={handleVote}
-            votingProgress={votingProgress}
-          />
-        </AnimateHeight>
 
         <GameInstructions room={room} />
       </div>

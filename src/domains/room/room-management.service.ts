@@ -340,13 +340,6 @@ export function isVotingPhase(room: Room): boolean {
 }
 
 /**
- * Check if room is in discussion phase
- */
-export function isDiscussionPhase(room: Room): boolean {
-  return room.gameState === "discussion";
-}
-
-/**
  * Get current player by name
  */
 export function getCurrentPlayerByName(

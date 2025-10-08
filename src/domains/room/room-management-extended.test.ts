@@ -15,7 +15,6 @@ import {
   getCurrentTurnPlayer,
   getGameConfigurationDisplay,
   getPlayersWhoVoted,
-  isDiscussionPhase,
   isMyTurn,
   isVotingPhase,
 } from "./room-management.service";
@@ -24,15 +23,15 @@ describe("Extended Room Management Functions", () => {
   // Helper function to convert test players to ConvexPlayer format
   const toConvexPlayers = (players: Player[]): ConvexPlayer[] =>
     players.map((p) => ({
-      _id: p._id as Id<"players">,
+      _id: p._id,
       _creationTime: Date.now(),
-      roomId: p.roomId as Id<"rooms">,
+      roomId: p.roomId,
       name: p.name,
       sessionId: p.sessionId,
       isHost: p.isHost,
       isAlive: p.isAlive,
       role: p.role,
-      votes: p.votes as Id<"players">[],
+      votes: p.votes,
       sharedWord: p.sharedWord,
       hasSharedWord: p.hasSharedWord,
       hasVoted: p.votes && p.votes.length > 0,
@@ -216,17 +215,6 @@ describe("Extended Room Management Functions", () => {
     test("should return false for non-voting phase", () => {
       const discussionRoom = { ...mockRoom, gameState: "discussion" as const };
       expect(isVotingPhase(discussionRoom)).toBe(false);
-    });
-  });
-
-  describe("isDiscussionPhase", () => {
-    test("should return true for discussion phase", () => {
-      const discussionRoom = { ...mockRoom, gameState: "discussion" as const };
-      expect(isDiscussionPhase(discussionRoom)).toBe(true);
-    });
-
-    test("should return false for non-discussion phase", () => {
-      expect(isDiscussionPhase(mockRoom)).toBe(false);
     });
   });
 

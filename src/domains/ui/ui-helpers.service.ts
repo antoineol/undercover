@@ -256,16 +256,6 @@ export function getGameStateMessage(gameState: string): string {
 }
 
 /**
- * Get start game button text
- */
-export function getStartGameButtonText(
-  playerCount: number,
-  minPlayers = 3,
-): string {
-  return `Commencer le Jeu (${playerCount}/${minPlayers}+)`;
-}
-
-/**
  * Get configuration display text for game setup
  */
 export function getConfigurationDisplayText(config: {
