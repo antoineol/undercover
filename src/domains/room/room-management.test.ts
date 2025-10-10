@@ -30,15 +30,15 @@ import {
 // Helper function to convert test players to ConvexPlayer format
 const toConvexPlayers = (players: Player[]): ConvexPlayer[] =>
   players.map((p) => ({
-    _id: p._id as Id<"players">,
+    _id: p._id,
     _creationTime: Date.now(),
-    roomId: p.roomId as Id<"rooms">,
+    roomId: p.roomId,
     name: p.name,
     sessionId: p.sessionId,
     isHost: p.isHost,
     isAlive: p.isAlive,
     role: p.role,
-    votes: p.votes as Id<"players">[],
+    votes: p.votes,
     sharedWord: p.sharedWord,
     hasSharedWord: p.hasSharedWord,
     hasVoted: false,
@@ -46,14 +46,18 @@ const toConvexPlayers = (players: Player[]): ConvexPlayer[] =>
   }));
 
 const mockRoom: Room = {
-  _id: "room1",
+  _id: "room1" as Id<"rooms">,
   code: "ABC123",
   hostId: "host1",
   gameState: "waiting",
   currentRound: 1,
   maxRounds: 5,
   currentPlayerIndex: 0,
-  playerOrder: ["player1", "player2", "player3"],
+  playerOrder: [
+    "player1" as Id<"players">,
+    "player2" as Id<"players">,
+    "player3" as Id<"players">,
+  ],
   numMrWhites: 0,
   numUndercovers: 1,
   createdAt: Date.now(),
@@ -62,35 +66,35 @@ const mockRoom: Room = {
 
 const mockPlayers: Player[] = [
   {
-    _id: "player1",
+    _id: "player1" as Id<"players">,
     name: "Player 1",
     role: "civilian",
     isAlive: true,
     hasSharedWord: true,
     votes: [],
-    roomId: "room1",
+    roomId: "room1" as Id<"rooms">,
     isHost: true,
     createdAt: Date.now(),
   },
   {
-    _id: "player2",
+    _id: "player2" as Id<"players">,
     name: "Player 2",
     role: "undercover",
     isAlive: true,
     hasSharedWord: true,
-    votes: ["player1"],
-    roomId: "room1",
+    votes: ["player1" as Id<"players">],
+    roomId: "room1" as Id<"rooms">,
     isHost: false,
     createdAt: Date.now(),
   },
   {
-    _id: "player3",
+    _id: "player3" as Id<"players">,
     name: "Player 3",
     role: "civilian",
     isAlive: false,
     hasSharedWord: false,
     votes: [],
-    roomId: "room1",
+    roomId: "room1" as Id<"rooms">,
     isHost: false,
     createdAt: Date.now(),
   },
@@ -211,7 +215,7 @@ describe("Room Management Functions", () => {
 
     it("should return state as-is for unknown states", () => {
       const unknownRoom = { ...mockRoom, gameState: "waiting" as const };
-      expect(getRoomStatusText(unknownRoom)).toBe("unknown");
+      expect(getRoomStatusText(unknownRoom)).toBe("En attente des joueurs");
     });
   });
 

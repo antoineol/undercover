@@ -1,6 +1,6 @@
 import {
-    calculateMaxUndercovers,
-    getGameConfigurationDisplay,
+  calculateMaxUndercovers,
+  getGameConfigurationDisplay,
 } from "@/domains/room/room-management.service";
 import type { RoomWithPlayers } from "@/lib/convex-types";
 import { useMutation, useQuery } from "convex/react";

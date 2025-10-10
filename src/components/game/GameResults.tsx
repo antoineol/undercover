@@ -1,8 +1,8 @@
 import { determineWinner } from "@/domains/game/game-logic.service";
 import {
-    formatWinnerText,
-    getRoleBadgeColor,
-    getRoleDisplayName,
+  formatWinnerText,
+  getRoleBadgeColor,
+  getRoleDisplayName,
 } from "@/domains/ui/ui-helpers.service";
 import { UI_MESSAGES } from "@/lib/constants";
 import type { RoomWithPlayers } from "@/lib/convex-types";

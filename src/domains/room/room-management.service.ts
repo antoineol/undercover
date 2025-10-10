@@ -377,6 +377,6 @@ export function getGameConfigurationDisplay(config: {
   const civilians = totalPlayers - numUndercovers - numMrWhites;
 
   return `• ${numUndercovers} Undercover${numUndercovers > 1 ? "s" : ""}
-• ${numMrWhites} Mr. White${numMrWhites > 1 ? "s" : ""}${numMrWhites === 0 ? " (Aucun)" : ""}
+• ${numMrWhites === 0 ? "Pas de Mr. White" : `${numMrWhites} Mr. White${numMrWhites > 1 ? "s" : ""}`}
 • ${civilians} Civil${civilians > 1 ? "s" : ""}`;
 }
