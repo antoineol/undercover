@@ -5,8 +5,8 @@ import {
   useVotingProgress,
 } from "~/app/room/[roomCode]/_utils/utils";
 import { AnimateHeightSimple } from "~/components/ui/AnimateHeightSimple";
-import Card from "../../ui/Card";
-import ProgressBar from "../../ui/ProgressBar";
+import Card from "../../../../../components/ui/Card";
+import ProgressBar from "../../../../../components/ui/ProgressBar";
 import { DeadPlayerRoleLabel } from "./DeadPlayerRoleLabel";
 import { PlayerCard } from "./PlayerCard";
 import { PlayerLabel } from "./PlayerLabel";
