@@ -108,3 +108,8 @@ export function useVotingProgress() {
   const room = useRoomSafe();
   return selectVotingProgress(room);
 }
+
+export function useIsHost() {
+  const currentPlayer = useCurrentPlayerSafe();
+  return currentPlayer.isHost;
+}

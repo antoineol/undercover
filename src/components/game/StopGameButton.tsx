@@ -1,16 +1,13 @@
-import type { RoomWithPlayers } from "@/lib/convex-types";
 import { retryWithBackoff } from "@/lib/utils";
 import { useMutation } from "convex/react";
 import { api } from "cvx/api";
+import { useIsHost, useRoomSafe } from "~/app/room/[roomCode]/_utils/utils";
 import { AnimateHeightSimple } from "~/components/ui/AnimateHeightSimple";
 import Button from "../ui/Button";
 
-interface StopGameButtonProps {
-  room: RoomWithPlayers;
-  isHost: boolean;
-}
-
-export default function StopGameButton({ room, isHost }: StopGameButtonProps) {
+export default function StopGameButton() {
+  const room = useRoomSafe();
+  const isHost = useIsHost();
   const stopGame = useMutation(api.game.stopGame);
 
   const handleStopGame = async () => {

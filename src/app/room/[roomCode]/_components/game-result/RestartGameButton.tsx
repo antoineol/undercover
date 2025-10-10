@@ -1,16 +1,12 @@
 import { UI_MESSAGES } from "@/lib/constants";
 import { useMutation } from "convex/react";
 import { api } from "cvx/api";
-import {
-  useCurrentPlayerSafe,
-  useRoomSafe,
-} from "~/app/room/[roomCode]/_utils/utils";
+import { useIsHost, useRoomSafe } from "~/app/room/[roomCode]/_utils/utils";
 import Button from "../../../../../components/ui/Button";
 
 export default function RestartGameButton() {
   const room = useRoomSafe();
-  const currentPlayer = useCurrentPlayerSafe();
-  const isHost = currentPlayer.isHost;
+  const isHost = useIsHost();
 
   const restartGame = useMutation(api.game.restartGame);
 

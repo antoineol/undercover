@@ -21,7 +21,7 @@ import WordDisplay from "~/components/game/WordDisplay";
 import WordSharing from "~/components/game/WordSharing";
 import { AnimateHeightSimple } from "~/components/ui/AnimateHeightSimple";
 import { useSessionStore } from "~/lib/stores/session-store";
-import { useCurrentPlayerSafe, useRoomSafe } from "../_utils/utils";
+import { useCurrentPlayerSafe, useIsHost, useRoomSafe } from "../_utils/utils";
 
 export default function GameRoom() {
   const [showConfig, setShowConfig] = useState(false);
@@ -29,7 +29,7 @@ export default function GameRoom() {
 
   const room = useRoomSafe();
   const currentPlayer = useCurrentPlayerSafe();
-  const isHost = currentPlayer.isHost;
+  const isHost = useIsHost();
 
   const gameWords = useQuery(
     api.game.getGameWords,
@@ -104,7 +104,7 @@ export default function GameRoom() {
 
       <ShareButtons room={room} />
       <QRCodeModal />
-      <StopGameButton room={room} isHost={isHost} />
+      <StopGameButton />
     </div>
   );
 }
