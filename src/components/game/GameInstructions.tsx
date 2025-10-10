@@ -1,6 +1,6 @@
 import { getGameInstructionsText } from "@/domains/ui/ui-helpers.service";
 import type { RoomWithPlayers } from "@/lib/convex-types";
-import AnimateHeight from "react-animate-height";
+import { AnimateHeightSimple } from "~/components/ui/AnimateHeightSimple";
 import Card from "../ui/Card";
 
 interface GameInstructionsProps {
@@ -9,12 +9,7 @@ interface GameInstructionsProps {
 
 export default function GameInstructions({ room }: GameInstructionsProps) {
   return (
-    <AnimateHeight
-      height={room.gameState === "waiting" ? "auto" : 0}
-      duration={300}
-      easing="ease-in-out"
-      animateOpacity
-    >
+    <AnimateHeightSimple open={room.gameState === "waiting"}>
       <Card className="mt-6 bg-blue-50">
         <h3 className="mb-2 text-lg font-semibold">Comment Jouer</h3>
         <ul className="space-y-1 text-sm text-gray-700">
@@ -23,6 +18,6 @@ export default function GameInstructions({ room }: GameInstructionsProps) {
           ))}
         </ul>
       </Card>
-    </AnimateHeight>
+    </AnimateHeightSimple>
   );
 }

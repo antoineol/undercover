@@ -9,7 +9,6 @@ import {
 import { useMutation, useQuery } from "convex/react";
 import { api } from "cvx/api";
 import { useState } from "react";
-import AnimateHeight from "react-animate-height";
 import GameConfiguration from "~/components/game/GameConfiguration";
 import GameHeader from "~/components/game/GameHeader";
 import GameInstructions from "~/components/game/GameInstructions";
@@ -22,6 +21,7 @@ import ShareButtons from "~/components/game/ShareButtons";
 import StopGameButton from "~/components/game/StopGameButton";
 import WordDisplay from "~/components/game/WordDisplay";
 import WordSharing from "~/components/game/WordSharing";
+import { AnimateHeightSimple } from "~/components/ui/AnimateHeightSimple";
 import { useSessionStore } from "~/lib/stores/session-store";
 import {
   useCurrentPlayerSafe,
@@ -98,17 +98,12 @@ export default function GameRoom() {
 
       <div className="mx-auto mb-10 flex max-w-4xl flex-col px-4 py-6">
         {/* Start Game Button and Configuration */}
-        <AnimateHeight
-          height={isHost && room.gameState === "waiting" ? "auto" : 0}
-          duration={300}
-          easing="ease-in-out"
-          animateOpacity
-        >
+        <AnimateHeightSimple open={isHost && room.gameState === "waiting"}>
           <div className="mt-6 flex flex-col">
             <GameStartButton room={room} isHost={isHost} />
             <GameConfiguration room={room} showConfig={showConfig} />
           </div>
-        </AnimateHeight>
+        </AnimateHeightSimple>
 
         <PlayerList
           room={room}

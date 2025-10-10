@@ -1,6 +1,6 @@
 import { useUIStore } from "@/lib/stores/ui-store";
 import Image from "next/image";
-import AnimateHeight from "react-animate-height";
+import { AnimateHeightSimple } from "~/components/ui/AnimateHeightSimple";
 
 export default function QRCodeModal() {
   const { showQR, setShowQR, qrCodeDataUrl } = useUIStore();
@@ -8,12 +8,7 @@ export default function QRCodeModal() {
   const handleClose = () => setShowQR(false);
 
   return (
-    <AnimateHeight
-      height={showQR ? "auto" : 0}
-      duration={300}
-      easing="ease-in-out"
-      animateOpacity
-    >
+    <AnimateHeightSimple open={showQR}>
       <div
         className="bg-opacity-50 fixed inset-0 z-50 mt-6 flex items-center justify-center bg-black p-4"
         onClick={handleClose}
@@ -48,6 +43,6 @@ export default function QRCodeModal() {
           )}
         </div>
       </div>
-    </AnimateHeight>
+    </AnimateHeightSimple>
   );
 }

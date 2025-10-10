@@ -2,7 +2,7 @@ import type { RoomWithPlayers } from "@/lib/convex-types";
 import { retryWithBackoff } from "@/lib/utils";
 import { useMutation } from "convex/react";
 import { api } from "cvx/api";
-import AnimateHeight from "react-animate-height";
+import { AnimateHeightSimple } from "~/components/ui/AnimateHeightSimple";
 import Button from "../ui/Button";
 
 interface StopGameButtonProps {
@@ -40,12 +40,7 @@ export default function StopGameButton({ room, isHost }: StopGameButtonProps) {
     isHost && room.gameState !== "waiting" && room.gameState !== "results";
 
   return (
-    <AnimateHeight
-      height={shouldShow ? "auto" : 0}
-      duration={300}
-      easing="ease-in-out"
-      animateOpacity
-    >
+    <AnimateHeightSimple open={shouldShow}>
       <div className="fixed bottom-4 left-4 z-10">
         <Button
           onClick={handleStopGame}
@@ -57,6 +52,6 @@ export default function StopGameButton({ room, isHost }: StopGameButtonProps) {
           Arrêter le jeu
         </Button>
       </div>
-    </AnimateHeight>
+    </AnimateHeightSimple>
   );
 }

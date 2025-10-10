@@ -6,7 +6,7 @@ import { validateSharedWord } from "@/lib/validation";
 import { useMutation } from "convex/react";
 import { api } from "cvx/api";
 import { useEffect, useState } from "react";
-import AnimateHeight from "react-animate-height";
+import { AnimateHeightSimple } from "~/components/ui/AnimateHeightSimple";
 import Button from "../ui/Button";
 import Card from "../ui/Card";
 import Input from "../ui/Input";
@@ -97,12 +97,7 @@ function WordSharingContent({
       <ProgressBar progress={sharingProgress} />
 
       <div className="flex flex-col">
-        <AnimateHeight
-          height={isMyTurn ? "auto" : 0}
-          duration={300}
-          easing="ease-in-out"
-          animateOpacity
-        >
+        <AnimateHeightSimple open={isMyTurn}>
           <div className="rounded-lg bg-blue-50 p-3">
             <p className="font-medium text-blue-800">
               <span className="animate-pulse">🎯</span> C&apos;est votre tour de
@@ -114,28 +109,18 @@ function WordSharingContent({
               </p>
             )}
           </div>
-        </AnimateHeight>
+        </AnimateHeightSimple>
 
-        <AnimateHeight
-          height={!isMyTurn ? "auto" : 0}
-          duration={300}
-          easing="ease-in-out"
-          animateOpacity
-        >
+        <AnimateHeightSimple open={!isMyTurn}>
           <div className="mt-6 rounded-lg bg-yellow-50 p-3">
             <p className="text-yellow-800">
               ⏳ En attente que {currentTurnPlayer?.name} partage son mot...
             </p>
           </div>
-        </AnimateHeight>
+        </AnimateHeightSimple>
 
-        <AnimateHeight
-          height={
-            isMyTurn && !hasSharedWord && !isDataInconsistent ? "auto" : 0
-          }
-          duration={300}
-          easing="ease-in-out"
-          animateOpacity
+        <AnimateHeightSimple
+          open={isMyTurn && !hasSharedWord && !isDataInconsistent}
         >
           <Card className="mt-6 flex flex-col gap-4">
             <p className="text-gray-700">
@@ -163,7 +148,7 @@ function WordSharingContent({
               </div>
             </form>
           </Card>
-        </AnimateHeight>
+        </AnimateHeightSimple>
       </div>
     </div>
   );
@@ -175,13 +160,8 @@ export default function WordSharing(props: WordSharingProps) {
   const shouldShow = currentPlayer && room.gameState === "discussion";
 
   return (
-    <AnimateHeight
-      height={shouldShow ? "auto" : 0}
-      duration={300}
-      easing="ease-in-out"
-      animateOpacity
-    >
+    <AnimateHeightSimple open={shouldShow}>
       <WordSharingContent {...props} />
-    </AnimateHeight>
+    </AnimateHeightSimple>
   );
 }

@@ -2,7 +2,7 @@ import { getWordDisplayText } from "@/domains/ui/ui-helpers.service";
 import type { RoomWithPlayers } from "@/lib/convex-types";
 import { useUIStore } from "@/lib/stores/ui-store";
 import type { GameWords, Player } from "@/lib/types";
-import AnimateHeight from "react-animate-height";
+import { AnimateHeightSimple } from "~/components/ui/AnimateHeightSimple";
 import Button from "../ui/Button";
 
 interface WordDisplayProps {
@@ -30,12 +30,7 @@ export default function WordDisplay({
         </Button>
       </div>
 
-      <AnimateHeight
-        height={showWords ? "auto" : 0}
-        duration={300}
-        easing="ease-in-out"
-        animateOpacity
-      >
+      <AnimateHeightSimple open={showWords}>
         <div className="mt-4 rounded-lg bg-gray-50 p-4">
           <div>
             <span className="text-lg font-bold text-blue-600">
@@ -46,7 +41,7 @@ export default function WordDisplay({
             </span>
           </div>
         </div>
-      </AnimateHeight>
+      </AnimateHeightSimple>
     </div>
   );
 }

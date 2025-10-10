@@ -5,7 +5,7 @@ export function AnimateHeightSimple({
   open,
 }: {
   children: React.ReactNode;
-  open: boolean;
+  open: boolean | undefined;
 }) {
   return (
     <AnimateHeight

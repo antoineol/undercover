@@ -1,16 +1,11 @@
-import AnimateHeight from "react-animate-height";
 import { useRoomSafe } from "~/app/room/[roomCode]/_utils/utils";
+import { AnimateHeightSimple } from "~/components/ui/AnimateHeightSimple";
 import type { ConvexPlayer } from "~/lib/convex-types";
 
 export function DeadPlayerRoleLabel({ player }: { player: ConvexPlayer }) {
   const room = useRoomSafe();
   return (
-    <AnimateHeight
-      height={!player.isAlive && room.gameState !== "waiting" ? "auto" : 0}
-      duration={300}
-      easing="ease-in-out"
-      animateOpacity
-    >
+    <AnimateHeightSimple open={!player.isAlive && room.gameState !== "waiting"}>
       <div className="text-sm">
         <span
           className={`rounded px-2 py-1 text-xs ${getRoleBadgeColor(player.role)}`}
@@ -18,7 +13,7 @@ export function DeadPlayerRoleLabel({ player }: { player: ConvexPlayer }) {
           {getRoleDisplayName(player.role)}
         </span>
       </div>
-    </AnimateHeight>
+    </AnimateHeightSimple>
   );
 }
 

@@ -1,12 +1,12 @@
 import {
-  calculateMaxUndercovers,
-  getGameConfigurationDisplay,
+    calculateMaxUndercovers,
+    getGameConfigurationDisplay,
 } from "@/domains/room/room-management.service";
 import type { RoomWithPlayers } from "@/lib/convex-types";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "cvx/api";
 import { useEffect, useState } from "react";
-import AnimateHeight from "react-animate-height";
+import { AnimateHeightSimple } from "~/components/ui/AnimateHeightSimple";
 import Card from "../ui/Card";
 
 interface GameConfigurationProps {
@@ -53,12 +53,7 @@ export default function GameConfiguration({
   };
 
   return (
-    <AnimateHeight
-      height={showConfig ? "auto" : 0}
-      duration={300}
-      easing="ease-in-out"
-      animateOpacity
-    >
+    <AnimateHeightSimple open={showConfig}>
       <Card className="mt-6 bg-yellow-50">
         <h3 className="mb-4 text-lg font-semibold">⚙️ Configuration du Jeu</h3>
 
@@ -123,6 +118,6 @@ export default function GameConfiguration({
           </div>
         </div>
       </Card>
-    </AnimateHeight>
+    </AnimateHeightSimple>
   );
 }

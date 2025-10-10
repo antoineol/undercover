@@ -4,7 +4,7 @@ import type { RoomWithPlayers } from "@/lib/convex-types";
 import { useUIStore } from "@/lib/stores/ui-store";
 import { useMutation } from "convex/react";
 import { api } from "cvx/api";
-import AnimateHeight from "react-animate-height";
+import { AnimateHeightSimple } from "~/components/ui/AnimateHeightSimple";
 import Button from "../ui/Button";
 import Card from "../ui/Card";
 
@@ -34,12 +34,7 @@ export default function MrWhiteGuessing({ room }: MrWhiteGuessingProps) {
   const mrWhiteText = getMrWhiteGuessingText();
 
   return (
-    <AnimateHeight
-      height={room.gameState === "mr_white_guessing" ? "auto" : 0}
-      duration={300}
-      easing="ease-in-out"
-      animateOpacity
-    >
+    <AnimateHeightSimple open={room.gameState === "mr_white_guessing"}>
       <Card className="mt-6 border-yellow-200 bg-yellow-50">
         <div className="text-center">
           <h3 className="mb-4 text-lg font-semibold text-yellow-800">
@@ -68,6 +63,6 @@ export default function MrWhiteGuessing({ room }: MrWhiteGuessingProps) {
           </div>
         </div>
       </Card>
-    </AnimateHeight>
+    </AnimateHeightSimple>
   );
 }

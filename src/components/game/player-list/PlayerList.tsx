@@ -1,5 +1,4 @@
 import type { RoomWithPlayers } from "@/lib/convex-types";
-import AnimateHeight from "react-animate-height";
 import { AnimateHeightSimple } from "~/components/ui/AnimateHeightSimple";
 import type { Player } from "~/lib/types";
 import Card from "../../ui/Card";
@@ -29,12 +28,7 @@ export default function PlayerList({
   votingProgress,
 }: PlayerListProps) {
   return (
-    <AnimateHeight
-      height={currentPlayer ? "auto" : 0}
-      duration={300}
-      easing="ease-in-out"
-      animateOpacity
-    >
+    <AnimateHeightSimple open={!!currentPlayer}>
       <Card className="mt-6 flex flex-col gap-6">
         <ProgressBar progress={votingProgress} />
         <div className="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3">
@@ -88,6 +82,6 @@ export default function PlayerList({
           })}
         </div>
       </Card>
-    </AnimateHeight>
+    </AnimateHeightSimple>
   );
 }

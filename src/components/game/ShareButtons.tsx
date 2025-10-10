@@ -3,7 +3,7 @@ import { generateShareButtonTextWithTimeout } from "@/domains/ui/ui-helpers.serv
 import type { RoomWithPlayers } from "@/lib/convex-types";
 import { useUIStore } from "@/lib/stores/ui-store";
 import { copyToClipboard } from "@/lib/utils";
-import AnimateHeight from "react-animate-height";
+import { AnimateHeightSimple } from "~/components/ui/AnimateHeightSimple";
 import Button from "../ui/Button";
 
 interface ShareButtonsProps {
@@ -25,12 +25,7 @@ export default function ShareButtons({ room }: ShareButtonsProps) {
   };
 
   return (
-    <AnimateHeight
-      height={room.gameState === "waiting" ? "auto" : 0}
-      duration={300}
-      easing="ease-in-out"
-      animateOpacity
-    >
+    <AnimateHeightSimple open={room.gameState === "waiting"}>
       {/* Mobile Share Buttons - Fixed */}
       <div className="fixed right-0 bottom-0 left-0 border-t bg-white p-4 shadow-lg md:hidden">
         <div className="flex gap-3">
@@ -77,6 +72,6 @@ export default function ShareButtons({ room }: ShareButtonsProps) {
 
       {/* Bottom padding for mobile */}
       <div className="h-24 md:hidden"></div>
-    </AnimateHeight>
+    </AnimateHeightSimple>
   );
 }

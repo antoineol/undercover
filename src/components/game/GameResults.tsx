@@ -1,12 +1,12 @@
 import { determineWinner } from "@/domains/game/game-logic.service";
 import {
-  formatWinnerText,
-  getRoleBadgeColor,
-  getRoleDisplayName,
+    formatWinnerText,
+    getRoleBadgeColor,
+    getRoleDisplayName,
 } from "@/domains/ui/ui-helpers.service";
 import { UI_MESSAGES } from "@/lib/constants";
 import type { RoomWithPlayers } from "@/lib/convex-types";
-import AnimateHeight from "react-animate-height";
+import { AnimateHeightSimple } from "~/components/ui/AnimateHeightSimple";
 import Button from "../ui/Button";
 import Card from "../ui/Card";
 
@@ -70,13 +70,8 @@ export default function GameResults(props: GameResultsProps) {
   const shouldShow = room.gameState === "results";
 
   return (
-    <AnimateHeight
-      height={shouldShow ? "auto" : 0}
-      duration={300}
-      easing="ease-in-out"
-      animateOpacity
-    >
+    <AnimateHeightSimple open={!!shouldShow}>
       <GameResultsContent {...props} />
-    </AnimateHeight>
+    </AnimateHeightSimple>
   );
 }
