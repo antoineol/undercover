@@ -1,10 +1,8 @@
 "use client";
 
 import {
-  calculateVotingProgress,
   getCurrentTurnPlayer,
   isMyTurn,
-  isVotingPhase,
 } from "@/domains/room/room-management.service";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "cvx/api";
@@ -23,11 +21,7 @@ import WordDisplay from "~/components/game/WordDisplay";
 import WordSharing from "~/components/game/WordSharing";
 import { AnimateHeightSimple } from "~/components/ui/AnimateHeightSimple";
 import { useSessionStore } from "~/lib/stores/session-store";
-import {
-  useCurrentPlayerSafe,
-  useIsDiscussionPhase,
-  useRoomSafe,
-} from "../_utils/utils";
+import { useCurrentPlayerSafe, useRoomSafe } from "../_utils/utils";
 
 export default function GameRoom() {
   const [showConfig, setShowConfig] = useState(false);
@@ -35,9 +29,7 @@ export default function GameRoom() {
 
   const room = useRoomSafe();
   const currentPlayer = useCurrentPlayerSafe();
-  const playerName = currentPlayer.name;
   const isHost = currentPlayer.isHost;
-  const isDiscussionPhaseState = useIsDiscussionPhase();
 
   const gameWords = useQuery(
     api.game.getGameWords,
@@ -78,10 +70,6 @@ export default function GameRoom() {
 
   // Use pure functions for business logic calculations
   const alivePlayers = room.players.filter((p) => p.isAlive);
-  const isVotingPhaseState = isVotingPhase(room);
-
-  // Calculate voting progress using pure function
-  const votingProgress = calculateVotingProgress(room.players);
 
   // Get current turn player using pure function
   const currentTurnPlayer = getCurrentTurnPlayer(room, room.players);
@@ -97,7 +85,6 @@ export default function GameRoom() {
       />
 
       <div className="mx-auto mb-10 flex max-w-4xl flex-col px-4 py-6">
-        {/* Start Game Button and Configuration */}
         <AnimateHeightSimple open={isHost && room.gameState === "waiting"}>
           <div className="mt-6 flex flex-col">
             <GameStartButton room={room} isHost={isHost} />
@@ -105,15 +92,7 @@ export default function GameRoom() {
           </div>
         </AnimateHeightSimple>
 
-        <PlayerList
-          room={room}
-          currentPlayer={currentPlayer}
-          playerName={playerName}
-          isVotingPhase={isVotingPhaseState}
-          isDiscussionPhase={isDiscussionPhaseState}
-          currentTurnPlayerId={currentTurnPlayer?._id}
-          votingProgress={votingProgress}
-        />
+        <PlayerList />
 
         <GameResults
           room={room}
