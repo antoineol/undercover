@@ -4,13 +4,13 @@ import {
   getCurrentTurnPlayer,
   isMyTurn,
 } from "@/domains/room/room-management.service";
-import { useMutation, useQuery } from "convex/react";
+import { useQuery } from "convex/react";
 import { api } from "cvx/api";
 import { useState } from "react";
+import GameResults from "~/app/room/[roomCode]/_components/game-result/GameResults";
 import GameConfiguration from "~/components/game/GameConfiguration";
 import GameHeader from "~/components/game/GameHeader";
 import GameInstructions from "~/components/game/GameInstructions";
-import GameResults from "~/components/game/GameResults";
 import GameStartButton from "~/components/game/GameStartButton";
 import MrWhiteGuessing from "~/components/game/MrWhiteGuessing";
 import PlayerList from "~/components/game/player-list/PlayerList";
@@ -35,19 +35,6 @@ export default function GameRoom() {
     api.game.getGameWords,
     room ? { roomId: room._id } : "skip",
   );
-
-  const restartGame = useMutation(api.game.restartGame);
-
-  const handleRestartGame = async () => {
-    if (room && isHost) {
-      try {
-        await restartGame({ roomId: room._id });
-      } catch (error) {
-        console.error("Failed to restart game:", error);
-        alert("Échec du redémarrage du jeu");
-      }
-    }
-  };
 
   const handleToggleConfig = () => {
     setShowConfig(!showConfig);
@@ -94,11 +81,7 @@ export default function GameRoom() {
 
         <PlayerList />
 
-        <GameResults
-          room={room}
-          isHost={isHost}
-          onRestartGame={handleRestartGame}
-        />
+        <GameResults />
 
         <WordDisplay
           room={room}

@@ -27,14 +27,15 @@ const selectVotes = memoizeOne((players: Player[]) => {
   return { voteCounts, voterNames };
 });
 
-const selectCurrentTurnPlayer = memoizeOne((room: Room) => {
-  const currentTurnPlayerId =
-    room.playerOrder?.[room.currentPlayerIndex ?? -1] ?? null;
+const selectCurrentTurnPlayer = memoizeOne(
+  (room: Room, playerIndex: number) => {
+    const currentTurnPlayerId = room.playerOrder?.[playerIndex] ?? null;
 
-  if (!currentTurnPlayerId) return null;
+    if (!currentTurnPlayerId) return null;
 
-  return room.players.find((p) => p._id === currentTurnPlayerId) ?? null;
-});
+    return room.players.find((p) => p._id === currentTurnPlayerId) ?? null;
+  },
+);
 
 const selectVotingProgress = memoizeOne((room: RoomWithPlayers) => {
   const players = room.players;
@@ -84,7 +85,7 @@ export function useIsVotingPhase() {
 export function useCurrentTurnPlayer() {
   const room = useRoomSafe();
 
-  return selectCurrentTurnPlayer(room);
+  return selectCurrentTurnPlayer(room, room.currentPlayerIndex ?? -1);
 }
 
 // Horribly complex function. To refactor later. May be simpler.
