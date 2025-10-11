@@ -2,7 +2,7 @@ import { generateRoomUrl } from "@/domains/room/room-management.service";
 import { copyToClipboard } from "@/lib/utils";
 import { useState } from "react";
 import { useRoomSafe } from "~/app/room/[roomCode]/_utils/utils";
-import Button from "../ui/Button";
+import Button from "../../../../../components/ui/Button";
 
 interface ShareButtonProps {
   className?: string;

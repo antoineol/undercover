@@ -7,10 +7,6 @@ export interface QRCodeModalProps {
 }
 
 export default function QRCodeModal({ open, handleClose }: QRCodeModalProps) {
-  // const { showQR, setShowQR } = useUIStore();
-
-  // const handleClose = () => setShowQR(false);
-
   return (
     <AnimateHeightSimple open={open}>
       <div

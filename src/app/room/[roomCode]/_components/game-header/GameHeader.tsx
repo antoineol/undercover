@@ -1,17 +1,16 @@
 import { UI_MESSAGES } from "@/lib/constants";
 import type { Room } from "@/lib/types";
-import Button from "../ui/Button";
+import Button from "../../../../../components/ui/Button";
+import LeaveButton from "./LeaveButton";
 
 interface GameHeaderProps {
   room: Room;
-  onLeave: () => void;
   onToggleConfig: () => void;
   showConfig: boolean;
 }
 
 export default function GameHeader({
   room,
-  onLeave,
   onToggleConfig,
   showConfig,
 }: GameHeaderProps) {
@@ -37,15 +36,7 @@ export default function GameHeader({
       <div className="mx-auto max-w-4xl px-4 py-3">
         {/* Mobile-first header layout */}
         <div className="flex items-center justify-between gap-2">
-          {/* Left: Leave button */}
-          <Button
-            onClick={onLeave}
-            variant="secondary"
-            size="md"
-            className="min-h-[44px] flex-shrink-0 px-4"
-          >
-            {UI_MESSAGES.BUTTONS.LEAVE_ROOM}
-          </Button>
+          <LeaveButton />
 
           {/* Center: Game state message */}
           <div className="flex-1 px-2 text-center">

@@ -1,8 +1,8 @@
 import { useState } from "react";
-import QRCodeModal from "~/app/room/[roomCode]/_components/others/QRCodeModal";
+import QRCodeModal from "~/app/room/[roomCode]/_components/share-buttons/QRCodeModal";
 import { useRoomSafe } from "~/app/room/[roomCode]/_utils/utils";
 import { AnimateHeightSimple } from "~/components/ui/AnimateHeightSimple";
-import Button from "../ui/Button";
+import Button from "../../../../../components/ui/Button";
 import ShareButton from "./ShareButton";
 
 export default function ShareButtons() {

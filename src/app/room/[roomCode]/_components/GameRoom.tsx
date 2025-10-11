@@ -7,24 +7,22 @@ import {
 import { useQuery } from "convex/react";
 import { api } from "cvx/api";
 import { useState } from "react";
+import GameHeader from "~/app/room/[roomCode]/_components/game-header/GameHeader";
 import GameResults from "~/app/room/[roomCode]/_components/game-result/GameResults";
 import PlayerList from "~/app/room/[roomCode]/_components/player-list/PlayerList";
+import ShareButtons from "~/app/room/[roomCode]/_components/share-buttons/ShareButtons";
 import GameConfiguration from "~/components/game/GameConfiguration";
-import GameHeader from "~/components/game/GameHeader";
 import GameInstructions from "~/components/game/GameInstructions";
 import GameStartButton from "~/components/game/GameStartButton";
 import MrWhiteGuessing from "~/components/game/MrWhiteGuessing";
-import ShareButtons from "~/components/game/ShareButtons";
 import WordDisplay from "~/components/game/WordDisplay";
 import WordSharing from "~/components/game/WordSharing";
 import { AnimateHeightSimple } from "~/components/ui/AnimateHeightSimple";
-import { useSessionStore } from "~/lib/stores/session-store";
 import { useCurrentPlayerSafe, useIsHost, useRoomSafe } from "../_utils/utils";
 import StopGameButton from "./others/StopGameButton";
 
 export default function GameRoom() {
   const [showConfig, setShowConfig] = useState(false);
-  const { clearSession } = useSessionStore();
 
   const room = useRoomSafe();
   const currentPlayer = useCurrentPlayerSafe();
@@ -50,10 +48,6 @@ export default function GameRoom() {
     );
   }
 
-  const handleLeave = () => {
-    clearSession();
-  };
-
   // Use pure functions for business logic calculations
   const alivePlayers = room.players.filter((p) => p.isAlive);
 
@@ -65,7 +59,6 @@ export default function GameRoom() {
     <div className="min-h-screen bg-gray-100">
       <GameHeader
         room={room}
-        onLeave={handleLeave}
         onToggleConfig={handleToggleConfig}
         showConfig={showConfig}
       />
