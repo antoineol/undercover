@@ -1,23 +1,27 @@
-import { useUIStore } from "@/lib/stores/ui-store";
-import Image from "next/image";
 import { AnimateHeightSimple } from "~/components/ui/AnimateHeightSimple";
+import { RoomQRCode } from "../join-room/RoomQRCode";
 
-export default function QRCodeModal() {
-  const { showQR, setShowQR, qrCodeDataUrl } = useUIStore();
+export interface QRCodeModalProps {
+  open: boolean;
+  handleClose: () => void;
+}
 
-  const handleClose = () => setShowQR(false);
+export default function QRCodeModal({ open, handleClose }: QRCodeModalProps) {
+  // const { showQR, setShowQR } = useUIStore();
+
+  // const handleClose = () => setShowQR(false);
 
   return (
-    <AnimateHeightSimple open={showQR}>
+    <AnimateHeightSimple open={open}>
       <div
-        className="bg-opacity-50 fixed inset-0 z-50 mt-6 flex items-center justify-center bg-black p-4"
+        className="bg-opacity-50 fixed inset-0 z-50 flex items-center justify-center bg-black p-4"
         onClick={handleClose}
       >
         <div
           className="w-full max-w-sm rounded-lg bg-white p-6"
           onClick={(e) => e.stopPropagation()}
         >
-          <div className="mb-4 flex items-center justify-between">
+          <div className="flex items-center justify-between">
             <h3 className="text-lg font-semibold">Code QR de la Salle</h3>
             <button
               onClick={handleClose}
@@ -27,20 +31,7 @@ export default function QRCodeModal() {
               ×
             </button>
           </div>
-          {qrCodeDataUrl && (
-            <div className="text-center">
-              <Image
-                src={qrCodeDataUrl}
-                alt="QR Code"
-                width={200}
-                height={200}
-                className="mx-auto mb-4"
-              />
-              <p className="text-sm text-gray-600">
-                Scannez ce code pour rejoindre la salle
-              </p>
-            </div>
-          )}
+          <RoomQRCode />
         </div>
       </div>
     </AnimateHeightSimple>

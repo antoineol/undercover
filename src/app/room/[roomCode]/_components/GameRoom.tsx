@@ -8,7 +8,6 @@ import { useQuery } from "convex/react";
 import { api } from "cvx/api";
 import { useState } from "react";
 import GameResults from "~/app/room/[roomCode]/_components/game-result/GameResults";
-import QRCodeModal from "~/app/room/[roomCode]/_components/others/QRCodeModal";
 import PlayerList from "~/app/room/[roomCode]/_components/player-list/PlayerList";
 import GameConfiguration from "~/components/game/GameConfiguration";
 import GameHeader from "~/components/game/GameHeader";
@@ -103,7 +102,6 @@ export default function GameRoom() {
       </div>
 
       <ShareButtons />
-      <QRCodeModal />
       <StopGameButton />
     </div>
   );

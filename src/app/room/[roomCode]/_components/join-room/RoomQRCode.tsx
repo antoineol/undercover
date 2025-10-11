@@ -1,12 +1,11 @@
 "use client";
 
-import { useUIStore } from "@/lib/stores/ui-store";
 import Image from "next/image";
 import QRCode from "qrcode";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 export function RoomQRCode() {
-  const { qrCodeDataUrl, setQrCodeDataUrl } = useUIStore();
+  const [qrCodeDataUrl, setQrCodeDataUrl] = useState<string>("");
 
   useEffect(() => {
     const generateQRCode = async () => {
@@ -30,7 +29,7 @@ export function RoomQRCode() {
     };
 
     void generateQRCode();
-  }, [setQrCodeDataUrl]);
+  }, []);
 
   if (!qrCodeDataUrl) {
     return null;
