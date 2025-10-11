@@ -228,19 +228,6 @@ export function getTurnOrderDisplay(
 }
 
 /**
- * Generate share button text with timeout handling
- */
-export function generateShareButtonTextWithTimeout(
-  isSuccess: boolean,
-  isError: boolean,
-  baseText = "📋 Partager le Lien",
-): string {
-  if (isSuccess) return "✅ Lien copié !";
-  if (isError) return "❌ Erreur de copie";
-  return baseText;
-}
-
-/**
  * Get game state message for header
  */
 export function getGameStateMessage(gameState: string): string {

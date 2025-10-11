@@ -3,7 +3,7 @@ import { useMutation } from "convex/react";
 import { api } from "cvx/api";
 import { useIsHost, useRoomSafe } from "~/app/room/[roomCode]/_utils/utils";
 import { AnimateHeightSimple } from "~/components/ui/AnimateHeightSimple";
-import Button from "../ui/Button";
+import Button from "~/components/ui/Button";
 
 export default function StopGameButton() {
   const room = useRoomSafe();

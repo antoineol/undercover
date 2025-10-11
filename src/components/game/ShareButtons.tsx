@@ -1,28 +1,12 @@
-import { generateRoomUrl } from "@/domains/room/room-management.service";
-import { generateShareButtonTextWithTimeout } from "@/domains/ui/ui-helpers.service";
-import type { RoomWithPlayers } from "@/lib/convex-types";
 import { useUIStore } from "@/lib/stores/ui-store";
-import { copyToClipboard } from "@/lib/utils";
+import { useRoomSafe } from "~/app/room/[roomCode]/_utils/utils";
 import { AnimateHeightSimple } from "~/components/ui/AnimateHeightSimple";
 import Button from "../ui/Button";
+import ShareButton from "./ShareButton";
 
-interface ShareButtonsProps {
-  room: RoomWithPlayers;
-}
-
-export default function ShareButtons({ room }: ShareButtonsProps) {
-  const { showQR, setShowQR, shareButtonText, setShareButtonText } =
-    useUIStore();
-
-  const handleShareLink = async () => {
-    const roomUrl = generateRoomUrl(room.code);
-    const success = await copyToClipboard(roomUrl);
-    const newButtonText = generateShareButtonTextWithTimeout(success, !success);
-    setShareButtonText(newButtonText);
-    setTimeout(() => {
-      setShareButtonText("📋 Partager le Lien");
-    }, 2000);
-  };
+export default function ShareButtons() {
+  const room = useRoomSafe();
+  const { showQR, setShowQR } = useUIStore();
 
   return (
     <AnimateHeightSimple open={room.gameState === "waiting"}>
@@ -37,14 +21,7 @@ export default function ShareButtons({ room }: ShareButtonsProps) {
           >
             📱 QR
           </Button>
-          <Button
-            onClick={handleShareLink}
-            variant="primary"
-            size="lg"
-            className="min-h-[56px] flex-1 text-lg font-semibold"
-          >
-            {shareButtonText}
-          </Button>
+          <ShareButton className="min-h-[56px] flex-1 text-lg font-semibold" />
         </div>
       </div>
 
@@ -59,14 +36,7 @@ export default function ShareButtons({ room }: ShareButtonsProps) {
           >
             📱 QR Code
           </Button>
-          <Button
-            onClick={handleShareLink}
-            variant="primary"
-            size="lg"
-            className="min-h-[56px] flex-1 text-lg font-semibold"
-          >
-            {shareButtonText}
-          </Button>
+          <ShareButton className="min-h-[56px] flex-1 text-lg font-semibold" />
         </div>
       </div>
 

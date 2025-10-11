@@ -4,7 +4,6 @@
 
 import { describe, expect, test } from "bun:test";
 import {
-  generateShareButtonTextWithTimeout,
   getConfigurationDisplayText,
   getGameInstructionsText,
   getGameStateMessage,
@@ -14,32 +13,6 @@ import {
 } from "./ui-helpers.service";
 
 describe("Extended UI Helper Functions", () => {
-  describe("generateShareButtonTextWithTimeout", () => {
-    test("should return success text when isSuccess is true", () => {
-      const text = generateShareButtonTextWithTimeout(true, false);
-      expect(text).toBe("✅ Lien copié !");
-    });
-
-    test("should return error text when isError is true", () => {
-      const text = generateShareButtonTextWithTimeout(false, true);
-      expect(text).toBe("❌ Erreur de copie");
-    });
-
-    test("should return base text when neither success nor error", () => {
-      const text = generateShareButtonTextWithTimeout(false, false);
-      expect(text).toBe("📋 Partager le Lien");
-    });
-
-    test("should use custom base text", () => {
-      const text = generateShareButtonTextWithTimeout(
-        false,
-        false,
-        "Custom Text",
-      );
-      expect(text).toBe("Custom Text");
-    });
-  });
-
   describe("getGameStateMessage", () => {
     test("should return correct message for waiting state", () => {
       const message = getGameStateMessage("waiting");

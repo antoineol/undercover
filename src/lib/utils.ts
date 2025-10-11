@@ -273,25 +273,8 @@ export function ensureMrWhiteNotFirst(playerOrder: Player[]): Player[] {
 /**
  * Copy text to clipboard with fallback
  */
-export async function copyToClipboard(text: string): Promise<boolean> {
-  try {
-    await navigator.clipboard.writeText(text);
-    return true;
-  } catch {
-    // Fallback for older browsers
-    try {
-      const textArea = document.createElement("textarea");
-      textArea.value = text;
-      document.body.appendChild(textArea);
-      textArea.select();
-      document.execCommand("copy");
-      document.body.removeChild(textArea);
-      return true;
-    } catch (fallbackError) {
-      console.error("Failed to copy to clipboard:", fallbackError);
-      return false;
-    }
-  }
+export async function copyToClipboard(text: string) {
+  return navigator.clipboard.writeText(text);
 }
 
 /**
